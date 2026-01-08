@@ -1,25 +1,40 @@
-"use client";
+"use client"
 
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
+import { Sun, Moon } from "lucide-react" // 예시 아이콘
+import { Button } from "@/components/ui/button"
 
 export default function ThemeToggleButton() {
-    const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
+    const { theme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
 
-    // 하이드레이션 오류 방지 (서버와 클라이언트의 테마 상태를 맞춤)
+    // 컴포넌트가 마운트된 후에만 렌더링되도록 설정
     useEffect(() => {
-        setMounted(true);
-    }, []);
+        setMounted(true)
+    }, [])
 
-    if (!mounted) return null;
+    // 마운트되기 전에는 레이아웃이 깨지지 않도록 투명한 버튼이나 빈 공간을 반환
+    if (!mounted) {
+        return (
+            <Button variant="outline" size="icon">
+                <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
+            </Button >
+        )
+    }
 
     return (
-        <button
+        <Button
+            variant="outline"
+            size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className={`p-2 bg-gray-200 dark:bg-gray-800 rounded-md transition-colors`}
         >
-            {theme === "dark" ? "🌙" : "☀️"}
-        </button>
-    );
+            {theme === "dark" ? (
+                <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
+            ) : (
+                <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+        </Button>
+    )
 }

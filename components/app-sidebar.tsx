@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "대시보드", url: "#", icon: LayoutDashboard },
+  { title: "대시보드", url: "/dashboard", icon: LayoutDashboard },
   { title: "사용자 관리", url: "#", icon: User },
   { title: "설정", url: "#", icon: Settings },
   { title: "홈", url: "#", icon: Home },
