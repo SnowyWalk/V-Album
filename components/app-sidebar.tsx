@@ -1,3 +1,4 @@
+"use client";
 
 import { Home, Settings, User, LayoutDashboard } from "lucide-react";
 import {
@@ -9,7 +10,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import CustomCalendar from "./custom-calendar";
 
 const items = [
   { title: "대시보드", url: "/dashboard", icon: LayoutDashboard },
@@ -19,11 +22,25 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  const mockHighlightDates = [
+    new Date(2025, 11, 25), // 2025년 12월 25일
+    new Date(2026, 0, 1),   // 2026년 1월 1일
+    new Date(2026, 0, 15),
+    new Date(2026, 2, 10),  // 2026년 3월 10일
+  ];
+
+  const handleDateSelect = (date: Date) => {
+    console.log("선택된 날짜:", date);
+  };
+
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          {/* Noto Sans KR이 적용되어 한글이 깔끔하게 나옵니다 */}
+
           <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">
             메뉴
           </SidebarGroupLabel>
@@ -42,6 +59,16 @@ export function AppSidebar() {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
+
+            <SidebarGroupContent className={`transition-[margin,opacity] duration-200 ease-linear ${isCollapsed ? "opacity-0 scale-95 blur-sm invisible -translate-y-2 h-0" : "opacity-100 scale-100 blur-none visible translate-y-0"}`}>
+              <CustomCalendar
+                highlightDates={mockHighlightDates}
+                onDateSelect={handleDateSelect}
+                className="w-full min-w-[280px] border-none shadow-none bg-transparent dark:bg-transparent p-0"
+              />
+            </SidebarGroupContent>
+
+          
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>

@@ -15,6 +15,12 @@ import {
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 
+// 1. props 타입에 highlightedDates 추가
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+  highlightedDates?: Date[] 
+}
+
 function Calendar({
   className,
   classNames,
@@ -23,10 +29,9 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  highlightedDates, // 추출
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
-}) {
+}: CalendarProps) {
   const defaultClassNames = getDefaultClassNames()
 
   return (
@@ -38,6 +43,10 @@ function Calendar({
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
       )}
+      // 2. 강조할 날짜들을 modifiers로 전달
+      modifiers={{
+        highlighted: highlightedDates || [],
+      }}
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
@@ -69,8 +78,9 @@ function Calendar({
           "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
           defaultClassNames.month_caption
         ),
+        // 3. 드롭다운 순서 변경: flex-row-reverse 추가
         dropdowns: cn(
-          "w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5",
+          "w-full flex flex-row-reverse items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5",
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
@@ -213,7 +223,18 @@ function CalendarDayButton({
         className
       )}
       {...props}
-    />
+    >
+      {/* 4. 날짜 숫자 출력 */}
+      {props.children}
+      
+      {/* 5. 점(indicator) 추가 */}
+      {modifiers.highlighted && (
+        <span className={cn(
+            "absolute bottom-1 left-1/2 -translate-x-1/2 flex h-1 w-1 rounded-full",
+            modifiers.selected ? "bg-primary-foreground" : "bg-primary"
+        )} />
+      )}
+    </Button>
   )
 }
 
