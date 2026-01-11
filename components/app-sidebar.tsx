@@ -64,7 +64,7 @@ export function AppSidebar() {
               <CustomCalendar
                 highlightDates={mockHighlightDates}
                 onDateSelect={handleDateSelect}
-                className="w-full min-w-[280px] border-none shadow-none bg-transparent dark:bg-transparent p-0"
+                className="w-full min-w-[200px] border-none shadow-none bg-transparent dark:bg-transparent p-0"
               />
             </SidebarGroupContent>
 
