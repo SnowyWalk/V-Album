@@ -1,7 +1,7 @@
 // components/app-sidebar.tsx
 "use client";
 
-import { Home, Settings, User, LayoutDashboard } from "lucide-react";
+import { Home, Settings, User, LayoutDashboard, Instagram, CirclePlus } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,10 +20,7 @@ import { useEffect, useMemo, useState } from "react"; // ✅ 추가
 import { cn } from "@/lib/utils"; // ✅ 추가
 
 const items = [
-  { title: "대시보드", url: "/dashboard", icon: LayoutDashboard },
-  { title: "사용자 관리", url: "#", icon: User },
-  { title: "설정", url: "#", icon: Settings },
-  { title: "홈", url: "#", icon: Home },
+  { title: "그룹 1", url: "/dashboard", icon: LayoutDashboard },
 ];
 
 // ✅ 추가: 사이드바 하단 “내 정보” UI용 타입 (필요하면 네가 확장)
@@ -97,8 +94,20 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarContent>
         <SidebarGroup className="overflow-hidden">
+
+          <SidebarGroupContent>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="홈">
+                <a href="/" className="flex items-center gap-3">
+                  <Home className="size-5" />
+                  <span className="font-sans font-medium">홈</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarGroupContent>
+
           <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">
-            메뉴
+            그룹
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
@@ -107,16 +116,24 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <a href={item.url} className="flex items-center gap-3">
-                      <item.icon className="size-5" />
+                      <Instagram className="size-5" />
                       <span className="font-sans font-medium">{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem className="mt-0">
+                <SidebarMenuButton asChild tooltip="새 그룹 만들기">
+                  <a href="/" className="flex items-center gap-3">
+                    <CirclePlus className="size-5" />
+                    <span className="font-sans font-medium">새 그룹 만들기</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
 
-          <SidebarSeparator className="my-1 mx-0" />
+          <SidebarSeparator className="my-5 mx-0" />
 
           <SidebarGroupContent
             className={cn(

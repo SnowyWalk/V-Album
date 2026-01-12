@@ -41,7 +41,7 @@ export default function WelcomePage() {
     setGuestLoading(true);
     try {
       // TODO: 게스트 로그인 처리 (서버 호출 → 토큰 저장 → 이동)
-      // localStorage.setItem('accessToken', token);
+      localStorage.setItem('nickname', trimmed);
       router.replace('/'); // ✅ 필요하면 변경
     } finally {
       setGuestLoading(false);
