@@ -1,7 +1,7 @@
 // components/app-sidebar.tsx
 "use client";
 
-import { Home, Settings, User, LayoutDashboard, Instagram, CirclePlus } from "lucide-react";
+import { Home, Settings, User, LayoutDashboard, Instagram, CirclePlus, Image, LayoutList, Globe } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +18,12 @@ import {
 import CustomCalendar from "./custom-calendar";
 import { useEffect, useMemo, useState } from "react"; // ✅ 추가
 import { cn } from "@/lib/utils"; // ✅ 추가
+
+const demoItems = [
+  { title: "피드", url: "/demo/feed", icon: LayoutList },
+  { title: "갤러리", url: "/demo/gallary", icon: Image },
+  { title: "장소별 보기", url: "/demo/places", icon: Globe },
+];
 
 const items = [
   { title: "그룹 1", url: "/dashboard", icon: LayoutDashboard },
@@ -104,6 +110,25 @@ export function AppSidebar() {
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarGroupContent>
+
+          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">
+            데모 페이지
+          </SidebarGroupLabel>
+
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {demoItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <a href={item.url} className="flex items-center gap-3">
+                      <item.icon className="size-5" />
+                      <span className="font-sans font-medium">{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
           </SidebarGroupContent>
 
           <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">
