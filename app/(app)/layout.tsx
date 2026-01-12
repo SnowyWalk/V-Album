@@ -1,5 +1,5 @@
 // app/layout.tsx
-import "./globals.css"
+import "@/app/globals.css"
 import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Noto_Sans_KR } from 'next/font/google'
@@ -18,7 +18,7 @@ const notoSansKR = Noto_Sans_KR({
 });
 
 const googleSansFlex = localFont({
-  src: '../public/fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf',
+  src: '../../public/fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf',
   variable: '--font-google-sans-flex',
   display: 'swap',
 });
