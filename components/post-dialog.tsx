@@ -92,7 +92,7 @@ export function PostDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             {/* ✅ 인스타처럼 전체에 가깝게: max-w / height 크게 */}
-            <DialogContent className="max-w-[min(1600px,98vw)] w-full p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-[min(1600px,98vw)] max-w-[min(1600px,98vw)] w-full p-0 overflow-hidden">
                 <VisuallyHidden>
                     <DialogTitle>{post.author}의 게시글</DialogTitle>
                 </VisuallyHidden>
