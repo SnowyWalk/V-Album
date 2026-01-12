@@ -119,8 +119,6 @@ export default function CustomCalendar({ highlightDates, onDateSelect, className
                     "relative flex flex-col items-center justify-center text-xs font-medium transition-all rounded-lg h-full",
                     isOutRange ? "opacity-10 cursor-not-allowed" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
                     // 오늘이 속한 월 하이라이트
-                    isThisMonth && !isSameMonth(lastActiveDate, targetMonth) && "ring-1 ring-blue-200 dark:ring-blue-900 bg-blue-50/30",
-                    isSameMonth(lastActiveDate, targetMonth) ? "text-blue-600 font-bold bg-blue-50/50 dark:bg-blue-900/20" : ""
                   )}
                 >
                   {i + 1}월

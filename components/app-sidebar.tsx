@@ -96,7 +96,7 @@ export function AppSidebar() {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="overflow-hidden">
           <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">
             메뉴
           </SidebarGroupLabel>
@@ -116,25 +116,30 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
 
+          <SidebarSeparator className="my-1 mx-0" />
+
           <SidebarGroupContent
             className={cn(
-              "transition-[margin,opacity] duration-200 ease-linear",
+              "origin-top-left transition-transform duration-200 ease-linear",
               isCollapsed
-                ? "opacity-0 scale-95 blur-sm invisible -translate-y-2 h-0"
-                : "opacity-100 scale-100 blur-none visible translate-y-0"
+                ? "scale-0"
+                : "scale-100"
             )}
           >
             <CustomCalendar
               highlightDates={mockHighlightDates}
               onDateSelect={handleDateSelect}
-              className="w-full min-w-[200px] border-none shadow-none bg-transparent dark:bg-transparent p-0"
+              className="w-full border-none shadow-none bg-transparent dark:bg-transparent p-0"
             />
           </SidebarGroupContent>
+
+          <SidebarSeparator className="my-1 mx-0" />
+
         </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-2">
-        <SidebarSeparator className="my-1" />
+        <SidebarSeparator className="my-1 mx-0" />
 
         <div
           className={cn(
