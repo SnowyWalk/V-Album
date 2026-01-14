@@ -36,3 +36,6 @@ yarn-error.log*
 next-env.d.ts
 .idea/
 repomix-output.xml
+Server/obj/
+Server/bin/
+Server/.vs/
