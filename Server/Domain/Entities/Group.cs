@@ -1,5 +1,4 @@
-﻿
-namespace Server.Domain.Entities
+﻿namespace Server.Domain.Entities
 {
     public class Group : EntityBase, ISoftDeletable
     {
