@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Server.Api.Auth;
+using Server.Api.Common;
+using Server.Api.Groups;
 using Server.Data;
 using System;
 
@@ -18,11 +21,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseCurrentUser();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapAuthEndpoints();
+app.MapGroupEndpoints();
 
 app.MapGet("/", () => "OK");
 
