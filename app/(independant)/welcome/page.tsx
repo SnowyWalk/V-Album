@@ -40,8 +40,31 @@ export default function WelcomePage() {
     if (!canGuest || guestLoading) return;
     setGuestLoading(true);
     try {
-      // TODO: 게스트 로그인 처리 (서버 호출 → 토큰 저장 → 이동)
-      localStorage.setItem('nickname', trimmed);
+      const response = await fetch('/auth/nickname', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ displayName: trimmed }),
+      });
+
+      if (!response.ok) {
+        throw new Error('닉네임 인증에 실패했어.');
+      }
+
+      const data = await response.json() as {
+        userUuid?: string;
+        displayName?: string;
+        userType?: string;
+      };
+
+      localStorage.setItem(
+        'nickname',
+        JSON.stringify({
+          nickname: data.displayName ?? trimmed,
+          userUuid: data.userUuid,
+          userType: data.userType,
+          statusText: '둘러보는 중',
+        }),
+      );
       router.replace('/'); // ✅ 필요하면 변경
     } finally {
       setGuestLoading(false);
