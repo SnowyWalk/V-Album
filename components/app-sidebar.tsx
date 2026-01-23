@@ -57,6 +57,7 @@ export function AppSidebar() {
     nickname: "게스트",
     statusText: "둘러보는 중",
   });
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
     // ✅ 여기부터 네 서비스에 맞게 키/구조만 바꾸면 돼
@@ -71,6 +72,7 @@ export function AppSidebar() {
           avatarUrl: parsed.avatarUrl || prev.avatarUrl,
           statusText: parsed.statusText || prev.statusText,
         }));
+        setIsLoadingProfile(false);
         return;
       } catch {
         // JSON 파싱 실패 시 아래 fallback 사용
@@ -88,6 +90,7 @@ export function AppSidebar() {
       avatarUrl: avatarUrl || prev.avatarUrl,
       statusText: prev.statusText,
     }));
+    setIsLoadingProfile(false);
   }, []);
 
   const initials = useMemo(() => {
@@ -191,7 +194,9 @@ export function AppSidebar() {
           )}
         >
           <div className={cn("relative shrink-0", isCollapsed ? "size-9" : "size-10")}>
-            {me.avatarUrl ? (
+            {isLoadingProfile ? (
+              <div className="h-full w-full rounded-full border bg-muted animate-pulse" />
+            ) : me.avatarUrl ? (
               <img
                 src={me.avatarUrl}
                 alt="me"
@@ -208,13 +213,21 @@ export function AppSidebar() {
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <div className="truncate text-sm font-semibold leading-none">
-                  {me.nickname || "게스트"}
+                {isLoadingProfile ? (
+                  <div className="h-4 w-24 rounded-md bg-muted animate-pulse" />
+                ) : (
+                  <div className="truncate text-sm font-semibold leading-none">
+                    {me.nickname || "게스트"}
+                  </div>
+                )}
+              </div>
+              {isLoadingProfile ? (
+                <div className="mt-1 h-3 w-32 rounded-md bg-muted animate-pulse" />
+              ) : (
+                <div className="mt-1 truncate text-[11px] text-muted-foreground">
+                  {me.email || me.statusText || " "}
                 </div>
-              </div>
-              <div className="mt-1 truncate text-[11px] text-muted-foreground">
-                {me.email || me.statusText || " "}
-              </div>
+              )}
             </div>
           )}
 

@@ -40,7 +40,7 @@ export default function WelcomePage() {
     if (!canGuest || guestLoading) return;
     setGuestLoading(true);
     try {
-      const response = await fetch('/auth/nickname', {
+      const response = await fetch('/api/auth/nickname', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ displayName: trimmed }),
