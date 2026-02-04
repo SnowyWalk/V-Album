@@ -1,0 +1,6 @@
+@V_Album_Server_HostAddress = http://localhost:5117
+
+GET {{V_Album_Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
