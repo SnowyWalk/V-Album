@@ -1,8 +1,8 @@
 // /auth.ts
-import type { NextAuthOptions } from "next-auth" // <-- 변경: 타입 추가
-import GoogleProvider from "next-auth/providers/google" // <-- 변경: Provider 이름/패턴
+import type { NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
 
-export const authOptions: NextAuthOptions = { // <-- 변경: 옵션 export
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -13,12 +13,13 @@ export const authOptions: NextAuthOptions = { // <-- 변경: 옵션 export
   callbacks: {
     async jwt({ token, account }) {
       if (account?.provider === "google" && account.id_token) {
-        (token as any).googleIdToken = account.id_token // <-- 변경: id_token 저장
+        (token as any).googleIdToken = account.id_token
       }
       return token
     },
-    async session({ session, token }) { // <-- 변경: v4에선 token을 받아서 session에 주입
-      (session as any).googleIdToken = (token as any).googleIdToken // <-- 변경
+    async session({ session, token }) {
+      (session as any).googleIdToken = (token as any).googleIdToken
+      console.log("Session callback:", session)
       return session
     },
   },

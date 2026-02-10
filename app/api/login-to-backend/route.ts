@@ -18,6 +18,7 @@ export async function POST() {
   const payload = {
     email: session.user?.email,
     name: session.user?.name,
+    googleIdToken: (session as any).googleIdToken, // <-- auth.ts에서 주입한 값 사용
   }
 
   // 3) ASP.NET 서버에 로그인 교환 요청
