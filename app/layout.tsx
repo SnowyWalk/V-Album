@@ -29,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
-          <SidebarLayout children={children} />
+          <SidebarLayout >
+            {children}
+          </SidebarLayout>
         </Providers>
       </body>
     </html>

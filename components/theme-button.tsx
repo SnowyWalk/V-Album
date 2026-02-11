@@ -5,16 +5,16 @@ import { Button } from "./ui/button"
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme()
 
-  const isDark = theme === "dark"
-
   return (
     <Button
       variant="ghost"
       className="w-full justify-start gap-2"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      {isDark ? "라이트 모드" : "다크 모드"}
+      <Sun className="hidden h-4 w-4 dark:block" />
+      <Moon className="h-4 w-4 dark:hidden" />
+      <span className="dark:hidden">다크 모드</span>
+      <span className="hidden dark:inline">라이트 모드</span>
     </Button>
   )
 }
