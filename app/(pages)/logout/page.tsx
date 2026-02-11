@@ -4,7 +4,7 @@ import { signOut, useSession } from "next-auth/react"
 
 
 export default function LogoutPage() {
-    signOut({ callbackUrl: "/login" });
+    signOut({ callbackUrl: "/dashboard" });
 
   return (
     <div style={{ padding: 24 }}>

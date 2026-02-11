@@ -22,7 +22,6 @@
     <Folder Include="Infrastructures\Auth\" />
     <Folder Include="Infrastructures\Persistence\Repositories\" />
     <Folder Include="Services\Auth\" />
-    <Folder Include="src\" />
   </ItemGroup>
 
 </Project>
