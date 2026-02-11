@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "unauthenticated")
-      signIn("google", { callbackUrl: "/login" })
+      signIn("google", {redirect: false})
   }, [status])
 
   return (
