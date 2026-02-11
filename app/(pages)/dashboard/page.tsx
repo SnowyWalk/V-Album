@@ -14,7 +14,7 @@ export default function DashboardPage() {
     return (
         <section>
             <div className="relative inline-block">
-                <div className="min-w-[92px] h-10" />
+                <div className="min-w-23 h-10" />
 
                 {
                     status === "loading" &&
@@ -44,7 +44,7 @@ export default function DashboardPage() {
             </div>
 
             <br />
-            <Card className="p-4">
+            <Card className="p-4 w-120">
                 <CardTitle>대시보드</CardTitle>
                 <CardContent>대시보드에 오신 것을 환영합니다!</CardContent>
             </Card>

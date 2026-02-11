@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
+
+
 import {
   LayoutDashboard,
   Folder,
@@ -17,6 +19,7 @@ import {
   Menu,
   LogOut,
 } from "lucide-react"
+import ThemeToggle from "./theme-button"
 
 type NavItem = {
   href: string
@@ -72,6 +75,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <Separator />
 
       <div className="p-2">
+        <ThemeToggle />
+
         <Button variant="ghost" className="w-full justify-start gap-2">
           <LogOut className="h-4 w-4" />
           로그아웃
