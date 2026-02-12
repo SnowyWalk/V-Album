@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using V_Album_Server.Infrastructures.Persistence.Scaffold;
 
 namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
 
@@ -12,7 +11,7 @@ public partial class AppDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Auth> Auths { get; set; }
+    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,11 +19,11 @@ public partial class AppDbContext : DbContext
             .UseCollation("utf8_general_ci")
             .HasCharSet("utf8");
 
-        modelBuilder.Entity<Auth>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("auth");
+            entity.ToTable("user");
 
             entity.HasIndex(e => e.GoogleSub, "google_id_token_UNIQUE").IsUnique();
 
@@ -35,11 +34,23 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasColumnType("int(11)")
                 .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("deleted_at");
             entity.Property(e => e.GoogleSub)
                 .HasMaxLength(64)
                 .HasColumnName("google_sub");
+            entity.Property(e => e.UpdatedAt)
+                .ValueGeneratedOnAddOrUpdate()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
             entity.Property(e => e.UserUuid)
-                .HasMaxLength(32)
+                .HasMaxLength(36)
                 .HasColumnName("user_uuid");
         });
 
