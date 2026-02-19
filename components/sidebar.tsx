@@ -19,7 +19,8 @@ import {
   Menu,
   LogOut,
 } from "lucide-react"
-import ThemeToggle from "./theme-button"
+import { ThemeToggle } from "./theme-toggle"
+import { AnimatedThemeToggler } from "./ui/animated-theme-toggler"
 
 type NavItem = {
   href: string
@@ -75,7 +76,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <Separator />
 
       <div className="p-2">
-        <ThemeToggle />
+        <AnimatedThemeToggler duration={1000}  />
 
         <Button variant="ghost" className="w-full justify-start gap-2">
           <LogOut className="h-4 w-4" />

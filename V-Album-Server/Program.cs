@@ -2,6 +2,7 @@
 using V_Album_Server.Infrastructures.Persistence.Repositories;
 using V_Album_Server.Services.Login;
 using V_Album_Server.Services.Login.Handlers;
+using V_Album_Server.Services.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<V_Album_Server.Infrastructures.Persistence.Scaffol
 });
 
 builder.Services.AddScoped<LoginService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ILoginHandler, GoogleLoginHandler>();
 builder.Services.AddScoped<UserRepository>();
 

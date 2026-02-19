@@ -1,5 +1,6 @@
 ﻿
 using Google.Apis.Auth;
+using Newtonsoft.Json.Linq;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
 
 namespace V_Album_Server.Services.Login.Handlers;
@@ -19,18 +20,24 @@ public class GoogleLoginHandler : ILoginHandler
 
     public async Task<LoginResult> LoginAsync(string token, CancellationToken ct)
     {
-        var clientId = m_configuration["GoogleAuth:ClientId"];
-        if (string.IsNullOrWhiteSpace(clientId))
-            throw new InvalidOperationException("GoogleAuth:ClientId is not configured.");
+        var googleSub = await GetGoogleSubFromGoogleIdToken(token);
+        if (string.IsNullOrWhiteSpace(googleSub))
+            throw new InvalidDataException("Google subject(sub) was missing from token.");
 
+        var (user, isNewUser) = await m_userRepository.FindOrCreateUserByGoogleSubAsync(googleSub, ct);
+        return new LoginResult(user.UserUuid.ToString(), isNewUser);
+    }
+
+    private async Task<string> GetGoogleSubFromGoogleIdToken( string googleIdToken)
+    {
         GoogleJsonWebSignature.Payload payload;
         try
         {
             payload = await GoogleJsonWebSignature.ValidateAsync(
-                token,
+                googleIdToken,
                 new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = [clientId],
+                    Audience = [GetClientId()],
                 });
         }
         catch (InvalidJwtException)
@@ -38,11 +45,13 @@ public class GoogleLoginHandler : ILoginHandler
             throw new UnauthorizedAccessException("Invalid Google ID token.");
         }
 
-        var googleSub = payload.Subject;
-        if (string.IsNullOrWhiteSpace(googleSub))
-            throw new InvalidDataException("Google subject(sub) was missing from token.");
-
-
-        return await m_userRepository.GoogleLoginOrCreateAsync(googleSub, ct);
+        return payload.Subject;
+    }
+    private string GetClientId()
+    {
+        var clientId = m_configuration["GoogleAuth:ClientId"];
+        if (string.IsNullOrWhiteSpace(clientId))
+            throw new InvalidOperationException("GoogleAuth:ClientId is not configured.");
+        return clientId;
     }
 }

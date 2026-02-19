@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
 
@@ -44,6 +42,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.GoogleSub)
                 .HasMaxLength(64)
                 .HasColumnName("google_sub");
+            entity.Property(e => e.Nickname)
+                .HasMaxLength(50)
+                .HasColumnName("nickname");
             entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

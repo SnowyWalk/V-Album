@@ -1,6 +1,8 @@
-﻿using V_Album_Server.Domains.Auth;
-
-namespace V_Album_Server.Infrastructures.Persistence.Mapping;
+﻿namespace V_Album_Server.Infrastructures.Persistence.Mapping;
 public static class UserMapping
 {
+    public static Domains.User.User ToDomain(this Scaffold.User user)
+    {
+        return new Domains.User.User(new Guid(user.UserUuid), user.Nickname, user.GoogleSub);
+    }
 }

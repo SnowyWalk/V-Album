@@ -11,9 +11,10 @@ export const authOptions: NextAuthOptions = {
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, account }) {
-      if (account?.provider === "google" && account.id_token) {
+    async jwt({ token, account, profile }) {
+      if (account?.provider === "google" && account.id_token && profile && profile.sub) {
         token.googleIdToken = account.id_token
+        token.googleSub = profile.sub
       }
       return token
     },

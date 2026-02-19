@@ -1,15 +1,15 @@
-﻿namespace V_Album_Server.Domains.Auth;
+﻿namespace V_Album_Server.Domains.User;
 
 public class User
 { 
     public Guid UserUuid { get; }
+    public string Nickname { get; }
     public string? GoogleSub { get; }
 
-    public User(Guid userUuid, string? googleSub)
+    public User(Guid userUuid, string nickname, string? googleSub)
     { 
         UserUuid = userUuid;
+        Nickname = nickname;
         GoogleSub = googleSub;
     }
-
-    public static User NewWithGoogle(string googleSub) => new User(Guid.NewGuid(), googleSub.Trim());
 }

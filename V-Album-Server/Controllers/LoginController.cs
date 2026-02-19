@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using V_Album_Server.Infrastructures.Persistence.Scaffold;
 using V_Album_Server.Services.Login;
 
 namespace V_Album_Server.Controllers;
@@ -24,7 +23,6 @@ public class LoginController : ControllerBase
             return BadRequest(new { error = "googleIdToken is required." });
 
         LoginResult result = await m_loginService.LoginAsync(LoginProvider.Google, request.GoogleIdToken, ct);
-
         return Ok(new { result.userUuid, result.isNewUser });
     }
 

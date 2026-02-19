@@ -5,7 +5,6 @@ import { getToken } from "next-auth/jwt"
 
 export async function POST(req: NextRequest) {
   // 1) NextAuth 세션 확인 (서버에서 직접)
-  console.log("login-to-backend route POST called")
   const session = await getServerSession(authOptions)
 
   if (!session) {
@@ -42,7 +41,6 @@ export async function POST(req: NextRequest) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-    credentials: "include", // 백엔드가 쿠키 내려주는 경우
   })
 
   if (!res.ok) {

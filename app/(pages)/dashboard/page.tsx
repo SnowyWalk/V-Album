@@ -8,8 +8,11 @@ import { useRouter } from "next/navigation";
 
 
 export default function DashboardPage() {
-    const { status } = useSession();
+    const { status, data } = useSession();
     const router = useRouter();
+
+    console.log("Session status:", status);
+    console.log("Session data:", data);
 
     return (
         <section>
