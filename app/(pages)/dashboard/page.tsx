@@ -4,18 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMe } from "@/hooks/use-me";
-import { getSession, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-
 export default function DashboardPage() {
-    const { status, data } = useSession();
-    const { data: me , isLoading: isMeLoading } = useMe();
+    const { status, update } = useSession();
+    const { data: me, isLoading: isMeLoading, resetMe } = useMe();
     const router = useRouter();
-
-    console.log("Session status:", status);
-    console.log("Session data:", data);
-    console.log("Me data:", me);
 
     return (
         <section>
@@ -25,26 +20,24 @@ export default function DashboardPage() {
                 {
                     status === "loading" &&
                     <div className="absolute inset-0">
-                        <Skeleton className="h-10 w-full rounded-md" /> {/* <-- 변경 */}
+                        <Skeleton className="h-10 w-full rounded-md" />
                     </div>
                 }
 
                 {
                     status === "unauthenticated" &&
                     <Button variant={"outline"} className="absolute inset-0" onClick={() => {
-                        window.open(
-                            "/login-start",
-                            "google-login",
-                            "popup=yes,width=520,height=700"
-                        )
+                        router.push("/login-start");
                     }}>로그인</Button>
                 }
 
                 {
                     status === "authenticated" &&
                     <Button variant={"outline"} className="absolute inset-0" onClick={async () => {
-                        await signOut({ redirect: false })
-                        router.refresh() // <-- 추가
+                        await signOut({ redirect: false });
+                        await update();
+                        resetMe();
+                        router.refresh();
                     }}>로그아웃</Button>
                 }
             </div>
