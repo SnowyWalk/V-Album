@@ -1,10 +1,38 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useSession } from "next-auth/react"
+import { useCallback, useEffect } from "react"
+
+const meQueryKey = ["me"] as const
 
 export function useMe() {
-  return useQuery({
-    queryKey: ["me"],
+  const { status } = useSession()
+  const queryClient = useQueryClient()
+
+  const resetMe = useCallback(() => {
+    queryClient.setQueryData(meQueryKey, null)
+  }, [queryClient])
+
+  const invalidateMe = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: meQueryKey })
+  }, [queryClient])
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      resetMe()
+    }
+  }, [resetMe, status])
+
+  const query = useQuery({
+    queryKey: meQueryKey,
     queryFn: fetchMe,
+    enabled: status === "authenticated",
   })
+
+  return {
+    ...query,
+    resetMe,
+    invalidateMe,
+  }
 }
 
 export type MeDto = {
