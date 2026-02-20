@@ -43,7 +43,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ padding: 24 }}>
-      {status}
+      {status === "unauthenticated" && <p>구글 로그인 확인 중...</p>}
       {status === "loading" && <p>세션 확인 중...</p>}
       {status === "authenticated" && <p>백엔드 로그인 처리 중...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}

@@ -42,3 +42,5 @@ next-env.d.ts
 V-Album-Server/.vs/
 V-Album-Server/obj/
 V-Album-Server/bin/
+/.idea/*
+/V-Album-Server/.idea/*
