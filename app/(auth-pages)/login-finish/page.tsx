@@ -21,8 +21,7 @@ export default function LoginFinishPage() {
                     throw new Error(data.error || "백엔드 로그인 실패")
                 }
 
-                // 성공 시 대시보드로 이동
-                router.replace("/dashboard")
+                window.close()
             } catch (err) {
                 console.error("Login finish error:", err)
                 setError(err instanceof Error ? err.message : "unknown error")
