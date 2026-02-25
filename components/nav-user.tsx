@@ -29,6 +29,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
+import {toggleThemeWithTransition} from "@/components/ui/animated-theme-toggler";
 import {useTheme} from "next-themes";
 
 export function NavUser({
@@ -44,11 +45,6 @@ export function NavUser({
     const {resolvedTheme, setTheme} = useTheme()
 
     const isDark = resolvedTheme === "dark"
-
-    const toggleTheme = () => {
-        setTheme(isDark ? "light" : "dark")
-    }
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -109,7 +105,19 @@ export function NavUser({
                                 <Bell/>
                                 Notifications
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={toggleTheme}>
+                            <DropdownMenuItem
+                                onClick={(event) => {
+                                    void toggleThemeWithTransition(event.currentTarget as HTMLElement,
+                                        {
+                                            isDark: isDark,
+                                            duration: 1000,
+                                            cursorX: event.clientX,
+                                            cursorY: event.clientY,
+                                            onThemeChange: () => setTheme(isDark ? "light" : "dark")
+                                        }
+                                    )
+                                }}
+                            >
                                 {isDark ? <Sun/> : <Moon/>}
                                 테마 변경
                             </DropdownMenuItem>
