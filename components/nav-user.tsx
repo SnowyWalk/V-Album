@@ -4,7 +4,7 @@ import {
     BadgeCheck,
     Bell,
     ChevronsUpDown,
-    CreditCard,
+    CreditCard, Ghost,
     LogOut, Moon,
     Sparkles, Sun,
 } from "lucide-react"
@@ -31,6 +31,9 @@ import {
 } from "@/components/ui/sidebar"
 import {toggleThemeWithTransition} from "@/components/ui/animated-theme-toggler";
 import {useTheme} from "next-themes";
+import {useMe} from "@/hooks/use-me";
+import {useSession} from "next-auth/react";
+import {Skeleton} from "@/components/ui/skeleton";
 
 export function NavUser({
                             user,
@@ -42,9 +45,57 @@ export function NavUser({
     }
 }) {
     const {isMobile} = useSidebar()
-    const {resolvedTheme, setTheme} = useTheme()
 
+    const {resolvedTheme, setTheme} = useTheme()
     const isDark = resolvedTheme === "dark"
+
+    const {status: sessionStatus} = useSession();
+    const {data: me, isLoading: isMeLoading} = useMe()
+
+    const UserProfile = () => {
+        if (isMeLoading || sessionStatus == "loading")
+            return (
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-skeleton">
+                        <Skeleton className="h-full w-full" />
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                        <Skeleton className="h-[17.5px] w-24" />
+                        <Skeleton className="h-4 w-32" />
+                    </div>
+                </div>
+            )
+            
+            if (!me)
+                return (
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-guest">
+                            <AvatarFallback><Ghost /></AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                            <span className="truncate font-medium">게스트</span>
+                            <span className="truncate text-xs">비로그인 상태</span>
+                        </div>
+                    </div>
+                );
+            
+            return (
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar">
+                        <AvatarImage src="https://avatars.githubusercontent.com/u/1624067?v=4" alt="User Avatar"/>
+                        <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-medium">{me?.nickname}</span>
+                        <span className="truncate text-xs">{me?.userUuid}</span>
+                    </div>
+                </div>
+            )
+    }
+    
+    
+    
+    
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -55,14 +106,7 @@ export function NavUser({
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={user.avatar} alt={user.name}/>
-                                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                            </Avatar>
-                            <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{user.name}</span>
-                                <span className="truncate text-xs">{user.email}</span>
-                            </div>
+                            {UserProfile()}
                             <ChevronsUpDown className="ml-auto size-4"/>
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
