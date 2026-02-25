@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const appleSdGothicNeo = localFont({
   variable: "--font-apple-sans",
@@ -42,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
-        className={`${appleSdGothicNeo.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+        className={`${appleSdGothicNeo.variable} antialiased`}>
             {children}
       </body>
     </html>
