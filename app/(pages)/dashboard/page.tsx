@@ -1,26 +1,47 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useMe } from "@/hooks/use-me";
-import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Skeleton} from "@/components/ui/skeleton";
+import {MeDto, useMe} from "@/hooks/use-me";
+import {signOut, useSession} from "next-auth/react";
+import {useRouter} from "next/navigation";
 
 export default function DashboardPage() {
-    const { status, update } = useSession();
-    const { data: me, isLoading: isMeLoading, resetMe } = useMe();
+    const {status, update} = useSession();
+    const {data: me, isLoading: isMeLoading, resetMe} = useMe();
     const router = useRouter();
+
+    const loginStatus = ({status, isMeLoading, me}: { status: "authenticated" | "loading" | "unauthenticated", isMeLoading: boolean, me: MeDto | null | undefined }) => {
+        if (isMeLoading || status === "loading")
+            return (
+                <div>
+                    <Skeleton className="h-4 mb-2 w-full"/>
+                    <Skeleton className="h-4 mb-2 w-3/4"/>
+                </div>
+            );
+
+        if (me) {
+            return (
+                <div>
+                    <p>닉네임: {me.nickname}</p>
+                    <p>UUID: {me.userUuid}</p>
+                </div>
+            )
+        }
+
+        return <p>No Data {status}</p>;
+    };
 
     return (
         <section>
             <div className="relative inline-block">
-                <div className="min-w-23 h-10" />
+                <div className="min-w-23 h-10"/>
 
                 {
                     status === "loading" &&
                     <div className="absolute inset-0">
-                        <Skeleton className="h-10 w-full rounded-md" />
+                        <Skeleton className="h-10 w-full rounded-md"/>
                     </div>
                 }
 
@@ -34,7 +55,7 @@ export default function DashboardPage() {
                 {
                     status === "authenticated" &&
                     <Button variant={"outline"} className="absolute inset-0" onClick={async () => {
-                        await signOut({ redirect: false });
+                        await signOut({redirect: false});
                         await update();
                         resetMe();
                         router.refresh();
@@ -42,27 +63,16 @@ export default function DashboardPage() {
                 }
             </div>
 
-            <br />
-            <Card className="p-4 w-120">
-                <CardTitle>대시보드</CardTitle>
-                <CardContent>대시보드에 오신 것을 환영합니다!</CardContent>
-            </Card>
+            <br/>
 
-            <Card className="p-4 w-120">
-                <CardTitle>로그인 정보</CardTitle>
+            <Card className="w-120">
+                <CardHeader>
+                    <CardTitle>로그인 정보</CardTitle>
+                </CardHeader>
                 <CardContent>
-                    {isMeLoading ? (
-                        <Skeleton className="h-4 w-full" />
-                    ) : me ? (
-                        <div>
-                            <p>닉네임: {me.nickname}</p>
-                            <p>UUID: {me.userUuid}</p>
-                        </div>
-                    ) : (
-                        <p>로그인 정보를 불러올 수 없습니다.</p>
-                    )}
+                    {loginStatus({status, isMeLoading, me})}
                 </CardContent>
             </Card>
-        </section >
+        </section>
     );
 }
