@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
 
@@ -45,6 +47,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Nickname)
                 .HasMaxLength(50)
                 .HasColumnName("nickname");
+            entity.Property(e => e.Pic)
+                .HasMaxLength(64)
+                .HasColumnName("pic");
             entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

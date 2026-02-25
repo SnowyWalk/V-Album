@@ -57,45 +57,42 @@ export function NavUser({
             return (
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-skeleton">
-                        <Skeleton className="h-full w-full" />
+                        <Skeleton className="h-full w-full"/>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                        <Skeleton className="h-[17.5px] w-24" />
-                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-[17.5px] w-24"/>
+                        <Skeleton className="h-4 w-32"/>
                     </div>
                 </div>
             )
-            
-            if (!me)
-                return (
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                        <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-guest">
-                            <AvatarFallback><Ghost /></AvatarFallback>
-                        </Avatar>
-                        <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-medium">게스트</span>
-                            <span className="truncate text-xs">비로그인 상태</span>
-                        </div>
-                    </div>
-                );
-            
+
+        if (!me)
             return (
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar">
-                        <AvatarImage src="https://avatars.githubusercontent.com/u/1624067?v=4" alt="User Avatar"/>
-                        <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-guest">
+                        <AvatarFallback><Ghost/></AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">{me?.nickname}</span>
-                        <span className="truncate text-xs">{me?.userUuid}</span>
+                        <span className="truncate font-medium">게스트</span>
+                        <span className="truncate text-xs">비로그인 상태</span>
                     </div>
                 </div>
-            )
+            );
+
+        return (
+            <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar">
+                    <AvatarImage src={`/profile-pics/${me.pic}.png`} alt="User Avatar"/>
+                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{me?.nickname}</span>
+                    <span className="truncate text-xs">{me?.userUuid}</span>
+                </div>
+            </div>
+        )
     }
-    
-    
-    
-    
+
     return (
         <SidebarMenu>
             <SidebarMenuItem>
