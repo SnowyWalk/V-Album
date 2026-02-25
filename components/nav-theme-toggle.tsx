@@ -7,8 +7,8 @@ export default function NavThemeToggle() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton>
-                    <AnimatedThemeToggler/>
+                <SidebarMenuButton asChild>
+                    <AnimatedThemeToggler className="justify-center"/>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
