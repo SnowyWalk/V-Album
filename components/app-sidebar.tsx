@@ -22,9 +22,11 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarRail, SidebarSeparator,
 } from "@/components/ui/sidebar"
+import {AnimatedThemeToggler} from "@/components/ui/animated-theme-toggler";
+import NavThemeToggle from "@/components/nav-theme-toggle";
 
 // This is sample data.
 const data = {
@@ -167,6 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
+        <NavThemeToggle />
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
