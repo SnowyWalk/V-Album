@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using V_Album_Server.Domains.Group;
 using V_Album_Server.Services.User;
 
 namespace V_Album_Server.Controllers;
@@ -25,6 +26,24 @@ public class UserController : ControllerBase
         try
         {
             return Ok(await m_userService.GetMe(googleSub, ct));
+        }
+        catch (UserNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+    
+    public sealed record GetGroupsResponse(List<Group> groups);
+    
+    [HttpGet("groups")]
+    public async Task<IActionResult> GetGroups([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(googleSub))
+            return Unauthorized(new { error = "Missing X-Google-Sub header" });
+        
+        try
+        {
+            return Ok(await m_userService.GetGroups(googleSub, ct));
         }
         catch (UserNotFoundException)
         {

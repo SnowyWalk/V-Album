@@ -4,6 +4,12 @@ import { useCallback, useEffect } from "react"
 
 const meQueryKey = ["me"] as const
 
+export type MeDto = {
+  userUuid: string
+  nickname: string
+  pic: string
+}
+
 export function useMe() {
   const { status } = useSession()
   const queryClient = useQueryClient()
@@ -33,12 +39,6 @@ export function useMe() {
     resetMe,
     invalidateMe,
   }
-}
-
-export type MeDto = {
-  userUuid: string
-  nickname: string
-  pic: string
 }
 
 async function fetchMe(): Promise<MeDto | null> {
