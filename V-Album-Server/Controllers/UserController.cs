@@ -15,7 +15,7 @@ public class UserController : ControllerBase
         m_userService = userService;
     }
 
-    public sealed record GetMeResponse(string userUuid, string nickname);
+    public sealed record GetMeResponse(string userUuid, string nickname, string? pic);
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMe([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)

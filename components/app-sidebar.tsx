@@ -22,8 +22,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
+  SidebarHeader
 } from "@/components/ui/sidebar"
 
 // This is sample data.

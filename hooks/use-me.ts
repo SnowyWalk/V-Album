@@ -38,6 +38,7 @@ export function useMe() {
 export type MeDto = {
   userUuid: string
   nickname: string
+  pic: string
 }
 
 async function fetchMe(): Promise<MeDto | null> {

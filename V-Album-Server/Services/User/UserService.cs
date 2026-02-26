@@ -17,6 +17,6 @@ public class UserService
         if (me is null)
             throw new UserNotFoundException(googleSub);
 
-        return new Controllers.UserController.GetMeResponse(me.UserUuid.ToString(), me.Nickname);
+        return new Controllers.UserController.GetMeResponse(me.UserUuid.ToString(), me.Nickname, me.Pic);
     }
 }
