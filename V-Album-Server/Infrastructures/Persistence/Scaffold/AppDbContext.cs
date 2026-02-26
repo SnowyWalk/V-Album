@@ -78,7 +78,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("joined_at");
             entity.Property(e => e.Role)
                 .HasDefaultValueSql("'Member'")
-                .HasColumnType("enum('Master','Manager','Member')")
+                .HasColumnType("enum('Owner','Admin','Member')")
                 .HasColumnName("role");
             entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()

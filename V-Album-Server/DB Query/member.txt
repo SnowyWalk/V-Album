@@ -1,7 +1,7 @@
 CREATE TABLE `member` (
 	`user_uuid` CHAR(36) NOT NULL COLLATE 'utf8_general_ci',
 	`group_uuid` CHAR(36) NOT NULL COLLATE 'utf8_general_ci',
-	`role` ENUM('Master','Manager','Member') NOT NULL DEFAULT 'Member' COLLATE 'utf8_general_ci',
+	`role` ENUM('Owner','Admin','Member') NOT NULL DEFAULT 'Member' COLLATE 'utf8_general_ci',
 	`alias` VARCHAR(64) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`joined_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
