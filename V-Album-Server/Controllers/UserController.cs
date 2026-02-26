@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading;
-using System.Threading.Tasks;
 using V_Album_Server.Services.User;
 
 namespace V_Album_Server.Controllers;
