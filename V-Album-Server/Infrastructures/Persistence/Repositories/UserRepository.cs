@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using V_Album_Server.Infrastructures.Persistence.Mapping;
 using V_Album_Server.Infrastructures.Persistence.Scaffold;
 
@@ -22,7 +25,7 @@ public class UserRepository
         {
             user = new User
             {
-                UserUuid = Guid.NewGuid().ToString("N"),
+                UserUuid = Guid.NewGuid(),
                 Nickname = $"User_{Guid.NewGuid()}",
                 GoogleSub = googleSub,
             };

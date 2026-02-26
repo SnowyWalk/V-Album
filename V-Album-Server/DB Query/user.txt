@@ -1,6 +1,6 @@
 CREATE TABLE `user` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`user_uuid` VARCHAR(36) NOT NULL COLLATE 'utf8_general_ci',
+	`user_uuid` CHAR(36) NOT NULL DEFAULT '' COLLATE 'utf8_general_ci',
 	`google_sub` VARCHAR(64) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`nickname` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
 	`pic` VARCHAR(64) NULL DEFAULT NULL COLLATE 'utf8_general_ci',

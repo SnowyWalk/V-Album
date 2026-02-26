@@ -1,4 +1,5 @@
-﻿namespace V_Album_Server.Services.User;
+﻿using System;
+namespace V_Album_Server.Services.User;
 
 public sealed class UserNotFoundException : Exception
 {

@@ -1,0 +1,15 @@
+CREATE TABLE `member` (
+	`user_uuid` CHAR(36) NOT NULL COLLATE 'utf8_general_ci',
+	`group_uuid` CHAR(36) NOT NULL COLLATE 'utf8_general_ci',
+	`role` ENUM('Master','Manager','Member') NOT NULL DEFAULT 'Member' COLLATE 'utf8_general_ci',
+	`alias` VARCHAR(64) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	`joined_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`deleted_at` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`user_uuid`, `group_uuid`) USING BTREE,
+	INDEX `유저가 가입한 그룹 조회용 인덱스` (`user_uuid`, `deleted_at`) USING BTREE,
+	INDEX `특정 그룹의 그룹 멤버 목록 조회용 인덱스` (`group_uuid`, `deleted_at`, `joined_at`) USING BTREE
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+;
