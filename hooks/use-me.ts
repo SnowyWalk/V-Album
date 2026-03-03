@@ -32,6 +32,12 @@ export function useMe() {
     queryKey: meQueryKey,
     queryFn: fetchMe,
     enabled: status === "authenticated",
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message === "Not authenticated") {
+        return false
+      }
+      return failureCount < 3
+    }
   })
 
   return {
@@ -47,8 +53,8 @@ async function fetchMe(): Promise<MeDto | null> {
     credentials: "include",
   })
 
-  // 로그인 안 된 상태
-  if (res.status === 401) return null
+  if (res.status === 401) // GoogleSub 없음 || 해당 유저 없음
+    throw new Error("Not authenticated")
 
   if (!res.ok) {
     throw new Error("Failed to fetch /api/user/me")

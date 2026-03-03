@@ -35,17 +35,17 @@ const data = {
   teams: [
     {
       name: "Acme Inc",
-      logo: GalleryVerticalEnd,
+      logo: "sample",
       plan: "Enterprise",
     },
     {
       name: "Acme Corp.",
-      logo: AudioWaveform,
+      logo: "AudioWaveform",
       plan: "Startup",
     },
     {
       name: "Evil Corp.",
-      logo: Command,
+      logo: "Command",
       plan: "Free",
     },
   ],
@@ -166,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

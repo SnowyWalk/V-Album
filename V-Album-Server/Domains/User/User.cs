@@ -8,7 +8,7 @@ public class User
     public string? Pic { get; }
 
     public User(Guid userUuid, string nickname, string? googleSub, string? pic)
-    { 
+    {
         UserUuid = userUuid;
         Nickname = nickname;
         GoogleSub = googleSub;

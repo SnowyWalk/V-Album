@@ -1,4 +1,7 @@
-﻿namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
+﻿using System;
+using System.Collections.Generic;
+
+namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
 
 public partial class User
 {

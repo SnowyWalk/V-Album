@@ -6,9 +6,9 @@ public class Group
     public string Name { get; }
     public string? Pic { get; }
 
-    public Group(Guid groupGroupUuid, string groupName, string? groupPic)
+    public Group(Guid groupUuid, string groupName, string? groupPic)
     {
-        GroupUuid = groupGroupUuid;
+        GroupUuid = groupUuid;
         Name = groupName;
         Pic = groupPic;
     }

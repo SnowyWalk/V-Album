@@ -15,7 +15,7 @@ public class UserController : ControllerBase
         m_userService = userService;
     }
 
-    public sealed record GetMeResponse(string userUuid, string nickname, string? pic);
+    public sealed record GetMeResponse(string UserUuid, string Nickname, string? Pic);
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMe([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
@@ -29,11 +29,11 @@ public class UserController : ControllerBase
         }
         catch (UserNotFoundException)
         {
-            return NotFound();
+            return Unauthorized(new { error = "No user found for this googleSub" });
         }
     }
     
-    public sealed record GetGroupsResponse(List<Group> groups);
+    public sealed record GetGroupsResponse(List<Group> Groups);
     
     [HttpGet("groups")]
     public async Task<IActionResult> GetGroups([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
