@@ -6,15 +6,8 @@ namespace V_Album_Server.Controllers;
 
 [ApiController]
 [Route("api/user")]
-public class UserController : ControllerBase
+public class UserController(UserService userService) : ControllerBase
 {
-    private readonly UserService m_userService;
-
-    public UserController(UserService userService)
-    {
-        m_userService = userService;
-    }
-
     public sealed record GetMeResponse(string UserUuid, string Nickname, string? Pic);
 
     [HttpGet("me")]
@@ -25,7 +18,7 @@ public class UserController : ControllerBase
 
         try
         {
-            return Ok(await m_userService.GetMe(googleSub, ct));
+            return Ok(await userService.GetMe(googleSub, ct));
         }
         catch (UserNotFoundException)
         {
@@ -43,7 +36,7 @@ public class UserController : ControllerBase
         
         try
         {
-            return Ok(await m_userService.GetGroups(googleSub, ct));
+            return Ok(await userService.GetGroups(googleSub, ct));
         }
         catch (UserNotFoundException)
         {

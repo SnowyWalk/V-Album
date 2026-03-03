@@ -3,26 +3,19 @@ using V_Album_Server.Services.Login;
 
 namespace V_Album_Server.Controllers;
 
-public sealed record GoogleLoginRequest(string? GoogleIdToken);
-
 [ApiController]
 [Route("api/auth/login")]
-public class LoginController : ControllerBase
+public class LoginController(LoginService loginService) : ControllerBase
 {
-    private readonly LoginService m_loginService;
-
-    public LoginController(LoginService loginService)
-    {
-        m_loginService = loginService;
-    }
-
+    public sealed record GoogleLoginRequest(string? GoogleIdToken);
+    
     [HttpPost("google")]
     public async Task<IActionResult> LoginWithGoogle([FromBody] GoogleLoginRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.GoogleIdToken))
             return BadRequest(new { error = "googleIdToken is required." });
 
-        LoginResult result = await m_loginService.LoginAsync(LoginProvider.Google, request.GoogleIdToken, ct);
+        LoginResult result = await loginService.LoginAsync(LoginProvider.Google, request.GoogleIdToken, ct);
         return Ok(new { result.userUuid, result.isNewUser });
     }
 
