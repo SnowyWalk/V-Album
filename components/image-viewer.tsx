@@ -214,14 +214,14 @@ export function ImageViewer({
                     "relative h-16 w-16 overflow-hidden rounded-sm transition-all focus:outline-none ring-offset-black",
                     currentIndex === index 
                       ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-110 z-10" 
-                      : "opacity-50 hover:opacity-100"
+                      : "opacity-60 hover:opacity-100"
                   )}
                 >
                   <Image
                     src={photo.src}
                     alt={`Thumbnail ${index + 1}`}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </button>
               ))}
