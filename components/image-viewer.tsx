@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export interface PhotoMetadata {
   locationName?: string;
@@ -79,6 +78,45 @@ export function ImageViewer({
 
   const currentPhoto = photos[currentIndex];
 
+  // 썸네일 드래그 스크롤 구현을 위한 Ref 및 로직
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [startX, setStartX] = React.useState(0);
+  const [scrollLeft, setScrollLeft] = React.useState(0);
+  const [hasMoved, setHasMoved] = React.useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // 스크롤 속도 조절
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleThumbnailClick = (index: number) => {
+    if (hasMoved) return; // 드래그 중이었다면 클릭 무시
+    goToPhoto(index);
+  };
+
   if (!mounted) return null;
 
   return (
@@ -113,7 +151,7 @@ export function ImageViewer({
         </div>
 
         {/* Main Viewport */}
-        <div className="relative flex-1 w-full min-h-0 bg-black overflow-hidden flex items-center justify-center">
+        <div className="relative flex-1 w-full min-h-0 bg-black overflow-hidden flex items-center justify-center select-none">
           <Carousel
             setApi={setApi}
             className="w-full h-full"
@@ -134,6 +172,7 @@ export function ImageViewer({
                         className="object-contain"
                         priority={index === initialIndex}
                         sizes="100vw"
+                        draggable={false}
                       />
                     </div>
                   </div>
@@ -203,32 +242,43 @@ export function ImageViewer({
         </div>
 
         {/* Footer - 썸네일 리스트 */}
-        <div className="h-24 bg-black/40 backdrop-blur-sm border-t border-white/10 flex items-center shrink-0">
-          <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex w-max space-x-2 p-4 mx-auto">
+        <div className="h-24 bg-black/40 backdrop-blur-sm border-t border-white/10 flex items-center shrink-0 overflow-hidden select-none">
+          <div 
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            className={cn(
+              "w-full h-full overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-none scroll-smooth cursor-default",
+              isDragging && "cursor-grabbing"
+            )}
+          >
+            <div className="flex h-full w-max space-x-2 p-4 mx-auto items-center">
               {photos.map((photo, index) => (
                 <button
                   key={index}
-                  onClick={() => goToPhoto(index)}
+                  onClick={() => handleThumbnailClick(index)}
+                  draggable={false}
                   className={cn(
-                    "relative h-16 w-28 overflow-hidden rounded-sm transition-all focus:outline-none ring-offset-black",
+                    "relative h-16 w-28 overflow-hidden rounded-sm transition-all focus:outline-none ring-offset-black shrink-0",
                     currentIndex === index 
                       ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-110 z-10" 
                       : "opacity-60 hover:opacity-100"
                   )}
                 >
-                  <div className="absolute inset-0 bg-white/5" />
+                  <div className="absolute inset-0 bg-white/5 pointer-events-none" />
                   <Image
                     src={photo.src}
                     alt={`Thumbnail ${index + 1}`}
                     fill
-                    className="object-contain"
+                    className="object-contain pointer-events-none"
+                    draggable={false}
                   />
                 </button>
               ))}
             </div>
-            <ScrollBar orientation="horizontal" className="bg-white/20" />
-          </ScrollArea>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
