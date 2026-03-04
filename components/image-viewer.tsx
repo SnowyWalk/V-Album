@@ -211,12 +211,13 @@ export function ImageViewer({
                   key={index}
                   onClick={() => goToPhoto(index)}
                   className={cn(
-                    "relative h-16 w-16 overflow-hidden rounded-sm transition-all focus:outline-none ring-offset-black",
+                    "relative h-16 w-28 overflow-hidden rounded-sm transition-all focus:outline-none ring-offset-black",
                     currentIndex === index 
                       ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-110 z-10" 
                       : "opacity-60 hover:opacity-100"
                   )}
                 >
+                  <div className="absolute inset-0 bg-white/5" />
                   <Image
                     src={photo.src}
                     alt={`Thumbnail ${index + 1}`}
