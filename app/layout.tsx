@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import {Toaster} from "sonner";
 
 const appleSdGothicNeo = localFont({
   variable: "--font-apple-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body
         className={`${appleSdGothicNeo.variable} antialiased`}>
             {children}
+            <Toaster />
       </body>
     </html>
   );

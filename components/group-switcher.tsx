@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {ChevronsUpDown, Plus} from "lucide-react"
+import {Check, ChevronsUpDown, Plus} from "lucide-react"
 
 import {
     DropdownMenu,
@@ -9,7 +9,6 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -18,21 +17,87 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
+import {useEffect, useState} from "react";
+import {Avatar, AvatarImage} from "@/components/ui/avatar";
+import {GroupDto, useMyGroups} from "@/hooks/use-my-groups";
+import {Skeleton} from "@/components/ui/skeleton";
+import {toast} from "sonner";
+import {useMutation} from "@tanstack/react-query";
 
-export function GroupSwitcher({
-                                  teams,
-                              }: {
-    teams: {
-        name: string
-        logo: React.ElementType
-        plan: string
-    }[]
-}) {
+
+
+const RequestCreateGroup = async () : Promise<GroupDto> => {
+    const groupName = "NewGroup"
+    
+    const result = await fetch("/api/group/create", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            groupName: groupName,
+        }),
+    })
+    const ret = await result.json()
+
+    type Response = {
+        createdGroup: GroupDto
+    }
+    
+    return (ret as Response).createdGroup
+}
+
+export function GroupSwitcher() {
+    const createGroupMutation = useMutation<GroupDto>({
+        mutationFn: RequestCreateGroup,
+        onMutate: () => {
+            toast("그룹 생성 중")
+        },
+        onSuccess: async (result: GroupDto)  => {
+            toast(`${result.name} 그룹 생성됨`)
+            setActiveGroupUuid(result.groupUuid)
+            await invalidateMyGroups()
+        }
+    })
     const {isMobile} = useSidebar()
-    const [activeTeam, setActiveTeam] = React.useState(teams[0])
+    const [activeGroupUuid, setActiveGroupUuid] = useState<string | null>(() => {
+        if (typeof window === "undefined") return null
+        return localStorage.getItem("activeGroupUuid")
+    })
+    const {data: myGroups, isLoading, invalidateMyGroups} = useMyGroups()
+    const activeGroup = myGroups?.groups.find(g => g.groupUuid === activeGroupUuid) ?? myGroups?.groups[0] ?? null
 
-    if (!activeTeam) {
-        return null
+    useEffect(() => {
+        if (activeGroupUuid)
+            localStorage.setItem("activeGroupUuid", activeGroupUuid)
+    }, [activeGroupUuid])
+
+    const ActiveGroup = () => {
+        if (activeGroup == null || isLoading)
+            return (
+                <>
+                    <Avatar className="rounded-full ring-1 ring-border" key="nav-group-avatar-skeleton">
+                        <Skeleton className="h-full w-full"/>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                        <Skeleton className="h-[17.5px] w-24"/>
+                        <Skeleton className="h-4 w-32"/>
+                    </div>
+                </>
+            )
+
+        return (
+            <>
+                <Avatar className="rounded-full ring-1 ring-border" key="nav-group-avatar">
+                    <AvatarImage src={`/group-pics/${activeGroup.pic}.png`}/>
+                    <Skeleton className="h-full w-full"/>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{activeGroup.name}</span>
+                    <span className="truncate text-xs">{activeGroup.groupUuid}</span>
+                </div>
+            </>
+        )
     }
 
     return (
@@ -43,47 +108,51 @@ export function GroupSwitcher({
                         <SidebarMenuButton
                             id="group-switcher-trigger"
                             size="lg"
-                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:ring-1 hover:ring-primary/20"
                         >
-                            <div
-                                className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                                <activeTeam.logo className="size-4"/>
-                            </div>
-                            <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{activeTeam.name}</span>
-                                <span className="truncate text-xs">{activeTeam.plan}</span>
-                            </div>
+                            {ActiveGroup()}
                             <ChevronsUpDown className="ml-auto"/>
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                        className="w-(--radix-dropdown-menu-trigger-width) rounded-lg min-w-68"
                         align="start"
                         side={isMobile ? "bottom" : "right"}
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
-                            Teams
+                            Groups
                         </DropdownMenuLabel>
-                        {teams.map((team, index) => (
+                        {myGroups && myGroups.groups.map((group, _) => (
                             <DropdownMenuItem
-                                key={team.name}
-                                onClick={() => setActiveTeam(team)}
+                                key={group.groupUuid}
+                                onClick={() => setActiveGroupUuid(group.groupUuid)}
                                 className="gap-2 p-2"
                             >
-                                <div className="flex size-6 items-center justify-center rounded-md border">
-                                    <team.logo className="size-3.5 shrink-0"/>
-                                </div>
-                                {team.name}
-                                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                                <Avatar className="rounded-full ring-1 ring-border">
+                                    <AvatarImage src={`/group-pics/${group.pic}.png`}/>
+                                </Avatar>
+                                <span>{group.name}</span>
+                                {group.groupUuid == activeGroupUuid && <Check className="h-4 w-4"/> }
                             </DropdownMenuItem>
                         ))}
+
+                        {
+                            !myGroups && Array.from({length: 3}).map((_, i) => (
+                                <DropdownMenuItem className="gap-2 p-2" key={i}>
+                                    <Avatar className="rounded-full ring-1 ring-border">
+                                        <Skeleton className="h-full w-full"/>
+                                    </Avatar>
+                                    <Skeleton className="h-6 w-full"/>
+                                </DropdownMenuItem>
+                            ))
+                        }
                         <DropdownMenuSeparator/>
-                        <DropdownMenuItem className="gap-2 p-2">
+                        <DropdownMenuItem className="gap-2 p-2" onClick={() => createGroupMutation.mutate()}>
                             <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                                 <Plus className="size-4"/>
                             </div>
-                            <div className="text-muted-foreground font-medium">Add team</div>
+                            <div className="text-muted-foreground font-medium">Add Group</div>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

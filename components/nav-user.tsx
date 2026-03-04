@@ -36,15 +36,7 @@ import {signOut, useSession} from "next-auth/react";
 import {Skeleton} from "@/components/ui/skeleton";
 import {useRouter} from "next/navigation";
 
-export function NavUser({
-                            user,
-                        }: {
-    user: {
-        name: string
-        email: string
-        avatar: string
-    }
-}) {
+export function NavUser() {
     const {isMobile} = useSidebar()
 
     const {resolvedTheme, setTheme} = useTheme()
@@ -54,11 +46,11 @@ export function NavUser({
     const {data: me, isLoading: isMeLoading, resetMe} = useMe()
     const router = useRouter();
 
-    const UserProfile = () => {
+    const UserProfile = () => {        
         if (isMeLoading || sessionStatus == "loading")
             return (
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-skeleton">
+                    <Avatar className="h-8 w-8 rounded-full" key="nav-user-avatar-skeleton">
                         <Skeleton className="h-full w-full"/>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
@@ -71,7 +63,7 @@ export function NavUser({
         if (!me)
             return (
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar-guest">
+                    <Avatar className="h-8 w-8 rounded-full" key="nav-user-avatar-guest">
                         <AvatarFallback><Ghost strokeWidth={1.5}/></AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
@@ -83,9 +75,9 @@ export function NavUser({
 
         return (
             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg" key="nav-user-avatar">
+                <Avatar className="h-8 w-8 rounded-full" key="nav-user-avatar">
                     <AvatarImage src={`/profile-pics/${me.pic}.png`} alt="User Avatar"/>
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <AvatarFallback className="rounded-full">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{me?.nickname}</span>

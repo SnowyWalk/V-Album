@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     const backendUrl = process.env.BACKEND_BASE_URL
-    const res = await fetch(`${backendUrl}/api/user/me`, {
+    const res = await fetch(`${backendUrl}/api/user/groups`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",

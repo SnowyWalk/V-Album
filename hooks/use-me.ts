@@ -4,6 +4,12 @@ import { useCallback, useEffect } from "react"
 
 const meQueryKey = ["me"] as const
 
+export type MeDto = {
+  userUuid: string
+  nickname: string
+  pic: string
+}
+
 export function useMe() {
   const { status } = useSession()
   const queryClient = useQueryClient()
@@ -26,6 +32,12 @@ export function useMe() {
     queryKey: meQueryKey,
     queryFn: fetchMe,
     enabled: status === "authenticated",
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message === "Not authenticated") {
+        return false
+      }
+      return failureCount < 3
+    }
   })
 
   return {
@@ -35,20 +47,14 @@ export function useMe() {
   }
 }
 
-export type MeDto = {
-  userUuid: string
-  nickname: string
-  pic: string
-}
-
 async function fetchMe(): Promise<MeDto | null> {
   const res = await fetch("/api/user/me", {
     method: "GET",
     credentials: "include",
   })
 
-  // 로그인 안 된 상태
-  if (res.status === 401) return null
+  if (res.status === 401) // GoogleSub 없음 || 해당 유저 없음
+    throw new Error("Not authenticated")
 
   if (!res.ok) {
     throw new Error("Failed to fetch /api/user/me")

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
 
@@ -42,6 +40,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(64)
                 .HasColumnName("name");
+            entity.Property(e => e.Pic)
+                .HasMaxLength(64)
+                .HasColumnName("pic");
             entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -75,7 +76,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("joined_at");
             entity.Property(e => e.Role)
                 .HasDefaultValueSql("'Member'")
-                .HasColumnType("enum('Master','Manager','Member')")
+                .HasColumnType("enum('Owner','Admin','Member')")
                 .HasColumnName("role");
             entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()

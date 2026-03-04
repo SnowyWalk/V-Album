@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 3) ASP.NET 서버에 로그인 교환 요청
-    const res = await fetch("http://localhost:5117/api/auth/login/google", {
+    const backendUrl = process.env.BACKEND_BASE_URL
+    const res = await fetch(`${backendUrl}/api/auth/login/google`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
