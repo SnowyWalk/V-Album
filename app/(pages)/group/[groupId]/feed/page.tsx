@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
+import { ImageViewer, PhotoItem } from "@/components/image-viewer";
+import { useState } from "react";
 
 interface PageProps {
   params: Promise<{
@@ -23,7 +25,18 @@ const DUMMY_POSTS = [
       image: "https://github.com/shadcn.png",
     },
     content: "오늘 날씨가 너무 좋네요! 다같이 나들이 가고 싶어요. ☀️",
-    images: ["https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"],
+    images: [
+        {
+            src: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+            metadata: {
+                locationName: "요세미티 국립공원",
+                latitude: 37.8651,
+                longitude: -119.5383,
+                date: "2024-05-20",
+                taggedPeople: ["홍길동", "이순신"]
+            }
+        }
+    ],
     createdAt: "2시간 전",
     likes: 12,
     comments: 3,
@@ -36,8 +49,20 @@ const DUMMY_POSTS = [
     },
     content: "어제 먹은 맛있는 점심입니다. 다들 식사 맛있게 하셨나요? 🍕",
     images: [
-        "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80"
+        {
+            src: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+            metadata: {
+                locationName: "이탈리안 레스토랑",
+                date: "2024-05-19"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80",
+            metadata: {
+                locationName: "카페 테라스",
+                date: "2024-05-19"
+            }
+        }
     ],
     createdAt: "5시간 전",
     likes: 24,
@@ -50,7 +75,15 @@ const DUMMY_POSTS = [
       image: "https://github.com/shadcn.png",
     },
     content: "우리 집 강아지 좀 보세요... 너무 귀엽지 않나요? 🐶",
-    images: ["https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80"],
+    images: [
+        {
+            src: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
+            metadata: {
+                date: "2024-05-18",
+                taggedPeople: ["초코(강아지)"]
+            }
+        }
+    ],
     createdAt: "어제",
     likes: 56,
     comments: 12,
@@ -59,6 +92,15 @@ const DUMMY_POSTS = [
 
 export default function GroupFeedPage({ params }: PageProps) {
   const { groupId } = use(params);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState<PhotoItem[]>([]);
+  const [initialIndex, setInitialIndex] = useState(0);
+
+  const handleImageClick = (photos: PhotoItem[], index: number) => {
+    setSelectedPhotos(photos);
+    setInitialIndex(index);
+    setViewerOpen(true);
+  };
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pb-20">
@@ -92,9 +134,13 @@ export default function GroupFeedPage({ params }: PageProps) {
               {post.images.length > 0 && (
                 <div className={`grid gap-0.5 ${post.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {post.images.map((image, idx) => (
-                    <div key={idx} className="relative aspect-square overflow-hidden bg-muted">
+                    <div 
+                        key={idx} 
+                        className="relative aspect-square overflow-hidden bg-muted cursor-pointer"
+                        onClick={() => handleImageClick(post.images, idx)}
+                    >
                       <Image
-                        src={image}
+                        src={image.src}
                         alt={`post-image-${idx}`}
                         fill
                         className="object-cover transition-transform hover:scale-105"
@@ -124,6 +170,12 @@ export default function GroupFeedPage({ params }: PageProps) {
       </div>
 
       <CreatePostDialog />
+      <ImageViewer 
+        photos={selectedPhotos} 
+        initialIndex={initialIndex} 
+        open={viewerOpen} 
+        onOpenChange={setViewerOpen} 
+      />
     </div>
   );
 }
