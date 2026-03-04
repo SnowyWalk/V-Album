@@ -84,7 +84,7 @@ export function ImageViewer({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         showCloseButton={false}
-        className="fixed inset-0 z-[100] flex h-screen w-screen flex-col border-none bg-black p-0 text-white outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
+        className="fixed inset-0 z-100 flex h-screen w-screen flex-col border-none bg-black p-0 text-white outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
@@ -124,15 +124,17 @@ export function ImageViewer({
             <CarouselContent className="ml-0">
               {photos.map((photo, index) => (
                 <CarouselItem key={index} className="pl-0 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt || `Photo ${index + 1}`}
-                      fill
-                      className="object-contain"
-                      priority={index === initialIndex}
-                      sizes="100vw"
-                    />
+                  <div className="absolute inset-0 flex items-center justify-center p-8 md:p-12 lg:p-16">
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt || `Photo ${index + 1}`}
+                        fill
+                        className="object-contain"
+                        priority={index === initialIndex}
+                        sizes="100vw"
+                      />
+                    </div>
                   </div>
                 </CarouselItem>
               ))}
