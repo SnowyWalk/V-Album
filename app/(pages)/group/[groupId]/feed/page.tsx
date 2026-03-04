@@ -21,19 +21,18 @@ const DUMMY_POSTS = [
   {
     id: "1",
     author: {
-      name: "김철수",
+      name: "관리자",
       image: "https://github.com/shadcn.png",
     },
-    content: "오늘 날씨가 너무 좋네요! 다같이 나들이 가고 싶어요. ☀️",
+    content: "오늘 날씨가 너무 좋네요! 멋진 풍경 사진 공유합니다. ☀️",
     images: [
         {
-            src: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+            src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&w=1200&q=80", // Nature Landscape
             metadata: {
                 locationName: "요세미티 국립공원",
                 latitude: 37.8651,
                 longitude: -119.5383,
-                date: "2024-05-20",
-                taggedPeople: ["홍길동", "이순신"]
+                date: "2024-05-20"
             }
         }
     ],
@@ -44,20 +43,20 @@ const DUMMY_POSTS = [
   {
     id: "2",
     author: {
-      name: "이영희",
+      name: "관리자",
       image: "https://github.com/shadcn.png",
     },
-    content: "어제 먹은 맛있는 점심입니다. 다들 식사 맛있게 하셨나요? 🍕",
+    content: "맛있는 음식 사진입니다. 다들 식사 맛있게 하셨나요? 🍕",
     images: [
         {
-            src: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+            src: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&w=1200&q=80", // Pizza Landscape
             metadata: {
                 locationName: "이탈리안 레스토랑",
                 date: "2024-05-19"
             }
         },
         {
-            src: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80",
+            src: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&w=1000&q=80", // Pizza Portrait
             metadata: {
                 locationName: "카페 테라스",
                 date: "2024-05-19"
@@ -71,22 +70,101 @@ const DUMMY_POSTS = [
   {
     id: "3",
     author: {
-      name: "박지민",
+      name: "관리자",
       image: "https://github.com/shadcn.png",
     },
-    content: "우리 집 강아지 좀 보세요... 너무 귀엽지 않나요? 🐶",
+    content: "다양한 비율과 메타데이터를 가진 사진들을 테스트해봅시다! 📸\n세로형(9:16), 가로형(16:9), 정사각형 사진들이 섞여있습니다.",
     images: [
         {
-            src: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
+            src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&w=1000&q=80", // Portrait - Nature
             metadata: {
-                date: "2024-05-18",
-                taggedPeople: ["초코(강아지)"]
+                locationName: "신비로운 숲",
+                date: "2024-05-18"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&w=1000&q=80", // Portrait - Architecture
+            metadata: {
+                locationName: "모던 건축물",
+                date: "2024-05-17"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&w=1000&q=80", // Portrait - Tree
+            metadata: {
+                locationName: "햇살 가득한 숲",
+                date: "2024-05-16"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&w=1600&q=80", // Landscape
+            metadata: {
+                locationName: "안개 낀 산맥",
+                latitude: 46.8523,
+                longitude: 9.5307,
+                date: "2024-05-15"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&w=1600&q=80", // Landscape - Lake
+            metadata: {
+                locationName: "평화로운 호수",
+                date: "2024-05-16"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&w=1600&q=80", // Landscape - Mountains
+            metadata: {
+                locationName: "알프스 산맥",
+                date: "2024-05-15"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&w=1600&q=80", // Landscape - City
+            metadata: {
+                locationName: "영국 런던",
+                date: "2024-05-14"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&w=1000&q=80", // Square - Watch
+            metadata: {
+                locationName: "화이트 스튜디오",
+                date: "2024-05-13"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&w=1600&q=80", // Wide - Headphones
+            metadata: {
+                locationName: "음악 작업실",
+                date: "2024-05-12"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&w=1600&q=80", // Landscape - Camera
+            metadata: {
+                locationName: "카메라 샵",
+                date: "2024-05-11"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&w=1600&q=80", // Wide - Code
+            metadata: {
+                locationName: "코딩 공간",
+                date: "2024-05-10"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&w=1600&q=80", // Wide - Desk
+            metadata: {
+                locationName: "워크스테이션",
+                date: "2024-05-09"
             }
         }
     ],
     createdAt: "어제",
-    likes: 56,
-    comments: 12,
+    likes: 82,
+    comments: 15,
   }
 ];
 

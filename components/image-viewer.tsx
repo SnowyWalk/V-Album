@@ -67,8 +67,9 @@ export function ImageViewer({
 
   // 외부에서 initialIndex가 변경될 때 대응 (필요 시)
   React.useEffect(() => {
-    if (api && initialIndex !== undefined) {
+    if (api && initialIndex !== undefined && open) {
       api.scrollTo(initialIndex, true);
+      setCurrentIndex(initialIndex);
     }
   }, [api, initialIndex, open]);
 
