@@ -49,6 +49,12 @@ export function ImageViewer({
   const [api, setApi] = React.useState<CarouselApi>();
   const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
   const [showMetadata, setShowMetadata] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  // 하이드레이션 오류 방지
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Carousel 인덱스 변경 감지
   React.useEffect(() => {
@@ -72,9 +78,14 @@ export function ImageViewer({
 
   const currentPhoto = photos[currentIndex];
 
+  if (!mounted) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[100vw] h-[100vh] p-0 border-none bg-black/95 text-white flex flex-col gap-0 outline-none">
+      <DialogContent 
+        showCloseButton={false}
+        className="fixed inset-0 z-[100] flex h-screen w-screen flex-col border-none bg-black p-0 text-white outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
+      >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
           {currentIndex + 1} / {photos.length} 번째 사진
@@ -101,28 +112,27 @@ export function ImageViewer({
         </div>
 
         {/* Main Viewport */}
-        <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+        <div className="relative flex-1 w-full min-h-0 bg-black overflow-hidden flex items-center justify-center">
           <Carousel
             setApi={setApi}
             className="w-full h-full"
             opts={{
               startIndex: initialIndex,
+              loop: true,
             }}
           >
-            <CarouselContent className="h-[100vh] ml-0">
+            <CarouselContent className="ml-0">
               {photos.map((photo, index) => (
-                <CarouselItem key={index} className="pl-0 h-full flex items-center justify-center relative">
-                  <div className="relative w-full h-full flex items-center justify-center p-4 md:p-12">
-                    <div className="relative w-full h-full max-w-full max-h-full aspect-auto flex items-center justify-center">
-                        <Image
-                          src={photo.src}
-                          alt={photo.alt || `Photo ${index + 1}`}
-                          fill
-                          className="object-contain"
-                          priority={index === initialIndex}
-                          sizes="100vw"
-                        />
-                    </div>
+                <CarouselItem key={index} className="pl-0 relative">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Image
+                      src={photo.src}
+                      alt={photo.alt || `Photo ${index + 1}`}
+                      fill
+                      className="object-contain"
+                      priority={index === initialIndex}
+                      sizes="100vw"
+                    />
                   </div>
                 </CarouselItem>
               ))}
@@ -190,7 +200,7 @@ export function ImageViewer({
         </div>
 
         {/* Footer - 썸네일 리스트 */}
-        <div className="h-24 bg-black/40 backdrop-blur-sm border-t border-white/10 flex items-center">
+        <div className="h-24 bg-black/40 backdrop-blur-sm border-t border-white/10 flex items-center shrink-0">
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-2 p-4 mx-auto">
               {photos.map((photo, index) => (
