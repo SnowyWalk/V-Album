@@ -3,7 +3,7 @@ namespace V_Album_Server.Infrastructures.Persistence.Mapping;
 
 public static class MemberMapping
 {
-    public static Member ToDomain(this Scaffold.Member member)
+    public static Member ToDomain(this MemberEntity member)
     {
         return new Member(
             member.UserUuid,

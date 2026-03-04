@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using V_Album_Server.Domains.Group;
 using V_Album_Server.Services.Group;
 namespace V_Album_Server.Controllers;
 
@@ -8,7 +7,7 @@ namespace V_Album_Server.Controllers;
 public class GroupController(GroupService groupService) : ControllerBase
 {
     public sealed record GroupCreateRequest(string GroupName);
-    public sealed record GroupCreateResponse(Group result);
+    public sealed record GroupCreateResponse(DomainGroup CreatedGroup);
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateGroup([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] GroupCreateRequest request, CancellationToken ct)

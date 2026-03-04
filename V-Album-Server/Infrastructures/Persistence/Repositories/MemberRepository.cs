@@ -1,13 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using V_Album_Server.Infrastructures.Persistence.Mapping;
 using V_Album_Server.Infrastructures.Persistence.Scaffold;
-using Group = V_Album_Server.Domains.Group.Group;
 namespace V_Album_Server.Infrastructures.Persistence.Repositories;
 
 public class MemberRepository(AppDbContext dbContext)
 {
     // 특정 유저의 모든 그룹 조회
-    public async Task<List<Group>> GetUsersAllGroupsAsync(Guid userUuid, CancellationToken ct)
+    public async Task<List<DomainGroup>> GetUsersAllGroupsAsync(Guid userUuid, CancellationToken ct)
     {
         return await dbContext.Members
             .Where(member => member.UserUuid == userUuid && member.DeletedAt == null)

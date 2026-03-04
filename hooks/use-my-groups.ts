@@ -4,14 +4,14 @@ import {useSession} from "next-auth/react";
 
 const queryKey = ["my-groups"]
 
-export type MyGroupDto = {
+export type GroupDto = {
     groupUuid: string
     name: string
     pic: string | null
 }
 
 export type MyGroupsDto = {
-    groups: MyGroupDto[]
+    groups: GroupDto[]
 }
 
 export function useMyGroups() {

@@ -9,7 +9,6 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -20,21 +19,53 @@ import {
 } from "@/components/ui/sidebar"
 import {useEffect, useState} from "react";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {useMe} from "@/hooks/use-me";
-import {useMyGroups} from "@/hooks/use-my-groups";
+import {GroupDto, useMyGroups} from "@/hooks/use-my-groups";
 import {Skeleton} from "@/components/ui/skeleton";
-import {DropdownMenuItemIndicator} from "@radix-ui/react-dropdown-menu";
+import {toast} from "sonner";
+import {useMutation} from "@tanstack/react-query";
 
+
+
+const RequestCreateGroup = async () : Promise<GroupDto> => {
+    const groupName = "NewGroup"
+    
+    const result = await fetch("/api/group/create", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            groupName: groupName,
+        }),
+    })
+    const ret = await result.json()
+
+    type Response = {
+        createdGroup: GroupDto
+    }
+    
+    return (ret as Response).createdGroup
+}
 
 export function GroupSwitcher() {
+    const createGroupMutation = useMutation<GroupDto>({
+        mutationFn: RequestCreateGroup,
+        onMutate: () => {
+            toast("그룹 생성 중")
+        },
+        onSuccess: async (result: GroupDto)  => {
+            toast(`${result.name} 그룹 생성됨`)
+            setActiveGroupUuid(result.groupUuid)
+            await invalidateMyGroups()
+        }
+    })
     const {isMobile} = useSidebar()
     const [activeGroupUuid, setActiveGroupUuid] = useState<string | null>(() => {
         if (typeof window === "undefined") return null
         return localStorage.getItem("activeGroupUuid")
     })
-    const {data: myGroups, isLoading} = useMyGroups()
+    const {data: myGroups, isLoading, invalidateMyGroups} = useMyGroups()
     const activeGroup = myGroups?.groups.find(g => g.groupUuid === activeGroupUuid) ?? myGroups?.groups[0] ?? null
-    console.log("activeGroup", activeGroup, "myGroups == null ?", myGroups == null, "myGroups:", myGroups)
 
     useEffect(() => {
         if (activeGroupUuid)
@@ -94,7 +125,7 @@ export function GroupSwitcher() {
                         </DropdownMenuLabel>
                         {myGroups && myGroups.groups.map((group, _) => (
                             <DropdownMenuItem
-                                key={group.name}
+                                key={group.groupUuid}
                                 onClick={() => setActiveGroupUuid(group.groupUuid)}
                                 className="gap-2 p-2"
                             >
@@ -102,7 +133,7 @@ export function GroupSwitcher() {
                                     <AvatarImage src={`/group-pics/${group.pic}.png`}/>
                                 </Avatar>
                                 <span>{group.name}</span>
-                                <Check className="h-4 w-4"/>
+                                {group.groupUuid == activeGroupUuid && <Check className="h-4 w-4"/> }
                             </DropdownMenuItem>
                         ))}
 
@@ -117,7 +148,7 @@ export function GroupSwitcher() {
                             ))
                         }
                         <DropdownMenuSeparator/>
-                        <DropdownMenuItem className="gap-2 p-2">
+                        <DropdownMenuItem className="gap-2 p-2" onClick={() => createGroupMutation.mutate()}>
                             <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                                 <Plus className="size-4"/>
                             </div>

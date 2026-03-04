@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
         )
     }
 
-    const res = await fetch("http://localhost:5117/api/user/groups", {
+    const backendUrl = process.env.BACKEND_BASE_URL
+    const res = await fetch(`${backendUrl}/api/user/groups`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",

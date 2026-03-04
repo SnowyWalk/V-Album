@@ -8,7 +8,7 @@ namespace V_Album_Server.Infrastructures.Persistence.Repositories;
 
 public class UserRepository(AppDbContext dbContext, IOptions<AppDefaultsOptions> appDefaultOptions)
 {
-    public async Task<(Domains.User.User User, bool IsNewUser)> FindOrCreateUserByGoogleSubAsync(string googleSub, CancellationToken ct)
+    public async Task<(DomainUser User, bool IsNewUser)> FindOrCreateUserByGoogleSubAsync(string googleSub, CancellationToken ct)
     {
         User? user = await dbContext.Users
             .SingleOrDefaultAsync(a => a.GoogleSub == googleSub, ct);
@@ -50,7 +50,7 @@ public class UserRepository(AppDbContext dbContext, IOptions<AppDefaultsOptions>
         return (user.ToDomain(), isNewUser);
     }
 
-    public async Task<Domains.User.User?> GetUserByGoogleSub(string googleSub, CancellationToken ct)
+    public async Task<DomainUser?> GetUserByGoogleSub(string googleSub, CancellationToken ct)
     {
         User? user = await dbContext.Users.AsNoTracking().SingleOrDefaultAsync(e => e.GoogleSub == googleSub, ct);
         if (user is null)

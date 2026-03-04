@@ -1,6 +1,7 @@
 ﻿using Configuration;
 using Microsoft.EntityFrameworkCore;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
+using V_Album_Server.Services.Group;
 using V_Album_Server.Services.Login;
 using V_Album_Server.Services.Login.Handlers;
 using V_Album_Server.Services.User;
@@ -19,10 +20,12 @@ builder.Services.AddDbContext<V_Album_Server.Infrastructures.Persistence.Scaffol
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ILoginHandler, GoogleLoginHandler>();
+builder.Services.AddScoped<GroupService>();
 
 // Repository
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<MemberRepository>();
+builder.Services.AddScoped<GroupRepository>();
 
 // Configuration
 builder.Services.Configure<AppDefaultsOptions>(builder.Configuration.GetSection("AppDefaults"));

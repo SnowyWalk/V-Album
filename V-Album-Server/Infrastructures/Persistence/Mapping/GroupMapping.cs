@@ -3,7 +3,7 @@ namespace V_Album_Server.Infrastructures.Persistence.Mapping;
 
 public static class GroupMapping
 {
-    public static Group ToDomain(this Scaffold.Group group)
+    public static Group ToDomain(this GroupEntity group)
     {
         return new Group(group.GroupUuid, group.Name, group.Pic);
     }
