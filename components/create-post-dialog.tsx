@@ -69,7 +69,7 @@ export function CreatePostDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg">
+        <Button className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg !transition-none !duration-0 active:scale-95 z-40 transform-none">
           <Plus className="h-8 w-8" />
         </Button>
       </DialogTrigger>

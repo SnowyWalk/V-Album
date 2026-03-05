@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
+  DialogOverlay,
 } from "@/components/ui/dialog";
 import {
   Carousel,
@@ -49,19 +50,81 @@ export function ImageViewer({
   const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
   const [showMetadata, setShowMetadata] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  const [isCentered, setIsCentered] = React.useState(true);
 
   // 하이드레이션 오류 방지
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
+  // 이미지 뷰어가 열릴 때 스크롤 잠금 및 업로드 버튼 위치 안정화
+  React.useEffect(() => {
+    if (open && mounted) {
+      // 뷰어가 열릴 때 body 스크롤 수동 잠금 (Layout Shift 방지용)
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      const originalPaddingRight = window.getComputedStyle(document.body).paddingRight;
+      
+      // 스크롤바 너비 계산
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      
+      document.body.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${parseFloat(originalPaddingRight) + scrollbarWidth}px`;
+      }
+      
+      return () => {
+        document.body.style.overflow = originalStyle;
+        document.body.style.paddingRight = originalPaddingRight;
+      };
+    }
+  }, [open, mounted]);
+
+  // 썸네일 리스트가 중앙 정렬되어야 하는지 확인 (사진 개수가 적을 때)
+  React.useEffect(() => {
+    const checkCentered = () => {
+      if (scrollRef.current) {
+        const container = scrollRef.current;
+        const innerContainer = container.firstElementChild as HTMLElement;
+        if (innerContainer) {
+          // scrollWidth가 offsetWidth보다 작거나 같으면 중앙 정렬 상태
+          setIsCentered(innerContainer.scrollWidth <= container.offsetWidth + 1); // 소수점 오차 방지
+        }
+      }
+    };
+    
+    if (mounted) {
+      const timer = setTimeout(checkCentered, 250); // 충분한 지연 시간
+      window.addEventListener("resize", checkCentered);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("resize", checkCentered);
+      };
+    }
+  }, [mounted, photos.length, open]); // open이 바뀔 때도 다시 체크
+
+  // initialIndex가 변경될 때 currentIndex를 동기화
+  React.useEffect(() => {
+    if (open) {
+      setCurrentIndex(initialIndex);
+    }
+  }, [open, initialIndex]);
+
   // Carousel 인덱스 변경 감지
   React.useEffect(() => {
     if (!api) return;
 
-    api.on("select", () => {
+    const onSelect = () => {
       setCurrentIndex(api.selectedScrollSnap());
-    });
+    };
+
+    api.on("select", onSelect);
+    
+    // 초기화 시점에도 한 번 실행
+    onSelect();
+
+    return () => {
+      api.off("select", onSelect);
+    };
   }, [api]);
 
   // 외부에서 initialIndex가 변경될 때 대응 (필요 시)
@@ -70,7 +133,7 @@ export function ImageViewer({
       api.scrollTo(initialIndex, true);
       setCurrentIndex(initialIndex);
     }
-  }, [api, initialIndex, open]);
+  }, [api, open, initialIndex]);
 
   const goToPhoto = (index: number) => {
     api?.scrollTo(index);
@@ -109,7 +172,11 @@ export function ImageViewer({
     if (Math.abs(walk) > 5) {
       setHasMoved(true);
     }
-    scrollRef.current.scrollLeft = scrollLeft - walk;
+    const container = scrollRef.current;
+    if (container) {
+      // eslint-disable-next-line react-hooks/immutability
+      container.scrollLeft = scrollLeft - walk;
+    }
   };
 
   const handleThumbnailClick = (index: number) => {
@@ -117,13 +184,55 @@ export function ImageViewer({
     goToPhoto(index);
   };
 
+  // 활성화된 썸네일을 중앙으로 스크롤 (최초 진입 시에만 실행)
+  React.useEffect(() => {
+    if (open && mounted) {
+      // 다이얼로그 애니메이션 및 렌더링 완료를 위해 지연 시간을 주어 실행
+      const timer = setTimeout(() => {
+        const container = scrollRef.current;
+        if (!container) return;
+        
+        const flexContainer = container.firstElementChild as HTMLElement;
+        if (!flexContainer) return;
+
+        const isScrollable = flexContainer.scrollWidth > container.offsetWidth + 1;
+        
+        if (!isScrollable) {
+          container.scrollTo({ left: 0, behavior: "instant" });
+          return;
+        }
+
+        // 최초 진입 시에는 initialIndex를 기준으로 스크롤
+        const targetThumbnail = container.querySelector(`button[data-index="${initialIndex}"]`) as HTMLElement;
+        
+        if (targetThumbnail) {
+          const containerWidth = container.offsetWidth;
+          const thumbnailWidth = targetThumbnail.offsetWidth;
+          const thumbnailLeft = targetThumbnail.offsetLeft;
+          
+          const targetScrollLeft = thumbnailLeft - (containerWidth / 2) + (thumbnailWidth / 2);
+          
+          container.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            behavior: "instant"
+          });
+        }
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [open, mounted, initialIndex]); // currentIndex를 제거하여 진입 시에만 작동하도록 수정
+
   if (!mounted) return null;
 
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogOverlay className="bg-black/80 duration-0" />
       <DialogContent 
         showCloseButton={false}
-        className="fixed inset-0 z-100 flex h-screen w-screen flex-col border-none bg-black p-0 text-white outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        className="fixed inset-0 z-100 flex h-screen w-screen flex-col border-none bg-black p-0 text-white outline-none ring-0 duration-0 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none"
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
@@ -205,7 +314,7 @@ export function ImageViewer({
 
           {/* 메타데이터 오버레이 */}
           {showMetadata && currentPhoto?.metadata && (
-            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-black/60 backdrop-blur-md p-4 rounded-lg border border-white/10 mx-4 transition-all animate-in fade-in slide-in-from-bottom-4">
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-black/60 backdrop-blur-md p-4 rounded-lg border border-white/10 mx-4 z-50">
               <div className="space-y-2 text-sm">
                 {currentPhoto.metadata.locationName && (
                   <div className="flex items-center gap-2">
@@ -250,18 +359,22 @@ export function ImageViewer({
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
             className={cn(
-              "w-full h-full overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-none scroll-smooth cursor-default",
+              "w-full h-full overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-none cursor-default",
               isDragging && "cursor-grabbing"
             )}
           >
-            <div className="flex h-full w-max space-x-2 p-4 mx-auto items-center">
+            <div className={cn(
+              "flex h-full min-w-full space-x-2 p-4 items-center",
+              isCentered ? "justify-center" : "justify-start"
+            )}>
               {photos.map((photo, index) => (
                 <button
                   key={index}
                   onClick={() => handleThumbnailClick(index)}
                   draggable={false}
+                  data-index={index}
                   className={cn(
-                    "relative h-16 w-28 overflow-hidden rounded-sm transition-all focus:outline-none ring-offset-black shrink-0",
+                    "relative h-16 w-28 overflow-hidden rounded-sm focus:outline-none ring-offset-black shrink-0",
                     currentIndex === index 
                       ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-110 z-10" 
                       : "opacity-60 hover:opacity-100"
