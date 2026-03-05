@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight, MapPin, Calendar, Users, Info } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, MapPin, Calendar, Users, Info, Copy, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,33 @@ export function ImageViewer({
   const [showMetadata, setShowMetadata] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const [isCentered, setIsCentered] = React.useState(true);
+
+  const [copiedText, setCopiedText] = React.useState<string | null>(null);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(text);
+      setTimeout(() => setCopiedText(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
+  const CopyButton = ({ text }: { text: string }) => (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-6 w-6 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+      onClick={() => copyToClipboard(text)}
+    >
+      {copiedText === text ? (
+        <Check className="h-3 w-3 text-green-500" />
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+    </Button>
+  );
 
   // 하이드레이션 오류 방지
   React.useEffect(() => {
@@ -227,12 +254,11 @@ export function ImageViewer({
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
-      <DialogOverlay className="bg-black/80 duration-0" />
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent 
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="fixed inset-0 z-100 flex h-screen w-screen flex-col border-none bg-black p-0 text-white outline-none ring-0 duration-0 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none"
+        className="fixed inset-0 z-50 flex h-screen w-screen flex-col border-none bg-background/40 backdrop-blur-md p-0 text-foreground outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
@@ -244,7 +270,7 @@ export function ImageViewer({
            <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 rounded-full h-10 w-10"
+            className="text-foreground hover:bg-accent rounded-full h-10 w-10"
             onClick={() => setShowMetadata(!showMetadata)}
           >
             <Info className="h-6 w-6" />
@@ -252,7 +278,7 @@ export function ImageViewer({
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 rounded-full h-10 w-10"
+            className="text-foreground hover:bg-accent rounded-full h-10 w-10"
             onClick={() => onOpenChange(false)}
           >
             <X className="h-6 w-6" />
@@ -260,7 +286,7 @@ export function ImageViewer({
         </div>
 
         {/* Main Viewport */}
-        <div className="relative flex-1 w-full min-h-0 bg-black overflow-hidden flex items-center justify-center select-none">
+        <div className="relative flex-1 w-full min-h-0 bg-transparent overflow-hidden flex items-center justify-center select-none">
           <Carousel
             setApi={setApi}
             className="w-full h-full"
@@ -294,7 +320,7 @@ export function ImageViewer({
                <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground hover:bg-accent rounded-full h-12 w-12"
                 onClick={() => api?.scrollPrev()}
                 disabled={!api?.canScrollPrev()}
               >
@@ -303,7 +329,7 @@ export function ImageViewer({
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground hover:bg-accent rounded-full h-12 w-12"
                 onClick={() => api?.scrollNext()}
                 disabled={!api?.canScrollNext()}
               >
@@ -314,23 +340,36 @@ export function ImageViewer({
 
           {/* 메타데이터 오버레이 */}
           {showMetadata && currentPhoto?.metadata && (
-            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-black/60 backdrop-blur-md p-4 rounded-lg border border-white/10 mx-4 z-50">
-              <div className="space-y-2 text-sm">
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/60 backdrop-blur-md p-4 rounded-lg border border-border mx-4 z-50 group/metadata">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-6 w-6 rounded-full opacity-0 group-hover/metadata:opacity-100 transition-opacity"
+                onClick={() => setShowMetadata(false)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+              <div className="space-y-2 text-sm text-foreground pr-4">
                 {currentPhoto.metadata.locationName && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 group">
                     <MapPin className="h-4 w-4 text-blue-400" />
                     <span>{currentPhoto.metadata.locationName}</span>
+                    <CopyButton text={currentPhoto.metadata.locationName} />
                     {currentPhoto.metadata.latitude && currentPhoto.metadata.longitude && (
-                      <span className="text-xs text-muted-foreground">
-                        ({currentPhoto.metadata.latitude.toFixed(4)}, {currentPhoto.metadata.longitude.toFixed(4)})
-                      </span>
+                      <div className="flex items-center gap-1 group/coord">
+                        <span className="text-xs text-muted-foreground">
+                          ({currentPhoto.metadata.latitude.toFixed(4)}, {currentPhoto.metadata.longitude.toFixed(4)})
+                        </span>
+                        <CopyButton text={`${currentPhoto.metadata.latitude}, ${currentPhoto.metadata.longitude}`} />
+                      </div>
                     )}
                   </div>
                 )}
                 {currentPhoto.metadata.date && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 group">
                     <Calendar className="h-4 w-4 text-green-400" />
                     <span>{currentPhoto.metadata.date}</span>
+                    <CopyButton text={currentPhoto.metadata.date} />
                   </div>
                 )}
                 {currentPhoto.metadata.taggedPeople && currentPhoto.metadata.taggedPeople.length > 0 && (
@@ -338,9 +377,21 @@ export function ImageViewer({
                     <Users className="h-4 w-4 text-purple-400 mt-0.5" />
                     <div className="flex flex-wrap gap-1">
                       {currentPhoto.metadata.taggedPeople.map((person, idx) => (
-                        <span key={idx} className="bg-white/10 px-2 py-0.5 rounded-full text-xs">
-                          {person}
-                        </span>
+                        <div key={idx} className="group relative">
+                          <span className="bg-muted px-2 py-0.5 rounded-full text-xs flex items-center gap-1">
+                            {person}
+                            <button
+                              onClick={() => copyToClipboard(person)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              {copiedText === person ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </button>
+                          </span>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -351,7 +402,7 @@ export function ImageViewer({
         </div>
 
         {/* Footer - 썸네일 리스트 */}
-        <div className="h-24 bg-black/40 backdrop-blur-sm border-t border-white/10 flex items-center shrink-0 overflow-hidden select-none">
+        <div className="h-24 bg-background/40 backdrop-blur-sm border-t border-border flex items-center shrink-0 overflow-hidden select-none">
           <div 
             ref={scrollRef}
             onMouseDown={handleMouseDown}
@@ -374,13 +425,13 @@ export function ImageViewer({
                   draggable={false}
                   data-index={index}
                   className={cn(
-                    "relative h-16 w-28 overflow-hidden rounded-sm focus:outline-none ring-offset-black shrink-0",
+                    "relative h-16 w-28 overflow-hidden rounded-sm focus:outline-none ring-offset-background shrink-0",
                     currentIndex === index 
                       ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-110 z-10" 
                       : "opacity-60 hover:opacity-100"
                   )}
                 >
-                  <div className="absolute inset-0 bg-white/5 pointer-events-none" />
+                  <div className="absolute inset-0 bg-accent/10 pointer-events-none" />
                   <Image
                     src={photo.src}
                     alt={`Thumbnail ${index + 1}`}

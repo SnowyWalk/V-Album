@@ -100,7 +100,7 @@ export function GroupSwitcher() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             id="group-switcher-trigger"
