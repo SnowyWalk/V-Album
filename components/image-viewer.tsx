@@ -87,20 +87,30 @@ export function ImageViewer({
   // 이미지 뷰어가 열릴 때 스크롤 잠금 및 업로드 버튼 위치 안정화
   React.useEffect(() => {
     if (open && mounted) {
-      // 뷰어가 열릴 때 body 스크롤 수동 잠금 (Layout Shift 방지용)
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      const originalPaddingRight = window.getComputedStyle(document.body).paddingRight;
+      // 이미 body가 잠겨 있는지 확인 (다른 모달이 열려 있는 경우)
+      const isAlreadyHidden = window.getComputedStyle(document.body).overflow === "hidden";
       
+      // 뷰어가 열릴 때 body 스크롤 수동 잠금 (Layout Shift 방지용)
+      const originalStyle = document.body.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+      
+      // 이미 잠겨 있다면 추가 조치를 하지 않고 복구 시에도 건드리지 않음
+      if (isAlreadyHidden) {
+        return;
+      }
+
       // 스크롤바 너비 계산
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       
       document.body.style.overflow = "hidden";
       if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${parseFloat(originalPaddingRight) + scrollbarWidth}px`;
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
       
       return () => {
+        // eslint-disable-next-line react-hooks/immutability
         document.body.style.overflow = originalStyle;
+        // eslint-disable-next-line react-hooks/immutability
         document.body.style.paddingRight = originalPaddingRight;
       };
     }
@@ -287,9 +297,25 @@ export function ImageViewer({
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent 
         showCloseButton={false}
+        onPointerDownOutside={(e) => {
+          // modal이 false일 때 외부 클릭으로 인해 부모 다이얼로그가 닫히는 것을 방지
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          // 상호작용이 외부로 전파되어 다른 UI가 닫히는 것을 방지
+          e.preventDefault();
+        }}
+        onPointerDown={(e) => {
+          // 뷰어 내부 클릭 시 이벤트가 부모 다이얼로그로 전파되어 닫히는 것을 방지
+          e.stopPropagation();
+        }}
+        onClick={(e) => {
+          // 뷰어 내부 클릭 시 이벤트가 부모 다이얼로그로 전파되어 닫히는 것을 방지
+          e.stopPropagation();
+        }}
         className="fixed inset-0 z-[60] flex h-screen w-screen flex-col border-none bg-background/40 backdrop-blur-md p-0 text-foreground outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
