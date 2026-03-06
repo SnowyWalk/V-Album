@@ -254,7 +254,7 @@ export function ImageViewer({
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent 
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
