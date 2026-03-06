@@ -214,8 +214,7 @@ export function ImageViewer({
   // 활성화된 썸네일을 중앙으로 스크롤 (최초 진입 시에만 실행)
   React.useEffect(() => {
     if (open && mounted) {
-      // 다이얼로그 애니메이션 및 렌더링 완료를 위해 지연 시간을 주어 실행
-      const timer = setTimeout(() => {
+      const scrollThumbnailToCenter = () => {
         const container = scrollRef.current;
         if (!container) return;
         
@@ -244,7 +243,13 @@ export function ImageViewer({
             behavior: "instant"
           });
         }
-      }, 50);
+      };
+
+      // 즉시 실행 시도 (레이아웃이 잡혀있을 경우 대비)
+      scrollThumbnailToCenter();
+      
+      // 다이얼로그 애니메이션 및 렌더링 완료를 위해 짧은 지연 시간으로 한 번 더 실행
+      const timer = setTimeout(scrollThumbnailToCenter, 0);
 
       return () => clearTimeout(timer);
     }
