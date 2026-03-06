@@ -164,6 +164,24 @@ export function ImageViewer({
     };
   }, [api]);
 
+  // 키보드 방향키 이벤트 핸들링
+  React.useEffect(() => {
+    if (!open || !api) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        api.scrollPrev();
+      } else if (e.key === "ArrowRight") {
+        api.scrollNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, api]);
+
   // 외부에서 initialIndex가 변경될 때 대응 (필요 시)
   React.useEffect(() => {
     if (api && initialIndex !== undefined && open) {
@@ -269,11 +287,10 @@ export function ImageViewer({
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent 
         showCloseButton={false}
-        onPointerDownOutside={(e) => e.preventDefault()}
-        className="fixed inset-0 z-50 flex h-screen w-screen flex-col border-none bg-background/40 backdrop-blur-md p-0 text-foreground outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
+        className="fixed inset-0 z-[60] flex h-screen w-screen flex-col border-none bg-background/40 backdrop-blur-md p-0 text-foreground outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
