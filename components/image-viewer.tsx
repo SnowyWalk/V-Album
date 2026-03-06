@@ -119,12 +119,22 @@ export function ImageViewer({
       }
     };
     
-    if (mounted) {
-      const timer = setTimeout(checkCentered, 250); // 충분한 지연 시간
-      window.addEventListener("resize", checkCentered);
+    if (mounted && open) {
+      // 즉시 한 번 체크하고, 레이아웃이 완전히 잡힌 뒤 한 번 더 체크
+      checkCentered();
+      
+      const observer = new ResizeObserver(() => {
+        checkCentered();
+      });
+      
+      if (scrollRef.current) {
+        observer.observe(scrollRef.current);
+      }
+      
+      const timer = setTimeout(checkCentered, 50); 
       return () => {
         clearTimeout(timer);
-        window.removeEventListener("resize", checkCentered);
+        observer.disconnect();
       };
     }
   }, [mounted, photos.length, open]); // open이 바뀔 때도 다시 체크
@@ -249,7 +259,7 @@ export function ImageViewer({
       scrollThumbnailToCenter();
       
       // 다이얼로그 애니메이션 및 렌더링 완료를 위해 짧은 지연 시간으로 한 번 더 실행
-      const timer = setTimeout(scrollThumbnailToCenter, 0);
+      const timer = setTimeout(scrollThumbnailToCenter, 50);
 
       return () => clearTimeout(timer);
     }
