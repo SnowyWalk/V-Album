@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
-  DialogOverlay,
 } from "@/components/ui/dialog";
 import {
   Carousel,
@@ -108,9 +107,7 @@ export function ImageViewer({
       }
       
       return () => {
-        // eslint-disable-next-line react-hooks/immutability
         document.body.style.overflow = originalStyle;
-        // eslint-disable-next-line react-hooks/immutability
         document.body.style.paddingRight = originalPaddingRight;
       };
     }
@@ -316,7 +313,7 @@ export function ImageViewer({
           // 뷰어 내부 클릭 시 이벤트가 부모 다이얼로그로 전파되어 닫히는 것을 방지
           e.stopPropagation();
         }}
-        className="fixed inset-0 z-[60] flex h-screen w-screen flex-col border-none bg-background/40 backdrop-blur-md p-0 text-foreground outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
+        className="fixed inset-0 z-60 flex h-screen w-screen flex-col border-none bg-background/40 backdrop-blur-md p-0 text-foreground outline-none ring-0 duration-200 translate-x-0 translate-y-0 top-0 left-0 max-w-none sm:max-w-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
@@ -397,7 +394,7 @@ export function ImageViewer({
           </Carousel>
 
           {/* 메타데이터 오버레이 */}
-          {showMetadata && currentPhoto?.metadata && (
+          {showMetadata && (
             <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/60 backdrop-blur-md p-4 rounded-lg border border-border mx-4 z-50 group/metadata">
               <Button
                 variant="ghost"
@@ -408,50 +405,60 @@ export function ImageViewer({
                 <X className="h-3 w-3" />
               </Button>
               <div className="space-y-2 text-sm text-foreground pr-4">
-                {currentPhoto.metadata.locationName && (
-                  <div className="flex items-center gap-2 group">
-                    <MapPin className="h-4 w-4 text-blue-400" />
-                    <span>{currentPhoto.metadata.locationName}</span>
-                    <CopyButton text={currentPhoto.metadata.locationName} />
-                    {currentPhoto.metadata.latitude && currentPhoto.metadata.longitude && (
-                      <div className="flex items-center gap-1 group/coord">
-                        <span className="text-xs text-muted-foreground">
-                          ({currentPhoto.metadata.latitude.toFixed(4)}, {currentPhoto.metadata.longitude.toFixed(4)})
-                        </span>
-                        <CopyButton text={`${currentPhoto.metadata.latitude}, ${currentPhoto.metadata.longitude}`} />
+                {currentPhoto?.metadata ? (
+                  <>
+                    {currentPhoto.metadata.locationName && (
+                      <div className="flex items-center gap-2 group">
+                        <MapPin className="h-4 w-4 text-blue-400" />
+                        <span>{currentPhoto.metadata.locationName}</span>
+                        <CopyButton text={currentPhoto.metadata.locationName} />
+                        {currentPhoto.metadata.latitude && currentPhoto.metadata.longitude && (
+                          <div className="flex items-center gap-1 group/coord">
+                            <span className="text-xs text-muted-foreground">
+                              ({currentPhoto.metadata.latitude.toFixed(4)}, {currentPhoto.metadata.longitude.toFixed(4)})
+                            </span>
+                            <CopyButton text={`${currentPhoto.metadata.latitude}, ${currentPhoto.metadata.longitude}`} />
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
-                {currentPhoto.metadata.date && (
-                  <div className="flex items-center gap-2 group">
-                    <Calendar className="h-4 w-4 text-green-400" />
-                    <span>{currentPhoto.metadata.date}</span>
-                    <CopyButton text={currentPhoto.metadata.date} />
-                  </div>
-                )}
-                {currentPhoto.metadata.taggedPeople && currentPhoto.metadata.taggedPeople.length > 0 && (
-                  <div className="flex items-start gap-2">
-                    <Users className="h-4 w-4 text-purple-400 mt-0.5" />
-                    <div className="flex flex-wrap gap-1">
-                      {currentPhoto.metadata.taggedPeople.map((person, idx) => (
-                        <div key={idx} className="group relative">
-                          <span className="bg-muted px-2 py-0.5 rounded-full text-xs flex items-center gap-1">
-                            {person}
-                            <button
-                              onClick={() => copyToClipboard(person)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              {copiedText === person ? (
-                                <Check className="h-3 w-3 text-green-500" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                            </button>
-                          </span>
+                    {currentPhoto.metadata.date && (
+                      <div className="flex items-center gap-2 group">
+                        <Calendar className="h-4 w-4 text-green-400" />
+                        <span>{currentPhoto.metadata.date}</span>
+                        <CopyButton text={currentPhoto.metadata.date} />
+                      </div>
+                    )}
+                    {currentPhoto.metadata.taggedPeople && currentPhoto.metadata.taggedPeople.length > 0 && (
+                      <div className="flex items-start gap-2">
+                        <Users className="h-4 w-4 text-purple-400 mt-0.5" />
+                        <div className="flex flex-wrap gap-1">
+                          {currentPhoto.metadata.taggedPeople.map((person, idx) => (
+                            <div key={idx} className="group relative">
+                              <span className="bg-muted px-2 py-0.5 rounded-full text-xs flex items-center gap-1">
+                                {person}
+                                <button
+                                  onClick={() => copyToClipboard(person)}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  {copiedText === person ? (
+                                    <Check className="h-3 w-3 text-green-500" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </button>
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-4 text-muted-foreground gap-2">
+                    <Info className="h-8 w-8 opacity-20" />
+                    <p className="font-medium">메타데이터 없음</p>
+                    <p className="text-xs opacity-70">이 사진에 대한 상세 정보가 존재하지 않습니다.</p>
                   </div>
                 )}
               </div>
