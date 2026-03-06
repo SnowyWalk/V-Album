@@ -9,6 +9,7 @@ import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{
@@ -160,6 +161,178 @@ const DUMMY_POSTS = [
                 locationName: "워크스테이션",
                 date: "2024-05-09"
             }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&w=1000&q=80", // Portrait - Nature
+            metadata: {
+                locationName: "신비로운 숲",
+                date: "2024-05-18"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&w=1000&q=80", // Portrait - Architecture
+            metadata: {
+                locationName: "모던 건축물",
+                date: "2024-05-17"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&w=1000&q=80", // Portrait - Tree
+            metadata: {
+                locationName: "햇살 가득한 숲",
+                date: "2024-05-16"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&w=1600&q=80", // Landscape
+            metadata: {
+                locationName: "안개 낀 산맥",
+                latitude: 46.8523,
+                longitude: 9.5307,
+                date: "2024-05-15"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&w=1600&q=80", // Landscape - Lake
+            metadata: {
+                locationName: "평화로운 호수",
+                date: "2024-05-16"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&w=1600&q=80", // Landscape - Mountains
+            metadata: {
+                locationName: "알프스 산맥",
+                date: "2024-05-15"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&w=1600&q=80", // Landscape - City
+            metadata: {
+                locationName: "영국 런던",
+                date: "2024-05-14"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&w=1000&q=80", // Square - Watch
+            metadata: {
+                locationName: "화이트 스튜디오",
+                date: "2024-05-13"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&w=1600&q=80", // Wide - Headphones
+            metadata: {
+                locationName: "음악 작업실",
+                date: "2024-05-12"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&w=1600&q=80", // Landscape - Camera
+            metadata: {
+                locationName: "카메라 샵",
+                date: "2024-05-11"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&w=1600&q=80", // Wide - Code
+            metadata: {
+                locationName: "코딩 공간",
+                date: "2024-05-10"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&w=1600&q=80", // Wide - Desk
+            metadata: {
+                locationName: "워크스테이션",
+                date: "2024-05-09"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&w=1000&q=80", // Portrait - Nature
+            metadata: {
+                locationName: "신비로운 숲",
+                date: "2024-05-18"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&w=1000&q=80", // Portrait - Architecture
+            metadata: {
+                locationName: "모던 건축물",
+                date: "2024-05-17"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&w=1000&q=80", // Portrait - Tree
+            metadata: {
+                locationName: "햇살 가득한 숲",
+                date: "2024-05-16"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&w=1600&q=80", // Landscape
+            metadata: {
+                locationName: "안개 낀 산맥",
+                latitude: 46.8523,
+                longitude: 9.5307,
+                date: "2024-05-15"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&w=1600&q=80", // Landscape - Lake
+            metadata: {
+                locationName: "평화로운 호수",
+                date: "2024-05-16"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&w=1600&q=80", // Landscape - Mountains
+            metadata: {
+                locationName: "알프스 산맥",
+                date: "2024-05-15"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&w=1600&q=80", // Landscape - City
+            metadata: {
+                locationName: "영국 런던",
+                date: "2024-05-14"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&w=1000&q=80", // Square - Watch
+            metadata: {
+                locationName: "화이트 스튜디오",
+                date: "2024-05-13"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&w=1600&q=80", // Wide - Headphones
+            metadata: {
+                locationName: "음악 작업실",
+                date: "2024-05-12"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&w=1600&q=80", // Landscape - Camera
+            metadata: {
+                locationName: "카메라 샵",
+                date: "2024-05-11"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&w=1600&q=80", // Wide - Code
+            metadata: {
+                locationName: "코딩 공간",
+                date: "2024-05-10"
+            }
+        },
+        {
+            src: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&w=1600&q=80", // Wide - Desk
+            metadata: {
+                locationName: "워크스테이션",
+                date: "2024-05-09"
+            }
         }
     ],
     createdAt: "어제",
@@ -214,7 +387,10 @@ export default function GroupFeedPage({ params }: PageProps) {
                   {post.images.map((image, idx) => (
                     <div 
                         key={idx} 
-                        className="relative aspect-square overflow-hidden bg-muted cursor-pointer"
+                        className={cn(
+                          "relative overflow-hidden bg-muted cursor-pointer",
+                          post.images.length === 1 ? "aspect-video" : "aspect-square"
+                        )}
                         onClick={() => handleImageClick(post.images, idx)}
                     >
                       <Image
@@ -247,7 +423,7 @@ export default function GroupFeedPage({ params }: PageProps) {
         ))}
       </div>
 
-      <CreatePostDialog />
+      <CreatePostDialog groupId={groupId} />
       <ImageViewer 
         photos={selectedPhotos} 
         initialIndex={initialIndex} 

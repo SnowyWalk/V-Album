@@ -1,5 +1,6 @@
 ﻿using Configuration;
 using Microsoft.EntityFrameworkCore;
+using V_Album_Server.Infrastructures.BackgroundJobs;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
 using V_Album_Server.Services.Group;
 using V_Album_Server.Services.Login;
@@ -29,6 +30,10 @@ builder.Services.AddScoped<GroupRepository>();
 
 // Configuration
 builder.Services.Configure<AppDefaultsOptions>(builder.Configuration.GetSection("AppDefaults"));
+
+// BackgroundJobs
+builder.Services.AddSingleton<ThumbnailQueue>();
+builder.Services.AddHostedService<ThumbnailWorker>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo } from "react";
-import { Plus, Image as ImageIcon, X, Maximize2 } from "lucide-react";
+import { Plus, Image as ImageIcon, X, Maximize2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,13 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
 
-export function CreatePostDialog() {
+export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const photoItems = useMemo<PhotoItem[]>(() => {
@@ -65,16 +66,39 @@ export function CreatePostDialog() {
     }
   };
 
-  const handleSubmit = () => {
-    // DB 구조가 아직 없으므로 콘솔 로그로 대체
-    console.log("포스트 제출:", { content, images: selectedImages });
-    
-    // 상태 초기화 및 닫기
-    setContent("");
-    setSelectedImages([]);
-    setPreviews([]);
-    setViewerOpen(false);
-    setOpen(false);
+  const handleSubmit = async () => {
+    if (isUploading) return;
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("content", content);
+      formData.append("groupUuid", groupUuid);
+      selectedImages.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const response = await fetch("/api/group/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("업로드 실패");
+      }
+
+      // 상태 초기화 및 닫기
+      setContent("");
+      setSelectedImages([]);
+      setPreviews([]);
+      setViewerOpen(false);
+      setOpen(false);
+    } catch (error) {
+      console.error("포스트 제출 오류:", error);
+      alert("업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const openViewer = (index: number) => {
@@ -176,8 +200,15 @@ export function CreatePostDialog() {
           <Button variant="outline" onClick={() => setOpen(false)}>
             취소
           </Button>
-          <Button onClick={handleSubmit} disabled={!content && selectedImages.length === 0}>
-            공유하기
+          <Button onClick={handleSubmit} disabled={(!content && selectedImages.length === 0) || isUploading}>
+            {isUploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                업로드 중...
+              </>
+            ) : (
+              "공유하기"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
