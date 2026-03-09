@@ -423,7 +423,7 @@ export default function GroupFeedPage({ params }: PageProps) {
         ))}
       </div>
 
-      <CreatePostDialog groupId={groupId} />
+      <CreatePostDialog groupUuid={groupId} />
       <ImageViewer 
         photos={selectedPhotos} 
         initialIndex={initialIndex} 

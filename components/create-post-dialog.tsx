@@ -75,10 +75,12 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
       formData.append("content", content);
       formData.append("groupUuid", groupUuid);
       selectedImages.forEach((file) => {
-        formData.append("images", file);
+        formData.append("photos", file);
       });
+      
+      console.log(formData)
 
-      const response = await fetch("/api/group/upload", {
+      const response = await fetch("/api/group/post", {
         method: "POST",
         body: formData,
       });

@@ -16,42 +16,4 @@ public class GroupService(UserRepository userRepository, GroupRepository groupRe
         DomainGroup newGroup = await groupRepository.CreateGroupWithOwnerAsync(groupName, me.UserUuid, ct);
         return new GroupController.CreateResponse(newGroup);
     }
-
-    public async Task<GroupController.PostResponse> UploadPostAsync(string googleSub, Guid groupUuid, string content, List<IFormFile> images)
-    {
-        
-        // Handle Images
-        List<IFormFile> validImages = images.Where(IsValidImage).ToList();
-        foreach (IFormFile image in validImages)
-        {
-            await thumbnailQueue.EnqueueAsync(new ThumbnailJob {
-                GroupUuid = groupUuid.ToString(),
-                PostUuid = TEST_postUuid.ToString(),
-                ImageUuid = Guid.NewGuid().ToString(),
-                Format = GetFileExtension(image),
-            });
-        }
-
-        // TODO: 
-        
-    }
-
-    private string GetFileExtension(IFormFile file)
-    {
-        return Path.GetExtension(file.FileName);
-    }
-
-    private bool IsValidImage(IFormFile file)
-    {
-        try
-        {
-            using var stream = file.OpenReadStream();
-            using var image = Image.Load(stream);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 }

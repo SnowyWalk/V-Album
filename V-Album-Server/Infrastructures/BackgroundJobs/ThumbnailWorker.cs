@@ -10,8 +10,8 @@ public class ThumbnailWorker(ThumbnailQueue queue) : BackgroundService
         {
             ThumbnailJob job = await queue.DequeueAsync(stoppingToken);
 
-            string basePath = $"/uploads/{job.GroupUuid}/{job.PostUuid}/{job.ImageUuid}";
-            string src = $"{basePath}.{job.Format}";
+            string basePath = $"uploads/{job.GroupUuid}/{job.PostUuid}/{job.PhotoUuid}";
+            string src = $"{basePath}{job.Format}";
             string dst = $"{basePath}_thumb.webp";
             await GenerateThumbnail(src, dst);
         }
@@ -25,6 +25,7 @@ public class ThumbnailWorker(ThumbnailQueue queue) : BackgroundService
             Quality = 70,
         };
 
+        CommonUtils.EnsureDirectoryExists(dst);
         await image.SaveAsync(dst, encoder);
     }
 }

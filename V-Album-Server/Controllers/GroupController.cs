@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using V_Album_Server.Services.Group;
+using V_Album_Server.UseCases.Post;
 namespace V_Album_Server.Controllers;
 
 [ApiController]
 [Route("api/group")]
-public class GroupController(GroupService groupService) : ControllerBase
+public class GroupController(GroupService groupService, CreatePostUseCase createPostUseCase) : ControllerBase
 {
     public sealed record CreateRequest(string GroupName);
     public sealed record CreateResponse(DomainGroup CreatedGroup);
@@ -19,30 +20,18 @@ public class GroupController(GroupService groupService) : ControllerBase
         return Ok(result);
     }
 
-    public sealed record PostRequest(string Content, Guid GroupUuid, List<IFormFile> Images);
+    public sealed record PostRequest(string Content, string GroupUuid, List<IFormFile>? photos);
     public sealed record PostResponse(Guid GroupUuid, Guid PostUuid);
     
     [HttpPost("post")]
-    public async Task<IActionResult> CreatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromForm] PostRequest request)
+    public async Task<IActionResult> CreatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromForm] PostRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
             return Unauthorized(new { error = "Missing X-Google-Sub header" });
         
-        var result = await groupService.UploadPostAsync(googleSub, request.GroupUuid, request.Content, request.Images);
+        PostResponse result = await createPostUseCase.Execute(googleSub, new Guid(request.GroupUuid), request.Content, request.photos, ct);
         
-        string content = request.Content;
-        List<IFormFile> images = request.Images;
-
-        foreach (var image in images)
-        {
-            var fileName = image.FileName;
-            var length = image.Length;
-
-            using var stream = new FileStream($"uploads/{fileName}", FileMode.Create);
-            await image.CopyToAsync(stream);
-        }
-
-        return Ok();
+        return Ok(result);
     }
     
 }
