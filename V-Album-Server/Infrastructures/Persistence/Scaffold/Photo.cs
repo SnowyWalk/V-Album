@@ -21,6 +21,8 @@ public partial class Photo
 
     public byte[] Hash { get; set; } = null!;
 
+    public string? Format { get; set; }
+
     public virtual Post PostUu { get; set; } = null!;
 
     public virtual World? WorldUu { get; set; }

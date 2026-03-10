@@ -1,6 +1,7 @@
 ﻿using Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using V_Album_Server.Infrastructures.BackgroundJobs;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
 using V_Album_Server.Services.Group;
@@ -78,6 +79,14 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

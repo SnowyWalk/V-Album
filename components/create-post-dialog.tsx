@@ -137,7 +137,6 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
             />
             {previews.length === 0 ? (
               <div
-                onClick={() => fileInputRef.current?.click()}
                 className="flex flex-col items-center gap-2 text-muted-foreground w-full h-full py-10"
               >
                 <ImageIcon className="h-10 w-10" />

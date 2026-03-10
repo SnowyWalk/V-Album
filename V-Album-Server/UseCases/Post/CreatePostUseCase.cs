@@ -13,6 +13,8 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
         DomainUser? me = await userRepository.GetUserByGoogleSub(googleSub, ct);
         if (me is null)
             throw new UserNotFoundException(googleSub);
+        
+        // TODO: 해당 그룹원인지 (글 작성 권한 있는지) 확인 필요
 
         // Post 생성
         DomainPost createdPost = await postRepository.CreatePostAsync(groupUuid, me.UserUuid, content, ct);

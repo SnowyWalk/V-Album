@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/uploads/:path*",
+        destination: `${process.env.CDN_URL}/uploads/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

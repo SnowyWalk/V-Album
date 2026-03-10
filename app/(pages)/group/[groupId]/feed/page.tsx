@@ -10,6 +10,7 @@ import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {PhotoDto} from "@/dto/photo-dto";
 
 interface PageProps {
   params: Promise<{

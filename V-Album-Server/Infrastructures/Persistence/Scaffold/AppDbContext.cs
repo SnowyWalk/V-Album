@@ -121,6 +121,9 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => new { e.PostUuid, e.SortOrder }, "포스트에 포함된 사진 인덱스");
 
             entity.Property(e => e.PhotoUuid).HasColumnName("photo_uuid");
+            entity.Property(e => e.Format)
+                .HasMaxLength(5)
+                .HasColumnName("format");
             entity.Property(e => e.Hash)
                 .HasMaxLength(32)
                 .IsFixedLength()

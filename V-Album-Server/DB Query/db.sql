@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `photo` (
   `height` int(11) NOT NULL,
   `size` int(11) NOT NULL,
   `hash` binary(32) NOT NULL,
+  `format` varchar(5) DEFAULT NULL,
   PRIMARY KEY (`photo_uuid`) USING BTREE,
   KEY `중복 탐지용 인덱스` (`hash`),
   KEY `포스트에 포함된 사진 인덱스` (`post_uuid`,`sort_order`) USING BTREE,
@@ -111,52 +112,6 @@ CREATE TABLE IF NOT EXISTS `world` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 내보낼 데이터가 선택되어 있지 않습니다.
-
--- 프로시저 test.sp_create_group 구조 내보내기
-DELIMITER //
-CREATE PROCEDURE `sp_create_group`(
-	IN `p_group_uuid` CHAR(36),
-	IN `p_group_name` VARCHAR(64),
-	IN `p_user_uuid` CHAR(36)
-)
-BEGIN
-
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-    END;
-
-    START TRANSACTION;
-
-    INSERT INTO `groups` (
-        group_uuid,
-        name
-    )
-    VALUES (
-        p_group_uuid,
-        p_group_name
-    );
-
-    INSERT INTO `member` (
-        user_uuid,
-        group_uuid,
-        role
-    )
-    VALUES (
-        p_user_uuid,
-        p_group_uuid,
-        'Owner'
-    );
-
-    COMMIT;
-
-    SELECT *
-    FROM `groups`
-    WHERE group_uuid = p_group_uuid
-      AND deleted_at IS NULL;
-
-END//
-DELIMITER ;
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
