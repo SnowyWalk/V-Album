@@ -19,17 +19,16 @@
 CREATE DATABASE IF NOT EXISTS `test` /*!40100 DEFAULT CHARACTER SET utf8 */;
 USE `test`;
 
--- 테이블 test.group 구조 내보내기
-CREATE TABLE IF NOT EXISTS `group` (
+-- 테이블 test.groups 구조 내보내기
+CREATE TABLE IF NOT EXISTS `groups` (
   `group_uuid` char(36) NOT NULL,
   `name` varchar(64) NOT NULL,
   `pic` varchar(64) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`group_uuid`),
-  UNIQUE KEY `group_uuid` (`group_uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`group_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 내보낼 데이터가 선택되어 있지 않습니다.
 
@@ -44,74 +43,75 @@ CREATE TABLE IF NOT EXISTS `member` (
   `deleted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`user_uuid`,`group_uuid`) USING BTREE,
   KEY `유저가 가입한 그룹 조회용 인덱스` (`user_uuid`,`deleted_at`) USING BTREE,
-  KEY `특정 그룹의 그룹 멤버 목록 조회용 인덱스` (`group_uuid`,`deleted_at`,`joined_at`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  KEY `특정 그룹의 그룹 멤버 목록 조회용 인덱스` (`group_uuid`,`deleted_at`,`joined_at`) USING BTREE,
+  CONSTRAINT `FK_member_groups` FOREIGN KEY (`group_uuid`) REFERENCES `groups` (`group_uuid`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `FK_member_user` FOREIGN KEY (`user_uuid`) REFERENCES `user` (`user_uuid`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 내보낼 데이터가 선택되어 있지 않습니다.
+
+-- 테이블 test.photo 구조 내보내기
+CREATE TABLE IF NOT EXISTS `photo` (
+  `photo_uuid` char(36) NOT NULL,
+  `post_uuid` char(36) NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT '0',
+  `world_uuid` char(36) DEFAULT NULL,
+  `width` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
+  `size` int(11) NOT NULL,
+  `hash` binary(32) NOT NULL,
+  `format` varchar(5) DEFAULT NULL,
+  PRIMARY KEY (`photo_uuid`) USING BTREE,
+  KEY `중복 탐지용 인덱스` (`hash`),
+  KEY `포스트에 포함된 사진 인덱스` (`post_uuid`,`sort_order`) USING BTREE,
+  KEY `FK_photo_world` (`world_uuid`),
+  CONSTRAINT `FK_photo_post` FOREIGN KEY (`post_uuid`) REFERENCES `post` (`post_uuid`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `FK_photo_world` FOREIGN KEY (`world_uuid`) REFERENCES `world` (`world_uuid`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 내보낼 데이터가 선택되어 있지 않습니다.
+
+-- 테이블 test.post 구조 내보내기
+CREATE TABLE IF NOT EXISTS `post` (
+  `post_uuid` char(36) NOT NULL,
+  `group_uuid` char(36) NOT NULL,
+  `user_uuid` char(36) NOT NULL,
+  `content` mediumtext,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`post_uuid`),
+  KEY `그룹별 시간순 포스트 인덱스` (`group_uuid`,`deleted_at`,`created_at`) USING BTREE,
+  KEY `FK_post_user` (`user_uuid`),
+  CONSTRAINT `FK_post_groups` FOREIGN KEY (`group_uuid`) REFERENCES `groups` (`group_uuid`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `FK_post_user` FOREIGN KEY (`user_uuid`) REFERENCES `user` (`user_uuid`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 내보낼 데이터가 선택되어 있지 않습니다.
 
 -- 테이블 test.user 구조 내보내기
 CREATE TABLE IF NOT EXISTS `user` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_uuid` char(36) NOT NULL DEFAULT '',
+  `user_uuid` char(36) NOT NULL,
   `google_sub` varchar(64) DEFAULT NULL,
   `nickname` varchar(50) NOT NULL,
   `pic` varchar(64) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `user_uuid_UNIQUE` (`user_uuid`),
+  PRIMARY KEY (`user_uuid`),
   UNIQUE KEY `google_id_token_UNIQUE` (`google_sub`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 내보낼 데이터가 선택되어 있지 않습니다.
 
--- 프로시저 test.sp_create_group 구조 내보내기
-DELIMITER //
-CREATE PROCEDURE `sp_create_group`(
-	IN `p_group_uuid` CHAR(36),
-	IN `p_group_name` VARCHAR(64),
-	IN `p_user_uuid` CHAR(36)
-)
-BEGIN
+-- 테이블 test.world 구조 내보내기
+CREATE TABLE IF NOT EXISTS `world` (
+  `world_uuid` char(36) NOT NULL DEFAULT '',
+  `name` varchar(256) DEFAULT NULL,
+  PRIMARY KEY (`world_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-    END;
-
-    START TRANSACTION;
-
-    INSERT INTO `group` (
-        group_uuid,
-        name
-    )
-    VALUES (
-        p_group_uuid,
-        p_group_name
-    );
-
-    INSERT INTO `member` (
-        user_uuid,
-        group_uuid,
-        role
-    )
-    VALUES (
-        p_user_uuid,
-        p_group_uuid,
-        'Owner'
-    );
-
-    COMMIT;
-
-    SELECT *
-    FROM `group`
-    WHERE group_uuid = p_group_uuid
-      AND deleted_at IS NULL;
-
-END//
-DELIMITER ;
+-- 내보낼 데이터가 선택되어 있지 않습니다.
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

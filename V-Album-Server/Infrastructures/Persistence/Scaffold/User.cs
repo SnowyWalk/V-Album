@@ -1,9 +1,10 @@
-﻿namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
+﻿using System;
+using System.Collections.Generic;
+
+namespace V_Album_Server.Infrastructures.Persistence.Scaffold;
 
 public partial class User
 {
-    public int Id { get; set; }
-
     public Guid UserUuid { get; set; }
 
     public string? GoogleSub { get; set; }
@@ -17,4 +18,8 @@ public partial class User
     public DateTime UpdatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    public virtual ICollection<Member> Members { get; set; } = new List<Member>();
+
+    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 }

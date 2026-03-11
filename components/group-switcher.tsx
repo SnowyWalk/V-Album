@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {Check, ChevronsUpDown, Plus} from "lucide-react"
+import {useParams, useRouter} from "next/navigation";
 
 import {
     DropdownMenu,
@@ -17,7 +18,6 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import {useEffect, useState} from "react";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {GroupDto, useMyGroups} from "@/hooks/use-my-groups";
 import {Skeleton} from "@/components/ui/skeleton";
@@ -48,6 +48,13 @@ const RequestCreateGroup = async () : Promise<GroupDto> => {
 }
 
 export function GroupSwitcher() {
+    const {isMobile} = useSidebar()
+    const router = useRouter()
+    const params = useParams()
+    const activeGroupUuid = params.groupId as string | undefined
+
+    const {data: myGroups, isLoading, invalidateMyGroups} = useMyGroups()
+
     const createGroupMutation = useMutation<GroupDto>({
         mutationFn: RequestCreateGroup,
         onMutate: () => {
@@ -55,22 +62,12 @@ export function GroupSwitcher() {
         },
         onSuccess: async (result: GroupDto)  => {
             toast(`${result.name} 그룹 생성됨`)
-            setActiveGroupUuid(result.groupUuid)
             await invalidateMyGroups()
+            router.push(`/group/${result.groupUuid}/feed`)
         }
     })
-    const {isMobile} = useSidebar()
-    const [activeGroupUuid, setActiveGroupUuid] = useState<string | null>(() => {
-        if (typeof window === "undefined") return null
-        return localStorage.getItem("activeGroupUuid")
-    })
-    const {data: myGroups, isLoading, invalidateMyGroups} = useMyGroups()
-    const activeGroup = myGroups?.groups.find(g => g.groupUuid === activeGroupUuid) ?? myGroups?.groups[0] ?? null
 
-    useEffect(() => {
-        if (activeGroupUuid)
-            localStorage.setItem("activeGroupUuid", activeGroupUuid)
-    }, [activeGroupUuid])
+    const activeGroup = myGroups?.groups.find(g => g.groupUuid === activeGroupUuid) ?? myGroups?.groups[0] ?? null
 
     const ActiveGroup = () => {
         if (activeGroup == null || isLoading)
@@ -103,7 +100,7 @@ export function GroupSwitcher() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             id="group-switcher-trigger"
@@ -126,7 +123,7 @@ export function GroupSwitcher() {
                         {myGroups && myGroups.groups.map((group, _) => (
                             <DropdownMenuItem
                                 key={group.groupUuid}
-                                onClick={() => setActiveGroupUuid(group.groupUuid)}
+                                onClick={() => router.push(`/group/${group.groupUuid}/feed`)}
                                 className="gap-2 p-2"
                             >
                                 <Avatar className="rounded-full ring-1 ring-border">
