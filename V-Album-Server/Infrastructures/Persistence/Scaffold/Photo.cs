@@ -17,7 +17,7 @@ public partial class Photo
 
     public int Height { get; set; }
 
-    public int Size { get; set; }
+    public long Size { get; set; }
 
     public byte[] Hash { get; set; } = null!;
 

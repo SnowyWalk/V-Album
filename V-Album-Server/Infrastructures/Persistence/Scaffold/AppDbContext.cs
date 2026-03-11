@@ -133,7 +133,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("height");
             entity.Property(e => e.PostUuid).HasColumnName("post_uuid");
             entity.Property(e => e.Size)
-                .HasColumnType("int(11)")
+                .HasColumnType("bigint(20)")
                 .HasColumnName("size");
             entity.Property(e => e.SortOrder)
                 .HasColumnType("int(11)")

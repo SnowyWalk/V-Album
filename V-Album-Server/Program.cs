@@ -34,6 +34,7 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<MemberRepository>();
 builder.Services.AddScoped<GroupRepository>();
 builder.Services.AddScoped<PostRepository>();
+builder.Services.AddScoped<PhotoRepository>();
 
 // Configuration
 builder.Services.Configure<AppDefaultsOptions>(builder.Configuration.GetSection("AppDefaults"));
@@ -47,6 +48,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
+// 에러메시지 잘 뽑기 위해서
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -80,6 +82,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+// uploads static
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(

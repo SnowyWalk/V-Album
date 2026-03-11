@@ -4,7 +4,7 @@ namespace V_Album_Server.Infrastructures.Persistence.Repositories;
 
 public class PhotoRepository(AppDbContext dbContext)
 {
-    public async Task<DomainPhoto> AddPhotoAsync(Guid postUuid, int sortOrder, Guid? worldUuid, int width, int height, int size, byte[] hash, string format, CancellationToken ct)
+    public async Task<DomainPhoto> AddPhotoAsync(Guid postUuid, int sortOrder, Guid? worldUuid, int width, int height, long size, byte[] hash, string format, bool save, CancellationToken ct)
     {
         Guid newPhotoUuid = Guid.NewGuid();
         PhotoEntity newPhotoEntity = new PhotoEntity { 
@@ -19,6 +19,10 @@ public class PhotoRepository(AppDbContext dbContext)
             Format = format,
         };
         await dbContext.Photos.AddAsync(newPhotoEntity, ct);
+        
+        if (save)
+            await dbContext.SaveChangesAsync(ct);
+        
         return newPhotoEntity.ToDomain();
     }
 }
