@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { Plus, Image as ImageIcon, X, Maximize2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,13 @@ import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
 
 export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [content, setContent] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -107,6 +113,14 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
     setViewerIndex(index);
     setViewerOpen(true);
   };
+
+  if (!mounted) {
+    return (
+      <Button className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg !transition-none !duration-0 active:scale-95 z-40 transform-none">
+        <Plus className="h-8 w-8" />
+      </Button>
+    );
+  }
 
   return (
     <>
