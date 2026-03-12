@@ -23,6 +23,8 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
 
         // 사진 처리
         await HandlePhotos(createdPost.PostUuid, groupUuid, photos, ct);
+        
+        await dbContext.SaveChangesAsync(ct);
 
         return new GroupController.PostResponse(groupUuid, createdPost.PostUuid);
     }
@@ -71,9 +73,6 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
                 throw;
             }
         }
-        
-        if (sortOrder > 1)
-            await dbContext.SaveChangesAsync(ct);
     }
 
     private string GetFileExtension(IFormFile file)

@@ -35,25 +35,18 @@ export function useMyGroups() {
     return { ...query, resetMyGroups, invalidateMyGroups };
 }
 
-let callCount = 0
 async function fetchMyGroups(): Promise<MyGroupsDto | null> {
-    callCount++
-    console.log("fetchMyGroups call#", callCount)
     const res = await fetch("/api/user/groups", {
         method: "GET",
         credentials: "include",
     })
-    console.log("status:", res.status)
     
     // 로그인 안 된 상태
-    if (res.status === 401) return null
+    if (res.status === 401) 
+        return null
 
-    if (!res.ok) {
+    if (!res.ok)
         throw new Error("Failed to fetch /api/user/groups")
-    }
-
-    // const text = await res.text()
-    // console.log("raw body:", text)
     
     return (await res.json()) as MyGroupsDto
 }

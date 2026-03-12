@@ -58,5 +58,10 @@ public class UserRepository(AppDbContext dbContext, IOptions<AppDefaultsOptions>
 
         return user.ToDomain();
     }
+    
+    public async Task<bool> IsUserExists(string googleSub, CancellationToken ct)
+    {
+        return await dbContext.Users.AnyAsync(e => e.GoogleSub == googleSub, ct);
+    }
 
 }

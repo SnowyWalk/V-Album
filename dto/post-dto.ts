@@ -6,6 +6,4 @@ export interface PostDto {
     userUuid: string;
     content: string | null;
     createdAt: string;
-    
-    photos: PhotoDto[];
 }

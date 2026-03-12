@@ -7,5 +7,5 @@ export interface PhotoDto {
     height: number;
     size: number;
     hash: string;
-    ext: string;
+    format: string;
 }

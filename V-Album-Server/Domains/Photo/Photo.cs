@@ -2,15 +2,15 @@ namespace V_Album_Server.Domains.Photo;
 
 public class Photo
 {
-    Guid PhotoUuid { get; }
-    Guid PostUuid { get; }
-    int SortOrder { get; }
-    Guid? WorldUuid { get; }
-    int Width { get; }
-    int Height { get; }
-    long Size { get; }
-    byte[] Hash { get; }
-    string? Format { get; }
+    public Guid PhotoUuid { get; }
+    public Guid PostUuid { get; }
+    public int SortOrder { get; }
+    public Guid? WorldUuid { get; }
+    public int Width { get; }
+    public int Height { get; }
+    public long Size { get; }
+    public byte[] Hash { get; }
+    public string? Format { get; }
     
     public Photo(Guid photoPhotoUuid, Guid photoPostUuid, int sortOrder, Guid? worldUuid, int width, int height, long size, byte[] photoHash, string? format)
     {
