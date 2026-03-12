@@ -14,6 +14,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
+import {useQueryClient} from "@tanstack/react-query";
 
 export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
   const [mounted, setMounted] = useState(false);
@@ -30,6 +31,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const photoItems = useMemo<PhotoItem[]>(() => {
     return previews.map((src, index) => ({
@@ -84,8 +86,6 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
         formData.append("photos", file);
       });
       
-      console.log(formData)
-
       const response = await fetch("/api/group/post", {
         method: "POST",
         body: formData,
@@ -101,6 +101,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
       setPreviews([]);
       setViewerOpen(false);
       setOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ["feed", groupUuid] });
     } catch (error) {
       console.error("포스트 제출 오류:", error);
       alert("업로드 중 오류가 발생했습니다.");
