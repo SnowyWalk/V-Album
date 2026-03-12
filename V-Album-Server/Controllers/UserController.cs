@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using V_Album_Server.Domains.Group;
+using V_Album_Server.Domains.User;
 using V_Album_Server.Services.User;
 
 namespace V_Album_Server.Controllers;
@@ -8,8 +9,6 @@ namespace V_Album_Server.Controllers;
 [Route("api/user")]
 public class UserController(UserService userService) : ControllerBase
 {
-    public sealed record GetMeResponse(string UserUuid, string Nickname, string? Pic);
-
     [HttpGet("me")]
     public async Task<IActionResult> GetMe([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
     {
@@ -43,6 +42,18 @@ public class UserController(UserService userService) : ControllerBase
             return NotFound();
         }
     }
-
+    
+    [HttpGet("avatar/{userUuid}")]
+    public async Task<IActionResult> GetUserAvatar(Guid userUuid, CancellationToken ct)
+    {
+        try
+        {
+            return Ok(await userService.GetUserAvatar(userUuid, ct));
+        }
+        catch (UserNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 
 }

@@ -4,7 +4,7 @@ import {
     BadgeCheck,
     Bell,
     ChevronsUpDown,
-    CreditCard, Ghost, LogIn,
+    CreditCard, Ghost, ImageOff, LogIn,
     LogOut, Moon,
     Sparkles, Sun,
 } from "lucide-react"
@@ -77,7 +77,7 @@ export function NavUser() {
             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-full" key="nav-user-avatar">
                     <AvatarImage src={`/profile-pics/${me.pic}.png`} alt="User Avatar"/>
-                    <AvatarFallback className="rounded-full">CN</AvatarFallback>
+                    <AvatarFallback className="rounded-full"><ImageOff/></AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{me?.nickname}</span>

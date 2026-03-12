@@ -64,4 +64,12 @@ public class UserRepository(AppDbContext dbContext, IOptions<AppDefaultsOptions>
         return await dbContext.Users.AnyAsync(e => e.GoogleSub == googleSub, ct);
     }
 
+    public async Task<DomainUser?> GetUserByUuid(Guid userUuid, CancellationToken ct)
+    {
+        User? user = await dbContext.Users.AsNoTracking().SingleOrDefaultAsync(e => e.UserUuid == userUuid, ct);
+        if (user is null)
+            return null;
+
+        return user.ToDomain();
+    }
 }

@@ -32,17 +32,11 @@ export async function GET(req: NextRequest) {
 
     const backendUrl = process.env.BACKEND_BASE_URL
     const fullUrl = `${backendUrl}/api/group/feed?${params}`
-    console.log("[feed] requesting:", fullUrl)  // ← 추가
 
     const res = await fetch(fullUrl, {
         method: "GET",
         headers: { "X-Google-Sub": googleSub },
     })
-    console.log("[feed] backend status:", res.status)
 
-    const text = await res.text()
-    console.log("[feed] backend body:", text)  // ← 실제 응답 확인
-
-    const json = text ? JSON.parse(text) : {}
-    return NextResponse.json(json, { status: res.status })
+    return NextResponse.json(await res.json(), { status: res.status })
 }

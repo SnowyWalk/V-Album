@@ -1,18 +1,23 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import {useRef, useEffect} from "react"
 import {InfiniteData, QueryFunctionContext, QueryKey, useInfiniteQuery} from "@tanstack/react-query"
 import {PostDto} from "@/dto/post-dto";
 import {PhotoDto} from "@/dto/photo-dto";
+import {Card, CardContent, CardHeader} from "@/components/ui/card";
+import UserAvatar from "@/components/user-avatar";
+import {MoreHorizontal, SeparatorHorizontal} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Separator} from "@/components/ui/separator";
 
-type PageParam = { 
-    dateTime: string, 
-    postUuid: string 
+type PageParam = {
+    dateTime: string,
+    postUuid: string
 } | null
 
 type FeedItem = {
     post: PostDto
-    photos: PhotoDto[] | null    
+    photos: PhotoDto[] | null
 }
 
 type FeedResponse = {
@@ -23,7 +28,7 @@ type FeedResponse = {
 
 type FeedQueryKey = ["feed", string]
 
-async function fetchFeed({ pageParam, queryKey }: QueryFunctionContext<FeedQueryKey, PageParam>)  {
+async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKey, PageParam>) {
     let url = `/api/group/feed?limit=2&groupUuid=${queryKey[1]}`
 
     if (pageParam) {
@@ -39,7 +44,7 @@ async function fetchFeed({ pageParam, queryKey }: QueryFunctionContext<FeedQuery
     return res.json()
 }
 
-export default function GroupFeed({groupUuid} : {groupUuid: string}) {
+export default function GroupFeed({groupUuid}: { groupUuid: string }) {
 
     const loaderRef = useRef<HTMLDivElement | null>(null)
 
@@ -59,7 +64,7 @@ export default function GroupFeed({groupUuid} : {groupUuid: string}) {
     })
 
     const posts = data?.pages.flatMap(p => p.feedPosts) ?? []
-    console.log(data?.pages.flatMap(e=>e))
+    console.log(data?.pages.flatMap(e => e))
 
     useEffect(() => {
 
@@ -69,7 +74,7 @@ export default function GroupFeed({groupUuid} : {groupUuid: string}) {
                     fetchNextPage()
                 }
             },
-            { rootMargin: "300px" }
+            {rootMargin: "300px"}
         )
 
         if (loaderRef.current)
@@ -83,13 +88,24 @@ export default function GroupFeed({groupUuid} : {groupUuid: string}) {
         <div className="flex flex-col gap-4">
 
             {posts.map(({post, photos}) => (
-                <div
+                <Card
                     key={post.postUuid}
                     className="border p-4 rounded-xl min-h-[500px] "
                 >
-                    {post.content}
-                    {photos && <div>사진: {photos?.length}개</div>}
-                </div>
+                    <CardHeader className="p-0">
+                        <div className="flex flex-row  items-center justify-between p-0">
+                            <UserAvatar userUuid={post.userUuid}/>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4"/>
+                            </Button>
+                        </div>
+                        <Separator/>
+                    </CardHeader>
+                    <CardContent className="p-2 pt-0">
+                        {post.content}
+                        {photos && <div>사진: {photos?.length}개</div>}
+                    </CardContent>
+                </Card>
             ))}
 
             <div ref={loaderRef} className="h-10 flex items-center justify-center">
