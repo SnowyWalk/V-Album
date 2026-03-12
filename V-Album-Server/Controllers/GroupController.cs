@@ -38,7 +38,8 @@ public class GroupController(GroupService groupService, CreatePostUseCase create
     
     public sealed record FeedRequest(string GroupUuid, DateTime? CursorDateTime, string? CursorPostUuid, int Limit);
     public sealed record FeedItem(DomainPost Post, DomainPhoto[]? Photos);
-    public sealed record FeedResponse(FeedItem[] FeedPosts);
+    public sealed record FeedCursor(DateTime DateTime, Guid PostUuid);
+    public sealed record FeedResponse(FeedItem[] FeedPosts, bool HasMore, FeedCursor? NextCursor);
     
     [HttpGet("feed")]
     public async Task<IActionResult> GetFeed([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromQuery] FeedRequest request, CancellationToken ct)

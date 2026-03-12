@@ -24,9 +24,13 @@ public class GetFeedUseCase(AppDbContext dbContext, UserRepository userRepositor
         PostEntity[] postEntities = await postQuery
             .OrderByDescending(e => e.CreatedAt)
             .ThenByDescending(e => e.PostUuid)
-            .Take(limit)
+            .Take(limit + 1) // HasMore 계산하기 위해 1개 더 조회
             .ToArrayAsync(ct);
-
+        
+        // Cursor 정보 획득
+        bool hasMore = postEntities.Length == limit + 1;
+        postEntities = postEntities.Take(limit).ToArray();
+        
         // 그 Post들의 Photo 조회
         Guid[] postUuids = postEntities.Select(e => e.PostUuid).ToArray();
         PhotoEntity[] photoEntities = await dbContext.Photos
@@ -42,9 +46,11 @@ public class GetFeedUseCase(AppDbContext dbContext, UserRepository userRepositor
         GroupController.FeedItem[] results = postEntities
             .Select(e => new GroupController.FeedItem(e.ToDomain(), photoMap.GetValueOrDefault(e.PostUuid)))
             .ToArray();
-
+        
         return new GroupController.FeedResponse(
-            FeedPosts: results
+            FeedPosts: results,
+            hasMore,
+            NextCursor: hasMore ? new GroupController.FeedCursor(results.Last().Post.CreatedAt, results.Last().Post.PostUuid) : null
             );
     }
 }

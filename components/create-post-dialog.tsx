@@ -101,7 +101,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
       setPreviews([]);
       setViewerOpen(false);
       setOpen(false);
-      await queryClient.invalidateQueries({ queryKey: ["feed", groupUuid] });
+      await queryClient.resetQueries({ queryKey: ["feed", groupUuid] });
     } catch (error) {
       console.error("포스트 제출 오류:", error);
       alert("업로드 중 오류가 발생했습니다.");

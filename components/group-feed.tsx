@@ -6,7 +6,7 @@ import {PostDto} from "@/dto/post-dto";
 import {PhotoDto} from "@/dto/photo-dto";
 
 type PageParam = { 
-    createdAt: string, 
+    dateTime: string, 
     postUuid: string 
 } | null
 
@@ -18,16 +18,16 @@ type FeedItem = {
 type FeedResponse = {
     feedPosts: FeedItem[]
     hasMore: boolean
-    nextCursor: PageParam
+    nextCursor: PageParam | null
 }
 
 type FeedQueryKey = ["feed", string]
 
 async function fetchFeed({ pageParam, queryKey }: QueryFunctionContext<FeedQueryKey, PageParam>)  {
-    let url = `/api/group/feed?limit=20&groupUuid=${queryKey[1]}`
+    let url = `/api/group/feed?limit=2&groupUuid=${queryKey[1]}`
 
     if (pageParam) {
-        url += `&cursorDateTime=${pageParam.createdAt}`
+        url += `&cursorDateTime=${pageParam.dateTime}`
         url += `&cursorPostUuid=${pageParam.postUuid}`
     }
 
@@ -59,7 +59,7 @@ export default function GroupFeed({groupUuid} : {groupUuid: string}) {
     })
 
     const posts = data?.pages.flatMap(p => p.feedPosts) ?? []
-    console.log(posts)
+    console.log(data?.pages.flatMap(e=>e))
 
     useEffect(() => {
 
@@ -85,7 +85,7 @@ export default function GroupFeed({groupUuid} : {groupUuid: string}) {
             {posts.map(({post, photos}) => (
                 <div
                     key={post.postUuid}
-                    className="border p-4 rounded"
+                    className="border p-4 rounded-xl min-h-[500px] "
                 >
                     {post.content}
                     {photos && <div>사진: {photos?.length}개</div>}
