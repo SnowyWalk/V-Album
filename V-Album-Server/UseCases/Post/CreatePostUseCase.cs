@@ -23,6 +23,8 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
 
         // 사진 처리
         await HandlePhotos(createdPost.PostUuid, groupUuid, photos, ct);
+        
+        await dbContext.SaveChangesAsync(ct);
 
         return new GroupController.PostResponse(groupUuid, createdPost.PostUuid);
     }
@@ -37,7 +39,7 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
         {
             try
             {
-                string photoUuid = Guid.NewGuid().ToString();
+                Guid photoUuid = Guid.NewGuid();
                 string ext = GetFileExtension(image);
                 string path = $"uploads/{groupUuid}/{postUuid}/{photoUuid}{ext}";
                 CommonUtils.EnsureDirectoryExists(path);
@@ -53,13 +55,13 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
                 byte[] hash = await sha.ComputeHashAsync(fs, ct);
 
                 // TODO: worldUuid 추가 필요
-                await photoRepository.AddPhotoAsync(postUuid, sortOrder, null, imageInfo.Width, imageInfo.Height, new FileInfo(path).Length, hash, ext, false, ct);
+                await photoRepository.AddPhotoAsync(postUuid, photoUuid, sortOrder, null, imageInfo.Width, imageInfo.Height, new FileInfo(path).Length, hash, ext, false, ct);
 
                 // Queue to generate thumbnails
                 await thumbnailQueue.EnqueueAsync(new ThumbnailJob {
                     GroupUuid = groupUuid.ToString(),
                     PostUuid = postUuid.ToString(),
-                    PhotoUuid = photoUuid,
+                    PhotoUuid = photoUuid.ToString(),
                     Format = GetFileExtension(image),
                 });
 
@@ -71,9 +73,6 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
                 throw;
             }
         }
-        
-        if (sortOrder > 1)
-            await dbContext.SaveChangesAsync(ct);
     }
 
     private string GetFileExtension(IFormFile file)

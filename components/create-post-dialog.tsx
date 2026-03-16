@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { Plus, Image as ImageIcon, X, Maximize2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +14,16 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
+import {useQueryClient} from "@tanstack/react-query";
 
 export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [content, setContent] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -24,6 +31,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const photoItems = useMemo<PhotoItem[]>(() => {
     return previews.map((src, index) => ({
@@ -78,8 +86,6 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
         formData.append("photos", file);
       });
       
-      console.log(formData)
-
       const response = await fetch("/api/group/post", {
         method: "POST",
         body: formData,
@@ -95,6 +101,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
       setPreviews([]);
       setViewerOpen(false);
       setOpen(false);
+      await queryClient.resetQueries({ queryKey: ["feed", groupUuid] });
     } catch (error) {
       console.error("포스트 제출 오류:", error);
       alert("업로드 중 오류가 발생했습니다.");
@@ -107,6 +114,14 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
     setViewerIndex(index);
     setViewerOpen(true);
   };
+
+  if (!mounted) {
+    return (
+      <Button className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg !transition-none !duration-0 active:scale-95 z-40 transform-none">
+        <Plus className="h-8 w-8" />
+      </Button>
+    );
+  }
 
   return (
     <>
@@ -216,7 +231,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
     </Dialog>
     {previews.length > 0 && (
       <ImageViewer
-        photos={photoItems}
+        photoItems={photoItems}
         initialIndex={viewerIndex}
         open={viewerOpen}
         onOpenChange={setViewerOpen}

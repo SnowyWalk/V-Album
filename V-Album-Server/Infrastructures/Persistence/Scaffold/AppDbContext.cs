@@ -161,17 +161,17 @@ public partial class AppDbContext : DbContext
                 .HasCharSet("utf8mb4")
                 .UseCollation("utf8mb4_general_ci");
 
-            entity.HasIndex(e => e.UserUuid, "FK_post_user");
+            entity.HasIndex(e => new { e.UserUuid, e.DeletedAt, e.CreatedAt }, "FK_post_user");
 
-            entity.HasIndex(e => new { e.GroupUuid, e.DeletedAt, e.CreatedAt }, "그룹별 시간순 포스트 인덱스");
+            entity.HasIndex(e => new { e.GroupUuid, e.DeletedAt, e.CreatedAt, e.PostUuid }, "그룹별 시간순 포스트 인덱스");
 
             entity.Property(e => e.PostUuid).HasColumnName("post_uuid");
             entity.Property(e => e.Content)
                 .HasColumnType("mediumtext")
                 .HasColumnName("content");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasMaxLength(6)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
                 .HasColumnName("created_at");
             entity.Property(e => e.DeletedAt)
                 .HasColumnType("datetime")

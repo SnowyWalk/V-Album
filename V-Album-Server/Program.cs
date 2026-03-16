@@ -8,6 +8,7 @@ using V_Album_Server.Services.Group;
 using V_Album_Server.Services.Login;
 using V_Album_Server.Services.Login.Handlers;
 using V_Album_Server.Services.User;
+using V_Album_Server.UseCases.Feed;
 using V_Album_Server.UseCases.Post;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,7 @@ builder.Services.AddScoped<GroupService>();
 
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();
+builder.Services.AddScoped<GetFeedUseCase>();
 
 // Repository
 builder.Services.AddScoped<UserRepository>();
