@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 
 interface PageProps {
   params: Promise<{
-    groupId: string;
+    groupUuid: string;
   }>;
 }
 
 export default async function GroupPage({ params }: PageProps) {
-  const { groupId } = await params;
-  redirect(`/group/${groupId}/feed`);
+  const { groupUuid } = await params;
+  redirect(`/group/${groupUuid}/feed`);
 }

@@ -16,7 +16,8 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {cn, GetPhotoUrl} from "@/lib/utils";
+import {PhotoDto} from "@/dto/photo-dto";
 
 export interface PhotoMetadata {
   locationName?: string;
@@ -28,19 +29,18 @@ export interface PhotoMetadata {
 
 export interface PhotoItem {
   src: string;
-  alt?: string;
   metadata?: PhotoMetadata;
 }
 
 interface ImageViewerProps {
-  photos: PhotoItem[];
+  photoItems: PhotoItem[];
   initialIndex?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function ImageViewer({
-  photos,
+  photoItems,
   initialIndex = 0,
   open,
   onOpenChange,
@@ -144,7 +144,7 @@ export function ImageViewer({
         observer.disconnect();
       };
     }
-  }, [mounted, photos.length, open]); // open이 바뀔 때도 다시 체크
+  }, [mounted, photoItems.length, open]); // open이 바뀔 때도 다시 체크
 
   // initialIndex가 변경될 때 currentIndex를 동기화
   React.useEffect(() => {
@@ -201,7 +201,7 @@ export function ImageViewer({
     api?.scrollTo(index);
   };
 
-  const currentPhoto = photos[currentIndex];
+  const currentPhoto = photoItems[currentIndex];
 
   // 썸네일 드래그 스크롤 구현을 위한 Ref 및 로직
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -317,7 +317,7 @@ export function ImageViewer({
       >
         <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
         <DialogDescription className="sr-only">
-          {currentIndex + 1} / {photos.length} 번째 사진
+          {currentIndex + 1} / {photoItems.length} 번째 사진
         </DialogDescription>
 
         {/* Header - 닫기 버튼 */}
@@ -351,18 +351,19 @@ export function ImageViewer({
             }}
           >
             <CarouselContent className="ml-0">
-              {photos.map((photo, index) => (
+              {photoItems.map((photoItem, index) => (
                 <CarouselItem key={index} className="pl-0 relative">
                   <div className="absolute inset-0 flex items-center justify-center p-8 md:p-12 lg:p-16">
                     <div className="relative w-full h-full">
                       <Image
-                        src={photo.src}
-                        alt={photo.alt || `Photo ${index + 1}`}
+                        src={photoItem.src}
+                        alt={``}
                         fill
                         className="object-contain"
                         priority={index === initialIndex}
                         sizes="100vw"
                         draggable={false}
+                        unoptimized={true}
                       />
                     </div>
                   </div>
@@ -483,7 +484,7 @@ export function ImageViewer({
               "flex h-full min-w-full space-x-2 p-4 items-center",
               isCentered ? "justify-center" : "justify-start"
             )}>
-              {photos.map((photo, index) => (
+              {photoItems.map((photoItem, index) => (
                 <button
                   key={index}
                   onClick={() => handleThumbnailClick(index)}
@@ -498,11 +499,12 @@ export function ImageViewer({
                 >
                   <div className="absolute inset-0 bg-accent/10 pointer-events-none" />
                   <Image
-                    src={photo.src}
-                    alt={`Thumbnail ${index + 1}`}
+                    src={photoItem.src}
+                    alt={``}
                     fill
                     className="object-contain pointer-events-none"
                     draggable={false}
+                    unoptimized={true}
                   />
                 </button>
               ))}

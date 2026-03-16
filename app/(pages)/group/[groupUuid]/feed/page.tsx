@@ -360,9 +360,9 @@ export default function GroupFeedPage({params}: PageProps) {
                 <h1 className="text-2xl font-bold">그룹 피드</h1>
                 <p className="text-sm text-muted-foreground">ID: {groupUuid}</p>
             </header>
-            
-            <GroupFeed groupUuid={groupUuid} />
-            
+
+            <GroupFeed groupUuid={groupUuid} onClickPhoto={handleImageClick}/>
+
             {/*<div className="flex flex-col gap-6 invisible w-0 h-0">*/}
             {/*    {DUMMY_POSTS.map((post) => (*/}
             {/*        <Card key={post.id} className="overflow-hidden border-none shadow-sm">*/}
@@ -429,7 +429,7 @@ export default function GroupFeedPage({params}: PageProps) {
 
             <CreatePostDialog groupUuid={groupUuid}/>
             <ImageViewer
-                photos={selectedPhotos}
+                photoItems={selectedPhotos}
                 initialIndex={initialIndex}
                 open={viewerOpen}
                 onOpenChange={setViewerOpen}

@@ -9,6 +9,8 @@ import UserAvatar from "@/components/user-avatar";
 import {MoreHorizontal, SeparatorHorizontal} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Separator} from "@/components/ui/separator";
+import PostCard from "@/components/post-card";
+import {PhotoItem} from "@/components/image-viewer";
 
 type PageParam = {
     dateTime: string,
@@ -44,7 +46,10 @@ async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKe
     return res.json()
 }
 
-export default function GroupFeed({groupUuid}: { groupUuid: string }) {
+export default function GroupFeed({groupUuid, onClickPhoto}: {
+    groupUuid: string,
+    onClickPhoto: (photos: PhotoItem[], index: number) => void
+}) {
 
     const loaderRef = useRef<HTMLDivElement | null>(null)
 
@@ -88,24 +93,7 @@ export default function GroupFeed({groupUuid}: { groupUuid: string }) {
         <div className="flex flex-col gap-4">
 
             {posts.map(({post, photos}) => (
-                <Card
-                    key={post.postUuid}
-                    className="border p-4 rounded-xl min-h-[500px] "
-                >
-                    <CardHeader className="p-0">
-                        <div className="flex flex-row  items-center justify-between p-0">
-                            <UserAvatar userUuid={post.userUuid}/>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4"/>
-                            </Button>
-                        </div>
-                        <Separator/>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0">
-                        {post.content}
-                        {photos && <div>사진: {photos?.length}개</div>}
-                    </CardContent>
-                </Card>
+                <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhoto={onClickPhoto}/>
             ))}
 
             <div ref={loaderRef} className="h-10 flex items-center justify-center">

@@ -231,7 +231,7 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
     </Dialog>
     {previews.length > 0 && (
       <ImageViewer
-        photos={photoItems}
+        photoItems={photoItems}
         initialIndex={viewerIndex}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
