@@ -2,12 +2,12 @@
 
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import {cn, GetPhotoUrl} from "@/lib/utils";
-import Image from "next/image";
 import {PhotoItem} from "@/components/image-viewer";
+import LazyImage from "@/components/lazy-image";
 
-export default function PostPhotoGrid({feedItem, onClickPhoto}: {
+export default function PostPhotoGrid({feedItem, onClickPhotoAction}: {
     feedItem: FeedItemDto,
-    onClickPhoto: (photos: PhotoItem[], idx: number) => void
+    onClickPhotoAction?: (photos: PhotoItem[], idx: number) => void
 }) {
     if (feedItem.photos == null || feedItem.photos.length == 0)
         return <></>
@@ -28,9 +28,9 @@ export default function PostPhotoGrid({feedItem, onClickPhoto}: {
                         "relative overflow-hidden bg-muted cursor-pointer",
                         photos!.length === 1 ? "aspect-video" : "aspect-square"
                     )}
-                    onClick={() => onClickPhoto(photoItems, idx)}
+                    onClick={() => onClickPhotoAction ? onClickPhotoAction(photoItems, idx) : undefined}
                 >
-                    <Image
+                    <LazyImage
                         src={GetPhotoUrl(post, photo)}
                         alt={`post-image-${idx}`}
                         fill

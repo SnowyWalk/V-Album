@@ -4,12 +4,7 @@ import {useRef, useEffect} from "react"
 import {InfiniteData, QueryFunctionContext, QueryKey, useInfiniteQuery} from "@tanstack/react-query"
 import {PostDto} from "@/dto/post-dto";
 import {PhotoDto} from "@/dto/photo-dto";
-import {Card, CardContent, CardHeader} from "@/components/ui/card";
-import UserAvatar from "@/components/user-avatar";
-import {MoreHorizontal, SeparatorHorizontal} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {Separator} from "@/components/ui/separator";
-import PostCard from "@/components/post-card";
+import PostCard from "@/components/feed/post-card";
 import {PhotoItem} from "@/components/image-viewer";
 
 type PageParam = {
@@ -46,9 +41,9 @@ async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKe
     return res.json()
 }
 
-export default function GroupFeed({groupUuid, onClickPhoto}: {
+export default function GroupFeed({groupUuid, onClickPhotoAction}: {
     groupUuid: string,
-    onClickPhoto: (photos: PhotoItem[], index: number) => void
+    onClickPhotoAction: (photos: PhotoItem[], idx: number) => void
 }) {
 
     const loaderRef = useRef<HTMLDivElement | null>(null)
@@ -93,7 +88,7 @@ export default function GroupFeed({groupUuid, onClickPhoto}: {
         <div className="flex flex-col gap-4">
 
             {posts.map(({post, photos}) => (
-                <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhoto={onClickPhoto}/>
+                <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhotoAction={onClickPhotoAction}/>
             ))}
 
             <div ref={loaderRef} className="h-10 flex items-center justify-center">
