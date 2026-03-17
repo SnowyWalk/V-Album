@@ -27,6 +27,11 @@ export default function LazyImage({src, ...props}: LazyImageProps) {
                         setCurrentSrc(src);
                     }
                 }}
+                onError={() => {
+                    if (currentSrc !== src) {
+                        setCurrentSrc(src);
+                    }
+                }}
             />
         </>
     );
