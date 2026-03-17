@@ -23,7 +23,7 @@ export default function PostPhotoGrid({
     if (count === 1) {
         return (
             <div className="w-full aspect-[4/3]">
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full h-full" />
+                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full h-full" />
             </div>
         );
     }
