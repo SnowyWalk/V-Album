@@ -1,12 +1,12 @@
 "use client";
 
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from "lucide-react";
-import { FeedItemDto } from "@/dto/feed-item-dto";
+import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal} from "lucide-react";
+import {FeedItemDto} from "@/dto/feed-item-dto";
 import UserAvatar from "@/components/user-avatar";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
-import { PhotoItem } from "@/components/image-viewer";
-import { useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
+import {PhotoItem} from "@/components/image-viewer";
+import {useState, useCallback} from "react";
+import {cn} from "@/lib/utils";
 
 const formatCount = (n: number) =>
     n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
@@ -20,10 +20,10 @@ export default function PostCard({
 }) {
     const post = feedItem.post;
 
-    const [liked,      setLiked]      = useState(false);
-    const [likeCount,  setLikeCount]  = useState(12345);
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(12345);
     const [bookmarked, setBookmarked] = useState(false);
-    const [heartPop,   setHeartPop]   = useState(false);
+    const [heartPop, setHeartPop] = useState(false);
 
     const handleLike = useCallback(() => {
         setHeartPop(true);
@@ -43,13 +43,13 @@ export default function PostCard({
 
             {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
-                <UserAvatar userUuid={post.userUuid} />
+                <UserAvatar userUuid={post.userUuid}/>
                 <button className={cn(
                     "p-1.5 rounded-full transition-colors duration-150",
                     "text-muted-foreground hover:text-foreground",
                     "hover:bg-accent"
                 )}>
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="h-4 w-4"/>
                 </button>
             </div>
 
@@ -64,10 +64,12 @@ export default function PostCard({
             )}
 
             {/* ── Photos ─────────────────────────── */}
-            <PostPhotoGrid
-                feedItem={feedItem}
-                onClickPhotoAction={onClickPhotoAction}
-            />
+            <div className="m-1 rounded-xl overflow-hidden">
+                <PostPhotoGrid
+                    feedItem={feedItem}
+                    onClickPhotoAction={onClickPhotoAction}
+                />
+            </div>
 
             {/* ── Footer ─────────────────────────── */}
             <div className="flex items-center justify-between px-3 py-2">
@@ -88,7 +90,7 @@ export default function PostCard({
                             "h-[18px] w-[18px] transition-all duration-300",
                             liked && "fill-current",
                             heartPop && "scale-[1.35]"
-                        )} />
+                        )}/>
                         <span className="text-xs font-medium tabular-nums">
                             {formatCount(likeCount)}
                         </span>
@@ -100,7 +102,7 @@ export default function PostCard({
                         "text-muted-foreground hover:text-foreground hover:bg-accent",
                         "transition-all duration-150 active:scale-90"
                     )}>
-                        <MessageCircle className="h-[18px] w-[18px]" />
+                        <MessageCircle className="h-[18px] w-[18px]"/>
                         <span className="text-xs font-medium tabular-nums">
                             {formatCount(12345)}
                         </span>
@@ -112,7 +114,7 @@ export default function PostCard({
                         "text-muted-foreground hover:text-foreground hover:bg-accent",
                         "transition-all duration-150 active:scale-90"
                     )}>
-                        <Share2 className="h-[18px] w-[18px]" />
+                        <Share2 className="h-[18px] w-[18px]"/>
                     </button>
                 </div>
 
@@ -130,7 +132,7 @@ export default function PostCard({
                     <Bookmark className={cn(
                         "h-[18px] w-[18px] transition-all duration-300",
                         bookmarked && "fill-current"
-                    )} />
+                    )}/>
                 </button>
             </div>
         </article>

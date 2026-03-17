@@ -6,7 +6,7 @@ import {PhotoDto} from "@/dto/photo-dto";
 import {PostDto} from "@/dto/post-dto";
 import {PhotoItem} from "@/components/image-viewer";
 
-export default function Tile({post, photos, idx, onClickPhotoAction, className}: {
+export default function PhotoTile({post, photos, idx, onClickPhotoAction, className}: {
     post: PostDto;
     photos: PhotoDto[] | null;
     idx: number;

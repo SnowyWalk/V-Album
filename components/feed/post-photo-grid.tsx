@@ -4,7 +4,7 @@ import { FeedItemDto } from "@/dto/feed-item-dto";
 import { cn, GetPhotoUrl } from "@/lib/utils";
 import { PhotoItem } from "@/components/image-viewer";
 import LazyImage from "@/components/lazy-image";
-import Tile from "@/components/feed/photo-tile";
+import PhotoTile from "@/components/feed/photo-tile";
 
 export default function PostPhotoGrid({
                                           feedItem,
@@ -23,7 +23,7 @@ export default function PostPhotoGrid({
     if (count === 1) {
         return (
             <div className="w-full aspect-[4/3]">
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full h-full" />
+                <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full h-full" />
             </div>
         );
     }
@@ -32,19 +32,19 @@ export default function PostPhotoGrid({
     if (count === 2) {
         return (
             <div className="grid grid-cols-2 gap-0.5">
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="aspect-square" />
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={1} className="aspect-square" />
+                <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="aspect-square" />
+                <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={1} className="aspect-square" />
             </div>
         );
     }
 
-    // ── 3장: 왼쪽 큰 사진 + 오른쪽 2장 세로 ─────────────
+    // ── 3장: 위쪽 큰 사진 + 아래쪽 2장 세로 ─────────────
     if (count === 3) {
         return (
             <div className="grid grid-cols-2 gap-0.5">
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="row-span-2 aspect-auto h-full min-h-48" />
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={1} className="aspect-square" />
-                <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={2} className="aspect-square" />
+                <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="col-span-2 w-full aspect-2/1" />
+                <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={1} className="aspect-square" />
+                <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={2} className="aspect-square" />
             </div>
         );
     }
@@ -54,7 +54,7 @@ export default function PostPhotoGrid({
         return (
             <div className="grid grid-cols-2 gap-0.5">
                 {[0, 1, 2, 3].map(i => (
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} key={i} idx={i} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} key={i} idx={i} className="aspect-square" />
                 ))}
             </div>
         );
@@ -65,13 +65,13 @@ export default function PostPhotoGrid({
         return (
             <div className="flex flex-col gap-0.5">
                 <div className="grid grid-cols-2 gap-0.5">
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="aspect-square" />
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={1} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={1} className="aspect-square" />
                 </div>
                 <div className="grid grid-cols-3 gap-0.5">
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={2} className="aspect-square" />
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={3} className="aspect-square" />
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={4} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={2} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={3} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={4} className="aspect-square" />
                 </div>
             </div>
         );
@@ -82,7 +82,7 @@ export default function PostPhotoGrid({
         return (
             <div className="grid grid-cols-3 gap-0.5">
                 {[0, 1, 2, 3, 4, 5].map(i => (
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} key={i} idx={i} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} key={i} idx={i} className="aspect-square" />
                 ))}
             </div>
         );
@@ -91,10 +91,10 @@ export default function PostPhotoGrid({
     // ── 7장+: 상단 큰 1장 + 나머지 5장 (마지막에 +N 오버레이) ──
     return (
         <div className="flex flex-col gap-0.5">
-            <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full aspect-[2/1]" />
+            <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full aspect-2/1" />
             <div className="grid grid-cols-5 gap-0.5">
                 {[1, 2, 3, 4, 5].map(i => (
-                    <Tile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} key={i} idx={i} className="aspect-square" />
+                    <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} key={i} idx={i} className="aspect-square" />
                 ))}
             </div>
         </div>
