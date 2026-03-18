@@ -21,7 +21,7 @@ function PostPhotoGrid({
     // ── 1장: 와이드 ──────────────────────────────────────
     if (count === 1) {
         return (
-            <div className="w-full aspect-[4/3]">
+            <div className="w-full aspect-4/3">
                 <PhotoTile post={post} photos={photos} onClickPhotoAction={onClickPhotoAction} idx={0} className="w-full h-full" />
             </div>
         );

@@ -144,7 +144,7 @@ export default function PostCard({
                         )}
                     >
                         <Heart className={cn(
-                            "h-[18px] w-[18px] transition-all duration-300",
+                            "h-4.5 w-4.5 transition-all duration-300",
                             liked && "fill-current",
                             heartPop && "scale-[1.35]"
                         )}/>
@@ -159,7 +159,7 @@ export default function PostCard({
                         "text-muted-foreground hover:text-foreground hover:bg-accent",
                         "transition-all duration-150 active:scale-90"
                     )}>
-                        <MessageCircle className="h-[18px] w-[18px]"/>
+                        <MessageCircle className="h-4.5 w-4.5"/>
                         <span className="text-xs font-medium tabular-nums">
                             {formatCount(12345)}
                         </span>
@@ -171,7 +171,7 @@ export default function PostCard({
                         "text-muted-foreground hover:text-foreground hover:bg-accent",
                         "transition-all duration-150 active:scale-90"
                     )}>
-                        <Share2 className="h-[18px] w-[18px]"/>
+                        <Share2 className="h-4.5 w-4.5"/>
                     </button>
                 </div>
 
@@ -187,7 +187,7 @@ export default function PostCard({
                     )}
                 >
                     <Bookmark className={cn(
-                        "h-[18px] w-[18px] transition-all duration-300",
+                        "h-4.5 w-4.5 transition-all duration-300",
                         bookmarked && "fill-current"
                     )}/>
                 </button>
