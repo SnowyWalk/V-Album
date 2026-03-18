@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { ImageViewer, PhotoItem } from "@/components/image-viewer";
 import {useQueryClient} from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
   const [mounted, setMounted] = useState(false);
@@ -92,8 +93,11 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
       });
 
       if (!response.ok) {
-        throw new Error("업로드 실패");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "업로드 실패");
       }
+
+      toast.success("게시물이 성공적으로 업로드되었습니다.");
 
       // 상태 초기화 및 닫기
       setContent("");
@@ -102,9 +106,9 @@ export function CreatePostDialog({ groupUuid }: { groupUuid: string }) {
       setViewerOpen(false);
       setOpen(false);
       await queryClient.resetQueries({ queryKey: ["feed", groupUuid] });
-    } catch (error) {
+    } catch (error: any) {
       console.error("포스트 제출 오류:", error);
-      alert("업로드 중 오류가 발생했습니다.");
+      toast.error(error.message || "업로드 중 오류가 발생했습니다.");
     } finally {
       setIsUploading(false);
     }
