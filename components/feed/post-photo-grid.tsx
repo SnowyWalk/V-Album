@@ -3,8 +3,9 @@
 import { FeedItemDto } from "@/dto/feed-item-dto";
 import { PhotoItem } from "@/components/image-viewer";
 import PhotoTile from "@/components/feed/photo-tile";
+import { memo } from "react";
 
-export default function PostPhotoGrid({
+function PostPhotoGrid({
                                           feedItem,
                                           onClickPhotoAction,
                                       }: {
@@ -98,3 +99,5 @@ export default function PostPhotoGrid({
         </div>
     );
 }
+
+export default memo(PostPhotoGrid);
