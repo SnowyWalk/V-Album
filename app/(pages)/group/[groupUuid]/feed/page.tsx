@@ -355,7 +355,7 @@ export default function GroupFeedPage({params}: PageProps) {
     };
 
     return (
-        <div className="mx-auto max-w-2xl space-y-6 pb-20">
+        <div className="mx-auto max-w-2xl space-y-6">
             <header className="sticky top-0 z-10 bg-background/80 py-4 backdrop-blur-md">
                 <h1 className="text-2xl font-bold">그룹 피드</h1>
                 <p className="text-sm text-muted-foreground">ID: {groupUuid}</p>
