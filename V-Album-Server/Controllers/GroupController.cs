@@ -64,8 +64,8 @@ public class GroupController(
     
     public sealed record DeletePostRequest(string PostUuid);
     
-    [HttpPost("delete")]
-    public async Task<IActionResult> DeletePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromQuery] DeletePostRequest request, CancellationToken ct)
+    [HttpPost("delete-post")]
+    public async Task<IActionResult> DeletePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] DeletePostRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
             return Unauthorized(new { error = "Missing X-Google-Sub header" });

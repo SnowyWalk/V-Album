@@ -1,25 +1,25 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
+using V_Album_Server.Interfaces;
 namespace V_Album_Server.Infrastructures.BackgroundJobs;
 
 public class ThumbnailWorker : BackgroundService
 {
     private readonly ThumbnailQueue m_queue;
-    private readonly PostRepository m_postRepository;
+    private readonly IServiceScopeFactory m_scopeFactory;
     private readonly ILogger<ThumbnailWorker> m_logger;
 
     private const string m_tempPath = "uploads/temp";
 
-    public ThumbnailWorker(ThumbnailQueue queue, PostRepository postRepository, ILogger<ThumbnailWorker> logger)
+    public ThumbnailWorker(ThumbnailQueue queue, IServiceScopeFactory scopeFactory, ILogger<ThumbnailWorker> logger)
     {
         m_queue = queue;
-        m_postRepository = postRepository;
+        m_scopeFactory = scopeFactory;
         m_logger = logger;
 
         CommonUtils.EnsureDirectoryExists(m_tempPath);
     }
-
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -31,7 +31,9 @@ public class ThumbnailWorker : BackgroundService
             string src = $"{postDirPath}/{job.PhotoUuid}{job.Format}";
             string dst = $"{postDirPath}/{job.PhotoUuid}_thumb.webp";
 
-            if (!await m_postRepository.IsPostAlive(job.PostUuid, stoppingToken))
+            await using var scope = m_scopeFactory.CreateAsyncScope();
+            PostRepository postRepository = scope.ServiceProvider.GetRequiredService<PostRepository>();
+            if (!await postRepository.IsPostAlive(job.PostUuid, stoppingToken))
                 continue;
 
             await GenerateThumbnail(postDirPath, src, dst, job.PhotoUuid);

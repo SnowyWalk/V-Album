@@ -34,6 +34,7 @@ builder.Services.AddScoped<MemberService>();
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();
 builder.Services.AddScoped<GetFeedUseCase>();
+builder.Services.AddScoped<DeletePostUseCase>();
 
 // Repository
 builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
@@ -49,6 +50,8 @@ builder.Services.Configure<AppDefaultsOptions>(builder.Configuration.GetSection(
 // BackgroundJobs
 builder.Services.AddSingleton<ThumbnailQueue>();
 builder.Services.AddHostedService<ThumbnailWorker>();
+builder.Services.AddSingleton<DeletePostQueue>();
+builder.Services.AddHostedService<DeletePostWorker>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {

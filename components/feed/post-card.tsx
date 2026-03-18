@@ -1,15 +1,47 @@
 "use client";
 
-import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal} from "lucide-react";
+import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2} from "lucide-react";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import UserAvatar from "@/components/user-avatar";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
 import {PhotoItem} from "@/components/image-viewer";
 import {useState, useCallback} from "react";
 import {cn} from "@/lib/utils";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {toast} from "sonner";
 
 const formatCount = (n: number) =>
     n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
+
+const RequestDeletePost = async (postUuid: string): Promise<boolean> => {
+    try {
+        const result = await fetch("/api/group/delete-post", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                postUuid: postUuid,
+            }),
+        })
+
+        if (result.status !== 200) {
+            toast.error("글 삭제에 실패했습니다.");
+            return false
+        }
+
+        toast.success("글이 삭제되었습니다.");
+        return true
+    } catch (error) {
+        toast.error("삭제 중 오류가 발생했습니다.");
+        return false
+    }
+}
 
 export default function PostCard({
                                      feedItem,
@@ -24,6 +56,7 @@ export default function PostCard({
     const [likeCount, setLikeCount] = useState(12345);
     const [bookmarked, setBookmarked] = useState(false);
     const [heartPop, setHeartPop] = useState(false);
+    const [isDeleted, setIsDeleted] = useState(false);
 
     const handleLike = useCallback(() => {
         setHeartPop(true);
@@ -31,6 +64,17 @@ export default function PostCard({
         setLikeCount(prev => liked ? prev - 1 : prev + 1);
         setTimeout(() => setHeartPop(false), 350);
     }, [liked]);
+
+    const handleDelete = useCallback(async () => {
+        if (confirm("정말로 이 글을 삭제하시겠습니까?")) {
+            const success = await RequestDeletePost(post.postUuid);
+            if (success) {
+                setIsDeleted(true);
+            }
+        }
+    }, [post.postUuid]);
+
+    if (isDeleted) return null;
 
     return (
         <article className={cn(
@@ -44,13 +88,26 @@ export default function PostCard({
             {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
                 <UserAvatar userUuid={post.userUuid}/>
-                <button className={cn(
-                    "p-1.5 rounded-full transition-colors duration-150",
-                    "text-muted-foreground hover:text-foreground",
-                    "hover:bg-accent"
-                )}>
-                    <MoreHorizontal className="h-4 w-4"/>
-                </button>
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <button className={cn(
+                            "p-1.5 rounded-full transition-colors duration-150",
+                            "text-muted-foreground hover:text-foreground",
+                            "hover:bg-accent focus:outline-none"
+                        )}>
+                            <MoreHorizontal className="h-4 w-4"/>
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem
+                            onClick={handleDelete}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4"/>
+                            <span>글 삭제</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* ── Caption ────────────────────────── */}
