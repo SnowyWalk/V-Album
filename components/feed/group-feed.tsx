@@ -1,11 +1,12 @@
 "use client"
 
 import {useRef, useEffect} from "react"
-import {InfiniteData, QueryFunctionContext, QueryKey, useInfiniteQuery} from "@tanstack/react-query"
+import {InfiniteData, QueryFunctionContext, useInfiniteQuery} from "@tanstack/react-query"
 import {PostDto} from "@/dto/post-dto";
 import {PhotoDto} from "@/dto/photo-dto";
 import PostCard from "@/components/feed/post-card";
 import {PhotoItem} from "@/components/image-viewer";
+import {Loader2} from "lucide-react";
 
 type PageParam = {
     dateTime: string,
@@ -91,10 +92,17 @@ export default function GroupFeed({groupUuid, onClickPhotoAction}: {
                 <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhotoAction={onClickPhotoAction}/>
             ))}
 
-            <div ref={loaderRef} className="h-10 flex items-center justify-center">
+            <div ref={loaderRef} className="h-20 flex items-center justify-center">
 
                 {isFetchingNextPage && (
-                    <span>Loading...</span>
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                )}
+
+                {!hasNextPage && posts.length > 0 && (
+                    <div className="text-center text-sm text-muted-foreground py-8">
+                        <div className="mb-2">───────</div>
+                        <div>마지막 게시물입니다</div>
+                    </div>
                 )}
 
             </div>
