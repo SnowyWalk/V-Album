@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using V_Album_Server.Infrastructures.Persistence.Mapping;
 using V_Album_Server.Infrastructures.Persistence.Scaffold;
 namespace V_Album_Server.Infrastructures.Persistence.Repositories;
@@ -24,4 +25,12 @@ public class PhotoRepository(AppDbContext dbContext)
         
         return newPhotoEntity.ToDomain();
     }
+    
+    public async Task DeleteByPostAsync(Guid postUuid, CancellationToken ct)
+    {
+        List<PhotoEntity> photos = await dbContext.Photos.Where(e => e.PostUuid == postUuid).ToListAsync(ct);
+        dbContext.Photos.RemoveRange(photos);
+    }
 }
+
+public class EntityNotFoundException(string s) : Exception(s);

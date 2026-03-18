@@ -1,6 +1,7 @@
 using System.Threading.Channels;
 namespace V_Album_Server.Infrastructures.BackgroundJobs;
 
-public class ThumbnailQueue : QueueBase<ThumbnailJob>
+public class DeletePostQueue : QueueBase<DeletePostJob>
 {
+    
 }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using V_Album_Server.Infrastructures.Persistence.Mapping;
 using V_Album_Server.Infrastructures.Persistence.Scaffold;
 namespace V_Album_Server.Infrastructures.Persistence.Repositories;
@@ -15,5 +16,15 @@ public class PostRepository(AppDbContext dbContext)
         };
         await dbContext.Posts.AddAsync(post, ct);
         return post.ToDomain();
+    }
+
+    public async Task<PostEntity?> GetPostAsync(Guid postUuid, CancellationToken ct)
+    {
+        return await dbContext.Posts.FirstOrDefaultAsync(p => p.PostUuid == postUuid && p.DeletedAt == null, ct);
+    }
+
+    public async Task<bool> IsPostAlive(Guid postUuid, CancellationToken ct)
+    {
+        return await dbContext.Posts.AsNoTracking().AnyAsync(p => p.PostUuid == postUuid && p.DeletedAt == null, ct);
     }
 }

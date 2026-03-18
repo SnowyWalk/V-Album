@@ -4,9 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using V_Album_Server.Infrastructures.BackgroundJobs;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
+using V_Album_Server.Infrastructures.Persistence.Scaffold;
+using V_Album_Server.Interfaces;
 using V_Album_Server.Services.Group;
 using V_Album_Server.Services.Login;
 using V_Album_Server.Services.Login.Handlers;
+using V_Album_Server.Services.Member;
 using V_Album_Server.Services.User;
 using V_Album_Server.UseCases.Feed;
 using V_Album_Server.UseCases.Post;
@@ -26,12 +29,14 @@ builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ILoginHandler, GoogleLoginHandler>();
 builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<MemberService>();
 
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();
 builder.Services.AddScoped<GetFeedUseCase>();
 
 // Repository
+builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<MemberRepository>();
 builder.Services.AddScoped<GroupRepository>();
