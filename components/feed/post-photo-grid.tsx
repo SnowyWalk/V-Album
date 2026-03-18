@@ -1,9 +1,7 @@
 "use client";
 
 import { FeedItemDto } from "@/dto/feed-item-dto";
-import { cn, GetPhotoUrl } from "@/lib/utils";
 import { PhotoItem } from "@/components/image-viewer";
-import LazyImage from "@/components/lazy-image";
 import PhotoTile from "@/components/feed/photo-tile";
 
 export default function PostPhotoGrid({

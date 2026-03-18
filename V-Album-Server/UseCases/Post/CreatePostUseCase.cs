@@ -59,9 +59,9 @@ public class CreatePostUseCase(ThumbnailQueue thumbnailQueue, UserRepository use
 
                 // Queue to generate thumbnails
                 await thumbnailQueue.EnqueueAsync(new ThumbnailJob {
-                    GroupUuid = groupUuid.ToString(),
-                    PostUuid = postUuid.ToString(),
-                    PhotoUuid = photoUuid.ToString(),
+                    GroupUuid = groupUuid,
+                    PostUuid = postUuid,
+                    PhotoUuid = photoUuid,
                     Format = GetFileExtension(image),
                 });
 

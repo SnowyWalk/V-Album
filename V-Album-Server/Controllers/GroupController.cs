@@ -6,7 +6,11 @@ namespace V_Album_Server.Controllers;
 
 [ApiController]
 [Route("api/group")]
-public class GroupController(GroupService groupService, CreatePostUseCase createPostUseCase, GetFeedUseCase getFeedUseCase) : ControllerBase
+public class GroupController(
+    GroupService groupService, 
+    CreatePostUseCase createPostUseCase, 
+    GetFeedUseCase getFeedUseCase, 
+    DeletePostUseCase deletePostUseCase) : ControllerBase
 {
     public sealed record CreateRequest(string GroupName);
     public sealed record CreateResponse(DomainGroup CreatedGroup);
@@ -56,5 +60,18 @@ public class GroupController(GroupService groupService, CreatePostUseCase create
             ct);
         
         return Ok(result);
+    }
+    
+    public sealed record DeletePostRequest(string PostUuid);
+    
+    [HttpPost("delete-post")]
+    public async Task<IActionResult> DeletePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] DeletePostRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(googleSub))
+            return Unauthorized(new { error = "Missing X-Google-Sub header" });
+        
+        await deletePostUseCase.Execute(googleSub, new Guid(request.PostUuid), ct);
+        
+        return Ok();
     }
 }
