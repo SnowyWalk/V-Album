@@ -26,22 +26,14 @@ import {
 const data = {
     navMain: [
         {
-            title: "Playground",
-            url: "#",
+            title: "홈",
+            url: "/dashboard",
             icon: SquareTerminal,
             isActive: true,
             items: [
                 {
-                    title: "History",
-                    url: "#",
-                },
-                {
-                    title: "Starred",
-                    url: "#",
-                },
-                {
-                    title: "Settings",
-                    url: "#",
+                    title: "통합 피드",
+                    url: "/dashboard",
                 },
             ],
         },

@@ -30,6 +30,7 @@ builder.Services.AddScoped<GroupService>();
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();
 builder.Services.AddScoped<GetFeedUseCase>();
+builder.Services.AddScoped<GetAllFeedUseCase>();
 
 // Repository
 builder.Services.AddScoped<UserRepository>();
