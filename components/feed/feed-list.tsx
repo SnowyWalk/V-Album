@@ -25,10 +25,16 @@ type FeedResponse = {
     nextCursor: PageParam | null
 }
 
-type FeedQueryKey = ["feed", "all"]
+type FeedType = "group" | "all"
 
-async function fetchAllFeed({pageParam}: QueryFunctionContext<FeedQueryKey, PageParam>) {
-    let url = `/api/group/feed/all?limit=5`
+type FeedQueryKey = ["feed", FeedType, string | undefined]
+
+async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKey, PageParam>) {
+    const [_, type, groupUuid] = queryKey
+    
+    let url = type === "all" 
+        ? `/api/group/feed/all?limit=5` 
+        : `/api/group/feed?groupUuid=${groupUuid}&limit=5`
 
     if (pageParam) {
         url += `&cursorDateTime=${pageParam.dateTime}`
@@ -38,14 +44,18 @@ async function fetchAllFeed({pageParam}: QueryFunctionContext<FeedQueryKey, Page
     const res = await fetch(url)
 
     if (!res.ok)
-        throw new Error("All feed fetch failed")
+        throw new Error(`${type} feed fetch failed`)
 
     return res.json()
 }
 
-export default function AllGroupsFeed({onClickPhotoAction}: {
+interface FeedListProps {
+    type: FeedType
+    groupUuid?: string
     onClickPhotoAction: (photos: PhotoItem[], index: number) => void
-}) {
+}
+
+export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedListProps) {
     const loaderRef = useRef<HTMLDivElement | null>(null)
     const {data: myGroups} = useMyGroups()
 
@@ -56,8 +66,8 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
         isFetchingNextPage,
         isLoading
     } = useInfiniteQuery<FeedResponse, Error, InfiniteData<FeedResponse>, FeedQueryKey, PageParam>({
-        queryKey: ["feed", "all"],
-        queryFn: fetchAllFeed,
+        queryKey: ["feed", type, groupUuid],
+        queryFn: fetchFeed,
         getNextPageParam: lastPage => {
             if (!lastPage.hasMore) return null
             return lastPage.nextCursor
@@ -86,7 +96,10 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
     return (
         <div className="flex flex-col gap-6">
             {posts.map(({post, photos}) => {
-                const group = myGroups?.groups.find(g => g.groupUuid === post.groupUuid);
+                // 통합 피드일 때만 그룹 정보를 표시하기 위해 그룹 정보를 찾음
+                const group = type === "all" 
+                    ? myGroups?.groups.find(g => g.groupUuid === post.groupUuid)
+                    : null;
                 
                 return (
                     <PostCard 
@@ -112,7 +125,9 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
                 {!isLoading && posts.length === 0 && (
                     <div className="flex flex-col items-center gap-2 py-20 text-muted-foreground">
                         <p>아직 게시물이 없습니다.</p>
-                        <p className="text-xs">그룹에 가입하여 사진을 공유해보세요!</p>
+                        <p className="text-xs">
+                            {type === "all" ? "그룹에 가입하여 사진을 공유해보세요!" : "첫 번째 사진을 공유해보세요!"}
+                        </p>
                     </div>
                 )}
             </div>

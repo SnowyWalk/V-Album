@@ -1,7 +1,7 @@
 "use client";
 
 import {useState} from "react";
-import AllGroupsFeed from "@/components/all-groups-feed";
+import FeedList from "@/components/feed/feed-list";
 import {ImageViewer, PhotoItem} from "@/components/image-viewer";
 
 export default function DashboardPage() {
@@ -24,7 +24,7 @@ export default function DashboardPage() {
                 </p>
             </header>
 
-            <AllGroupsFeed onClickPhotoAction={handleImageClick} />
+            <FeedList type="all" onClickPhotoAction={handleImageClick} />
 
             <ImageViewer
                 photoItems={selectedPhotos}
