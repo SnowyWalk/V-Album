@@ -1,6 +1,7 @@
 "use client";
 
 import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2, Users} from "lucide-react";
+import {Skeleton} from "@/components/ui/skeleton";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import UserAvatar from "@/components/user-avatar";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
@@ -48,11 +49,13 @@ export default function PostCard({
                                      onClickPhotoAction,
                                      groupName,
                                      groupPic,
+                                     isAllFeed = false,
                                  }: {
     feedItem: FeedItemDto;
     onClickPhotoAction: (photos: PhotoItem[], idx: number) => void;
     groupName?: string;
     groupPic?: string | null;
+    isAllFeed?: boolean;
 }) {
     const post = feedItem.post;
 
@@ -92,7 +95,7 @@ export default function PostCard({
             {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
                 <div className="flex flex-col gap-1">
-                    {groupName && (
+                    {groupName ? (
                         <div className="flex items-center gap-1.5 px-1 mb-0.5">
                             <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted overflow-hidden border border-border/50">
                                 {groupPic ? (
@@ -105,7 +108,12 @@ export default function PostCard({
                                 {groupName}
                             </span>
                         </div>
-                    )}
+                    ) : isAllFeed ? (
+                        <div className="flex items-center gap-1.5 px-1 mb-0.5">
+                            <Skeleton className="h-4 w-4 rounded-full" />
+                            <Skeleton className="h-3 w-16" />
+                        </div>
+                    ) : null}
                     <UserAvatar userUuid={post.userUuid}/>
                 </div>
                 <DropdownMenu modal={false}>
