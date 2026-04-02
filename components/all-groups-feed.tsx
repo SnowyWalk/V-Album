@@ -83,16 +83,6 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
         return () => observer.disconnect()
     }, [fetchNextPage, hasNextPage])
 
-    if (isLoading) {
-        return (
-            <div className="flex flex-col gap-6">
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-64 w-full rounded-2xl bg-muted animate-pulse border border-border" />
-                ))}
-            </div>
-        )
-    }
-
     return (
         <div className="flex flex-col gap-6">
             {posts.map(({post, photos}) => {
@@ -110,7 +100,7 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
             })}
 
             <div ref={loaderRef} className="h-20 flex items-center justify-center">
-                {isFetchingNextPage && (
+                {(isFetchingNextPage || isLoading) && (
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 )}
                 {!hasNextPage && posts.length > 0 && (
