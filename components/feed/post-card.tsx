@@ -1,6 +1,6 @@
 "use client";
 
-import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2} from "lucide-react";
+import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2, Users} from "lucide-react";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import UserAvatar from "@/components/user-avatar";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
@@ -46,9 +46,13 @@ const RequestDeletePost = async (postUuid: string): Promise<boolean> => {
 export default function PostCard({
                                      feedItem,
                                      onClickPhotoAction,
+                                     groupName,
+                                     groupPic,
                                  }: {
     feedItem: FeedItemDto;
     onClickPhotoAction: (photos: PhotoItem[], idx: number) => void;
+    groupName?: string;
+    groupPic?: string | null;
 }) {
     const post = feedItem.post;
 
@@ -87,7 +91,23 @@ export default function PostCard({
 
             {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
-                <UserAvatar userUuid={post.userUuid}/>
+                <div className="flex flex-col gap-1">
+                    {groupName && (
+                        <div className="flex items-center gap-1.5 px-1 mb-0.5">
+                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted overflow-hidden border border-border/50">
+                                {groupPic ? (
+                                    <img src={`/group-pics/${groupPic}.png`} alt={groupName} className="h-full w-full object-cover" />
+                                ) : (
+                                    <Users className="h-2.5 w-2.5 text-muted-foreground" />
+                                )}
+                            </div>
+                            <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider">
+                                {groupName}
+                            </span>
+                        </div>
+                    )}
+                    <UserAvatar userUuid={post.userUuid}/>
+                </div>
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <button className={cn(

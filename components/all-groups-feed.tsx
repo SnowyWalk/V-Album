@@ -7,8 +7,7 @@ import {PhotoDto} from "@/dto/photo-dto";
 import PostCard from "@/components/feed/post-card";
 import {PhotoItem} from "@/components/image-viewer";
 import {useMyGroups} from "@/hooks/use-my-groups";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {Skeleton} from "@/components/ui/skeleton";
+import {Loader2} from "lucide-react";
 
 type PageParam = {
     dateTime: string,
@@ -44,8 +43,8 @@ async function fetchAllFeed({pageParam}: QueryFunctionContext<FeedQueryKey, Page
     return res.json()
 }
 
-export default function AllGroupsFeed({onClickPhoto}: {
-    onClickPhoto: (photos: PhotoItem[], index: number) => void
+export default function AllGroupsFeed({onClickPhotoAction}: {
+    onClickPhotoAction: (photos: PhotoItem[], index: number) => void
 }) {
     const loaderRef = useRef<HTMLDivElement | null>(null)
     const {data: myGroups} = useMyGroups()
@@ -88,44 +87,37 @@ export default function AllGroupsFeed({onClickPhoto}: {
         return (
             <div className="flex flex-col gap-4">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-64 w-full rounded-xl bg-muted animate-pulse" />
+                    <div key={i} className="h-64 w-full rounded-2xl bg-muted animate-pulse border border-border" />
                 ))}
             </div>
         )
     }
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
             {posts.map(({post, photos}) => {
                 const group = myGroups?.groups.find(g => g.groupUuid === post.groupUuid);
                 
                 return (
-                    <div key={post.postUuid} className="flex flex-col gap-2">
-                        {/* 그룹 정보 표시 헤더 */}
-                        {group && (
-                            <div className="flex items-center gap-2 px-4 py-1">
-                                <Avatar className="h-5 w-5 rounded-full ring-1 ring-border">
-                                    <AvatarImage src={`/group-pics/${group.pic}.png`} />
-                                </Avatar>
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {group.name}
-                                </span>
-                            </div>
-                        )}
-                        <PostCard feedItem={{post, photos}} onClickPhoto={onClickPhoto}/>
-                    </div>
+                    <PostCard 
+                        key={post.postUuid} 
+                        feedItem={{post, photos}} 
+                        onClickPhotoAction={onClickPhotoAction}
+                        groupName={group?.name}
+                        groupPic={group?.pic}
+                    />
                 )
             })}
 
             <div ref={loaderRef} className="h-20 flex items-center justify-center">
                 {isFetchingNextPage && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                        로딩 중...
-                    </div>
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 )}
                 {!hasNextPage && posts.length > 0 && (
-                    <span className="text-sm text-muted-foreground">모든 게시물을 확인했습니다.</span>
+                    <div className="text-center text-sm text-muted-foreground py-8">
+                        <div className="mb-2 text-border">───────</div>
+                        <div>마지막 게시물입니다</div>
+                    </div>
                 )}
                 {!isLoading && posts.length === 0 && (
                     <div className="flex flex-col items-center gap-2 py-20 text-muted-foreground">

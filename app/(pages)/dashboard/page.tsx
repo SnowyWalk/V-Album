@@ -22,7 +22,7 @@ export default function DashboardPage() {
                 </p>
             </div>
 
-            <AllGroupsFeed onClickPhoto={handlePhotoClick} />
+            <AllGroupsFeed onClickPhotoAction={handlePhotoClick} />
 
             {viewerPhotos && (
                 <ImageViewer
