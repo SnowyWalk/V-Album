@@ -1,16 +1,12 @@
 "use client"
 
 import {useRef, useEffect} from "react"
-import {InfiniteData, QueryFunctionContext, QueryKey, useInfiniteQuery} from "@tanstack/react-query"
+import {InfiniteData, QueryFunctionContext, useInfiniteQuery} from "@tanstack/react-query"
 import {PostDto} from "@/dto/post-dto";
 import {PhotoDto} from "@/dto/photo-dto";
-import {Card, CardContent, CardHeader} from "@/components/ui/card";
-import UserAvatar from "@/components/user-avatar";
-import {MoreHorizontal, SeparatorHorizontal} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {Separator} from "@/components/ui/separator";
-import PostCard from "@/components/post-card";
+import PostCard from "@/components/feed/post-card";
 import {PhotoItem} from "@/components/image-viewer";
+import {Loader2} from "lucide-react";
 
 type PageParam = {
     dateTime: string,
@@ -46,9 +42,9 @@ async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKe
     return res.json()
 }
 
-export default function GroupFeed({groupUuid, onClickPhoto}: {
+export default function GroupFeed({groupUuid, onClickPhotoAction}: {
     groupUuid: string,
-    onClickPhoto: (photos: PhotoItem[], index: number) => void
+    onClickPhotoAction: (photos: PhotoItem[], idx: number) => void
 }) {
 
     const loaderRef = useRef<HTMLDivElement | null>(null)
@@ -93,13 +89,20 @@ export default function GroupFeed({groupUuid, onClickPhoto}: {
         <div className="flex flex-col gap-4">
 
             {posts.map(({post, photos}) => (
-                <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhoto={onClickPhoto}/>
+                <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhotoAction={onClickPhotoAction}/>
             ))}
 
-            <div ref={loaderRef} className="h-10 flex items-center justify-center">
+            <div ref={loaderRef} className="h-20 flex items-center justify-center">
 
                 {isFetchingNextPage && (
-                    <span>Loading...</span>
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                )}
+
+                {!hasNextPage && posts.length > 0 && (
+                    <div className="text-center text-sm text-muted-foreground py-8">
+                        <div className="mb-2">───────</div>
+                        <div>마지막 게시물입니다</div>
+                    </div>
                 )}
 
             </div>

@@ -10,7 +10,7 @@ import Image from "next/image";
 import {ImageViewer, PhotoItem} from "@/components/image-viewer";
 import {useState} from "react";
 import {cn} from "@/lib/utils";
-import GroupFeed from "@/components/group-feed";
+import GroupFeed from "@/components/feed/group-feed";
 
 interface PageProps {
     params: Promise<{
@@ -355,13 +355,13 @@ export default function GroupFeedPage({params}: PageProps) {
     };
 
     return (
-        <div className="mx-auto max-w-2xl space-y-6 pb-20">
+        <div className="mx-auto max-w-2xl space-y-6">
             <header className="sticky top-0 z-10 bg-background/80 py-4 backdrop-blur-md">
                 <h1 className="text-2xl font-bold">그룹 피드</h1>
                 <p className="text-sm text-muted-foreground">ID: {groupUuid}</p>
             </header>
 
-            <GroupFeed groupUuid={groupUuid} onClickPhoto={handleImageClick}/>
+            <GroupFeed groupUuid={groupUuid} onClickPhotoAction={handleImageClick}/>
 
             {/*<div className="flex flex-col gap-6 invisible w-0 h-0">*/}
             {/*    {DUMMY_POSTS.map((post) => (*/}
