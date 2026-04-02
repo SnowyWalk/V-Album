@@ -53,7 +53,8 @@ export default function GroupFeed({groupUuid, onClickPhotoAction}: {
         data,
         fetchNextPage,
         hasNextPage,
-        isFetchingNextPage
+        isFetchingNextPage,
+        isLoading
     } = useInfiniteQuery<FeedResponse, Error, InfiniteData<FeedResponse>, FeedQueryKey, PageParam>({
         queryKey: ["feed", groupUuid],
         queryFn: fetchFeed,
@@ -94,7 +95,7 @@ export default function GroupFeed({groupUuid, onClickPhotoAction}: {
 
             <div ref={loaderRef} className="h-20 flex items-center justify-center">
 
-                {isFetchingNextPage && (
+                {(isFetchingNextPage || isLoading) && (
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 )}
 
