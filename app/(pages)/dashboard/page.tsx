@@ -5,12 +5,14 @@ import AllGroupsFeed from "@/components/all-groups-feed";
 import {ImageViewer, PhotoItem} from "@/components/image-viewer";
 
 export default function DashboardPage() {
-    const [viewerPhotos, setViewerPhotos] = useState<PhotoItem[] | null>(null);
-    const [viewerIndex, setViewerIndex] = useState(0);
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [selectedPhotos, setSelectedPhotos] = useState<PhotoItem[]>([]);
+    const [initialIndex, setInitialIndex] = useState(0);
 
-    const handlePhotoClick = (photos: PhotoItem[], index: number) => {
-        setViewerPhotos(photos);
-        setViewerIndex(index);
+    const handleImageClick = (photos: PhotoItem[], index: number) => {
+        setSelectedPhotos(photos);
+        setInitialIndex(index);
+        setViewerOpen(true);
     };
 
     return (
@@ -22,15 +24,14 @@ export default function DashboardPage() {
                 </p>
             </div>
 
-            <AllGroupsFeed onClickPhotoAction={handlePhotoClick} />
+            <AllGroupsFeed onClickPhotoAction={handleImageClick} />
 
-            {viewerPhotos && (
-                <ImageViewer
-                    photos={viewerPhotos}
-                    initialIndex={viewerIndex}
-                    onClose={() => setViewerPhotos(null)}
-                />
-            )}
+            <ImageViewer
+                photoItems={selectedPhotos}
+                initialIndex={initialIndex}
+                open={viewerOpen}
+                onOpenChange={setViewerOpen}
+            />
         </section>
     );
 }
