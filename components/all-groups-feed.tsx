@@ -4,7 +4,7 @@ import {useRef, useEffect} from "react"
 import {InfiniteData, QueryFunctionContext, useInfiniteQuery} from "@tanstack/react-query"
 import {PostDto} from "@/dto/post-dto";
 import {PhotoDto} from "@/dto/photo-dto";
-import PostCard from "@/components/post-card";
+import PostCard from "@/components/feed/post-card";
 import {PhotoItem} from "@/components/image-viewer";
 import {useMyGroups} from "@/hooks/use-my-groups";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
