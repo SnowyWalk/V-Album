@@ -85,7 +85,7 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
                 {[1, 2, 3].map((i) => (
                     <div key={i} className="h-64 w-full rounded-2xl bg-muted animate-pulse border border-border" />
                 ))}
@@ -94,7 +94,7 @@ export default function AllGroupsFeed({onClickPhotoAction}: {
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
             {posts.map(({post, photos}) => {
                 const group = myGroups?.groups.find(g => g.groupUuid === post.groupUuid);
                 

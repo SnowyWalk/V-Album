@@ -86,7 +86,7 @@ export default function GroupFeed({groupUuid, onClickPhotoAction}: {
     }, [fetchNextPage, hasNextPage])
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
 
             {posts.map(({post, photos}) => (
                 <PostCard key={post.postUuid} feedItem={{post: post, photos: photos}} onClickPhotoAction={onClickPhotoAction}/>

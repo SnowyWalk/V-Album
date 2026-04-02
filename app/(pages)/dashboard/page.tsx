@@ -16,13 +16,13 @@ export default function DashboardPage() {
     };
 
     return (
-        <section className="mx-auto max-w-2xl px-4 py-8">
-            <div className="mb-8 flex flex-col gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">통합 피드</h1>
+        <div className="mx-auto max-w-2xl space-y-6">
+            <header className="sticky top-0 z-10 bg-background/80 py-4 backdrop-blur-md">
+                <h1 className="text-2xl font-bold">통합 피드</h1>
                 <p className="text-sm text-muted-foreground">
                     가입한 모든 그룹의 새로운 소식을 한눈에 확인하세요.
                 </p>
-            </div>
+            </header>
 
             <AllGroupsFeed onClickPhotoAction={handleImageClick} />
 
@@ -32,6 +32,6 @@ export default function DashboardPage() {
                 open={viewerOpen}
                 onOpenChange={setViewerOpen}
             />
-        </section>
+        </div>
     );
 }
