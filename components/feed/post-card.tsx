@@ -2,6 +2,7 @@
 
 import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2, Users} from "lucide-react";
 import {Skeleton} from "@/components/ui/skeleton";
+import Image from "next/image";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import UserAvatar from "@/components/user-avatar";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
@@ -97,9 +98,9 @@ export default function PostCard({
                 <div className="flex flex-col gap-1">
                     {groupName ? (
                         <div className="flex items-center gap-1.5 px-1 mb-0.5">
-                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted overflow-hidden border border-border/50">
+                            <div className="relative flex h-4 w-4 items-center justify-center rounded-full bg-muted overflow-hidden border border-border/50">
                                 {groupPic ? (
-                                    <img src={`/group-pics/${groupPic}.png`} alt={groupName} className="h-full w-full object-cover" />
+                                    <Image src={`/group-pics/${groupPic}.png`} alt={groupName || "Group Icon"} fill className="object-cover" />
                                 ) : (
                                     <Users className="h-2.5 w-2.5 text-muted-foreground" />
                                 )}

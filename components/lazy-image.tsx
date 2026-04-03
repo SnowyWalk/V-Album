@@ -19,9 +19,9 @@ export default function LazyImage({src, ...props}: LazyImageProps) {
     return (
         <>
             <Image
+                alt={props.alt || ""}
                 {...props}
                 src={currentSrc}
-                alt={``}
                 onLoad={() => {
                     if (currentSrc !== src) {
                         setCurrentSrc(src);
