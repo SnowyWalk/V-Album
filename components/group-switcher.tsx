@@ -79,34 +79,6 @@ export function GroupSwitcher() {
 
     const activeGroup = displayGroups.find(g => g.groupUuid === activeGroupUuid) ?? displayGroups[0] ?? null
 
-    const ActiveGroup = () => {
-        if (activeGroup == null || isLoading)
-            return (
-                <>
-                    <Avatar className="rounded-full ring-1 ring-border" key="nav-group-avatar-skeleton">
-                        <Skeleton className="h-full w-full"/>
-                    </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                        <Skeleton className="h-[17.5px] w-24"/>
-                        <Skeleton className="h-4 w-32"/>
-                    </div>
-                </>
-            )
-
-        return (
-            <>
-                <Avatar className="rounded-full ring-1 ring-border" key="nav-group-avatar">
-                    <AvatarImage src={`/group-pics/${activeGroup.pic}.png`}/>
-                    <Skeleton className="h-full w-full"/>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{activeGroup.name}</span>
-                    <span className="truncate text-xs">{activeGroup.groupUuid}</span>
-                </div>
-            </>
-        )
-    }
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -117,7 +89,7 @@ export function GroupSwitcher() {
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:ring-1 hover:ring-primary/20"
                         >
-                            {ActiveGroup()}
+                            <ActiveGroup activeGroup={activeGroup} isLoading={isLoading}/>
                             <ChevronsUpDown className="ml-auto"/>
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
@@ -165,5 +137,33 @@ export function GroupSwitcher() {
                 </DropdownMenu>
             </SidebarMenuItem>
         </SidebarMenu>
+    )
+}
+
+const ActiveGroup = ({activeGroup, isLoading}: { activeGroup: GroupDto | null, isLoading: boolean }) => {
+    if (activeGroup == null || isLoading)
+        return (
+            <>
+                <Avatar className="rounded-full ring-1 ring-border" key="nav-group-avatar-skeleton">
+                    <Skeleton className="h-full w-full"/>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                    <Skeleton className="h-[17.5px] w-24"/>
+                    <Skeleton className="h-4 w-32"/>
+                </div>
+            </>
+        )
+
+    return (
+        <>
+            <Avatar className="rounded-full ring-1 ring-border" key="nav-group-avatar">
+                <AvatarImage src={`/group-pics/${activeGroup.pic}.png`}/>
+                <Skeleton className="h-full w-full"/>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{activeGroup.name}</span>
+                <span className="truncate text-xs">{activeGroup.groupUuid}</span>
+            </div>
+        </>
     )
 }
