@@ -51,7 +51,7 @@ export function GroupSwitcher() {
     const {isMobile} = useSidebar()
     const router = useRouter()
     const params = useParams()
-    const activeGroupUuid = params.groupId as string | undefined
+    const activeGroupUuid = params.groupUuid as string | undefined
 
     const {data: myGroups, isLoading, invalidateMyGroups} = useMyGroups()
 

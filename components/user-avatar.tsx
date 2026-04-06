@@ -8,8 +8,6 @@ import {Ghost, ImageOff} from "lucide-react";
 export default function UserAvatar({userUuid}: { userUuid: string | null | undefined }) {
     const {data, isLoading} = useUser(userUuid)
     
-    console.log(userUuid, data)
-
     // 로딩 -> 스켈레톤
     if (isLoading) {
         return (
