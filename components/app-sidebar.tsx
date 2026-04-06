@@ -26,18 +26,6 @@ import {
 const data = {
     navMain: [
         {
-            title: "홈",
-            url: "/dashboard",
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: "통합 피드",
-                    url: "/dashboard",
-                },
-            ],
-        },
-        {
             title: "Models",
             url: "#",
             icon: Bot,

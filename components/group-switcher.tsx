@@ -23,12 +23,17 @@ import {GroupDto, useMyGroups} from "@/hooks/use-my-groups";
 import {Skeleton} from "@/components/ui/skeleton";
 import {toast} from "sonner";
 import {useMutation} from "@tanstack/react-query";
+import {useMemo} from "react";
 
+const dashboardGroupBanner: GroupDto = {
+    groupUuid: "",
+    name: "통합 피드",
+    pic: "sample"
+}
 
-
-const RequestCreateGroup = async () : Promise<GroupDto> => {
+const RequestCreateGroup = async (): Promise<GroupDto> => {
     const groupName = "NewGroup"
-    
+
     const result = await fetch("/api/group/create", {
         method: "POST",
         headers: {
@@ -43,7 +48,7 @@ const RequestCreateGroup = async () : Promise<GroupDto> => {
     type Response = {
         createdGroup: GroupDto
     }
-    
+
     return (ret as Response).createdGroup
 }
 
@@ -60,14 +65,19 @@ export function GroupSwitcher() {
         onMutate: () => {
             toast("그룹 생성 중")
         },
-        onSuccess: async (result: GroupDto)  => {
+        onSuccess: async (result: GroupDto) => {
             toast(`${result.name} 그룹 생성됨`)
             await invalidateMyGroups()
             router.push(`/group/${result.groupUuid}/feed`)
         }
     })
 
-    const activeGroup = myGroups?.groups.find(g => g.groupUuid === activeGroupUuid) ?? myGroups?.groups[0] ?? null
+    const displayGroups = useMemo(() => {
+        if (!myGroups) return [dashboardGroupBanner];
+        return [dashboardGroupBanner, ...myGroups.groups];
+    }, [myGroups]);
+
+    const activeGroup = displayGroups.find(g => g.groupUuid === activeGroupUuid) ?? displayGroups[0] ?? null
 
     const ActiveGroup = () => {
         if (activeGroup == null || isLoading)
@@ -120,22 +130,22 @@ export function GroupSwitcher() {
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
                             Groups
                         </DropdownMenuLabel>
-                        {myGroups && myGroups.groups.map((group, _) => (
+                        {displayGroups && displayGroups.map((group, _) => (
                             <DropdownMenuItem
                                 key={group.groupUuid}
-                                onClick={() => router.push(`/group/${group.groupUuid}/feed`)}
+                                onClick={() => router.push(group.groupUuid ? `/group/${group.groupUuid}/feed` : `/dashboard`)}
                                 className="gap-2 p-2"
                             >
                                 <Avatar className="rounded-full ring-1 ring-border">
                                     <AvatarImage src={`/group-pics/${group.pic}.png`}/>
                                 </Avatar>
                                 <span>{group.name}</span>
-                                {group.groupUuid == activeGroupUuid && <Check className="h-4 w-4"/> }
+                                {group.groupUuid == activeGroupUuid && <Check className="h-4 w-4"/>}
                             </DropdownMenuItem>
                         ))}
 
                         {
-                            !myGroups && Array.from({length: 3}).map((_, i) => (
+                            !displayGroups && Array.from({length: 3}).map((_, i) => (
                                 <DropdownMenuItem className="gap-2 p-2" key={i}>
                                     <Avatar className="rounded-full ring-1 ring-border">
                                         <Skeleton className="h-full w-full"/>
