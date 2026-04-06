@@ -1,6 +1,8 @@
 "use client";
 
-import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2} from "lucide-react";
+import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2, Users} from "lucide-react";
+import {Skeleton} from "@/components/ui/skeleton";
+import Image from "next/image";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import UserAvatar from "@/components/user-avatar";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
@@ -46,9 +48,15 @@ const RequestDeletePost = async (postUuid: string): Promise<boolean> => {
 export default function PostCard({
                                      feedItem,
                                      onClickPhotoAction,
+                                     groupName,
+                                     groupPic,
+                                     isAllFeed = false,
                                  }: {
     feedItem: FeedItemDto;
     onClickPhotoAction: (photos: PhotoItem[], idx: number) => void;
+    groupName?: string;
+    groupPic?: string | null;
+    isAllFeed?: boolean;
 }) {
     const post = feedItem.post;
 
@@ -87,7 +95,28 @@ export default function PostCard({
 
             {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
-                <UserAvatar userUuid={post.userUuid}/>
+                <div className="flex flex-col gap-1">
+                    {groupName ? (
+                        <div className="flex items-center gap-1.5 px-1 mb-0.5">
+                            <div className="relative flex h-4 w-4 items-center justify-center rounded-full bg-muted overflow-hidden border border-border/50">
+                                {groupPic ? (
+                                    <Image src={`/group-pics/${groupPic}.png`} alt={groupName || "Group Icon"} fill className="object-cover" />
+                                ) : (
+                                    <Users className="h-2.5 w-2.5 text-muted-foreground" />
+                                )}
+                            </div>
+                            <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider">
+                                {groupName}
+                            </span>
+                        </div>
+                    ) : isAllFeed ? (
+                        <div className="flex items-center gap-1.5 px-1 mb-0.5">
+                            <Skeleton className="h-4 w-4 rounded-full" />
+                            <Skeleton className="h-3 w-16" />
+                        </div>
+                    ) : null}
+                    <UserAvatar userUuid={post.userUuid}/>
+                </div>
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <button className={cn(

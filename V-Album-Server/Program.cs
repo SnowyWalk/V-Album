@@ -34,6 +34,7 @@ builder.Services.AddScoped<MemberService>();
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();
 builder.Services.AddScoped<GetFeedUseCase>();
+builder.Services.AddScoped<GetAllFeedUseCase>();
 builder.Services.AddScoped<DeletePostUseCase>();
 
 // Repository

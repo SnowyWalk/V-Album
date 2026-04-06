@@ -30,6 +30,7 @@ export function useMyGroups() {
         queryKey: queryKey,
         queryFn: fetchMyGroups,
         enabled: status === "authenticated",
+        staleTime: 10 * 60 * 1000, // 10분
     });
 
     return { ...query, resetMyGroups, invalidateMyGroups };
