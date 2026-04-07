@@ -100,9 +100,25 @@ export function GroupSwitcher() {
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
+                            Dashboard
+                        </DropdownMenuLabel>
+                        {displayGroups && displayGroups.slice(0, 1).map((group, _) => (
+                            <DropdownMenuItem
+                                key={group.groupUuid}
+                                onClick={() => router.push(group.groupUuid ? `/group/${group.groupUuid}/feed` : `/dashboard`)}
+                                className="gap-2 p-2"
+                            >
+                                <Avatar className="rounded-full ring-1 ring-border">
+                                    <AvatarImage src={`/group-pics/${group.pic}.png`}/>
+                                </Avatar>
+                                <span>{group.name}</span>
+                                {group.groupUuid == activeGroupUuid && <Check className="h-4 w-4"/>}
+                            </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuLabel className="text-muted-foreground text-xs">
                             Groups
                         </DropdownMenuLabel>
-                        {displayGroups && displayGroups.map((group, _) => (
+                        {displayGroups && displayGroups.slice(1).map((group, _) => (
                             <DropdownMenuItem
                                 key={group.groupUuid}
                                 onClick={() => router.push(group.groupUuid ? `/group/${group.groupUuid}/feed` : `/dashboard`)}
