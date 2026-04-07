@@ -92,29 +92,42 @@ export default function PostCard({
             "shadow-sm hover:shadow-md",
             "transition-shadow duration-200"
         )}>
-
-            {/* ── Header ─────────────────────────── */}
-            <div className="flex items-center justify-between px-4 pt-4 pb-3">
-                <div className="flex flex-col gap-1">
+            {/* ── Group Strip ────────────────────── */}
+            {(groupName || isAllFeed) && (
+                <div className={cn(
+                    "flex items-center gap-2 px-4 py-2",
+                    "border-b border-border/60",
+                    "bg-muted/40",
+                )}>
                     {groupName ? (
-                        <div className="flex items-center gap-1.5 px-1 mb-0.5">
-                            <div className="relative flex h-4 w-4 items-center justify-center rounded-full bg-muted overflow-hidden border border-border/50">
+                        <>
+                            <div
+                                className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
                                 {groupPic ? (
-                                    <Image src={`/group-pics/${groupPic}.png`} alt={groupName || "Group Icon"} fill className="object-cover" />
+                                    <Image src={`/group-pics/${groupPic}.png`} alt={groupName} fill
+                                           className="object-cover"/>
                                 ) : (
-                                    <Users className="h-2.5 w-2.5 text-muted-foreground" />
+                                    <div className="flex h-full w-full items-center justify-center">
+                                        <Users className="h-3 w-3 text-muted-foreground"/>
+                                    </div>
                                 )}
                             </div>
-                            <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider">
-                                {groupName}
-                            </span>
-                        </div>
-                    ) : isAllFeed ? (
-                        <div className="flex items-center gap-1.5 px-1 mb-0.5">
-                            <Skeleton className="h-4 w-4 rounded-full" />
-                            <Skeleton className="h-3 w-16" />
-                        </div>
-                    ) : null}
+                            <div className="text-sm text-muted-foreground tracking-wide" style={{position: 'relative', top: '-1px'}}>
+                                    {groupName}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
+                            <Skeleton className="h-3 w-20"/>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* ── Header ─────────────────────────── */}
+            <div className="flex items-center justify-between px-4 pt-3 pb-3">
+                <div className="flex flex-col gap-1">
                     <UserAvatar userUuid={post.userUuid}/>
                 </div>
                 <DropdownMenu modal={false}>
