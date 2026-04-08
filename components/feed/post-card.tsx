@@ -16,6 +16,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {toast} from "sonner";
+import TimeAgo from "@/components/time-ago";
 
 const formatCount = (n: number) =>
     n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
@@ -112,8 +113,9 @@ export default function PostCard({
                                     </div>
                                 )}
                             </div>
-                            <div className="text-sm text-muted-foreground tracking-wide" style={{position: 'relative', top: '-1px'}}>
-                                    {groupName}
+                            <div className="text-sm text-muted-foreground tracking-wide"
+                                 style={{position: 'relative', top: '-1px'}}>
+                                {groupName}
                             </div>
                         </>
                     ) : (
@@ -127,8 +129,14 @@ export default function PostCard({
 
             {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-3 pb-3">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-row gap-2.5 items-center">
                     <UserAvatar userUuid={post.userUuid}/>
+                    <div className="text-muted-foreground">
+                        ·
+                    </div>
+                    <div>
+                        <TimeAgo date={post.createdAt} className="text-sm text-muted-foreground"/>
+                    </div>
                 </div>
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
@@ -143,8 +151,7 @@ export default function PostCard({
                     <DropdownMenuContent align="end" className="w-32">
                         <DropdownMenuItem
                             onClick={handleDelete}
-                            className="text-destructive focus:text-destructive cursor-pointer"
-                        >
+                            className="text-destructive focus:text-destructive cursor-pointer">
                             <Trash2 className="mr-2 h-4 w-4"/>
                             <span>글 삭제</span>
                         </DropdownMenuItem>
