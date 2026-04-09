@@ -11,8 +11,9 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const {postUuid, content} = await req.json();
-    if (!postUuid) {
+    const formData = await req.formData();
+    const postUuid = formData.get("postUuid");
+    if (typeof postUuid !== "string" || postUuid.length === 0) {
         return NextResponse.json(
             {error: "postUuid is required"},
             {status: 400}
@@ -24,9 +25,8 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: {
             "X-Google-Sub": googleSub,
-            "Content-Type": "application/json",
         },
-        body: JSON.stringify({postUuid, content}),
+        body: formData,
     });
 
     if (!res.ok) {

@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const { status } = useSession()
+  const session = useSession()
+  const status = session?.status ?? "loading"
   const router = useRouter()
 
   const didExchangeRef = useRef(false) // <-- 중복 호출 방지

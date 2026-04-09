@@ -4,7 +4,6 @@ import {useQueryClient} from "@tanstack/react-query";
 import {
     Bookmark,
     Heart,
-    Loader2,
     MessageCircle,
     MoreHorizontal,
     Pencil,
@@ -19,8 +18,8 @@ import {toast} from "sonner";
 
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
 import {PhotoItem} from "@/components/image-viewer";
+import PostEditorDialog from "@/components/post-editor-dialog";
 import TimeAgo from "@/components/time-ago";
-import {Button} from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,7 +27,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {Skeleton} from "@/components/ui/skeleton";
-import {Textarea} from "@/components/ui/textarea";
 import UserAvatar from "@/components/user-avatar";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import {cn} from "@/lib/utils";
@@ -47,38 +45,14 @@ const requestDeletePost = async (postUuid: string): Promise<boolean> => {
         });
 
         if (!result.ok) {
-            toast.error("Failed to delete post.");
+            toast.error("게시글 삭제에 실패했습니다.");
             return false;
         }
 
-        toast.success("Post deleted.");
+        toast.success("게시글을 삭제했습니다.");
         return true;
     } catch {
-        toast.error("Delete failed.");
-        return false;
-    }
-};
-
-const requestUpdatePost = async (postUuid: string, content: string): Promise<boolean> => {
-    try {
-        const result = await fetch("/api/group/update-post", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({postUuid, content}),
-        });
-
-        if (!result.ok) {
-            const errorData = await result.json().catch(() => ({}));
-            toast.error(errorData.error || "Failed to update post.");
-            return false;
-        }
-
-        toast.success("Post updated.");
-        return true;
-    } catch {
-        toast.error("Update failed.");
+        toast.error("삭제 중 오류가 발생했습니다.");
         return false;
     }
 };
@@ -106,10 +80,10 @@ export default function PostCard({
     const [bookmarked, setBookmarked] = useState(false);
     const [heartPop, setHeartPop] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editDialogKey, setEditDialogKey] = useState(0);
     const [updatedContent, setUpdatedContent] = useState<string | null>(null);
-    const [draftContent, setDraftContent] = useState("");
+
     const postContent = updatedContent ?? post.content ?? "";
 
     const handleLike = useCallback(() => {
@@ -120,7 +94,7 @@ export default function PostCard({
     }, [liked]);
 
     const handleDelete = useCallback(async () => {
-        if (!confirm("Delete this post?")) {
+        if (!confirm("이 게시글을 삭제할까요?")) {
             return;
         }
 
@@ -131,237 +105,200 @@ export default function PostCard({
         }
     }, [post.postUuid, queryClient]);
 
-    const handleEditStart = useCallback(() => {
-        setDraftContent(postContent);
-        setIsEditing(true);
-    }, [postContent]);
-
-    const handleEditCancel = useCallback(() => {
-        setDraftContent(postContent);
-        setIsEditing(false);
-    }, [postContent]);
-
-    const handleEditSave = useCallback(async () => {
-        if (isSaving) {
-            return;
-        }
-
-        const hasPhotos = (feedItem.photos?.length ?? 0) > 0;
-        if (!hasPhotos && draftContent.trim().length === 0) {
-            toast.error("Posts without photos need text.");
-            return;
-        }
-
-        setIsSaving(true);
-        const success = await requestUpdatePost(post.postUuid, draftContent);
-        if (success) {
-            setUpdatedContent(draftContent);
-            setIsEditing(false);
-            await queryClient.invalidateQueries({queryKey: ["feed"]});
-        }
-        setIsSaving(false);
-    }, [draftContent, feedItem.photos, isSaving, post.postUuid, queryClient]);
+    const handleOpenEditor = useCallback(() => {
+        setEditDialogKey((prev) => prev + 1);
+        setEditDialogOpen(true);
+    }, []);
 
     if (isDeleted) return null;
 
     return (
-        <article
-            className={cn(
-                "rounded-2xl overflow-hidden",
-                "bg-card text-card-foreground",
-                "border border-border",
-                "shadow-sm hover:shadow-md",
-                "transition-shadow duration-200"
-            )}
-        >
-            {(groupName || isAllFeed) && (
-                groupName ? (
-                    <Link
-                        href={`/group/${groupUuid}`}
-                        className={cn(
-                            "flex items-center gap-2 px-4 py-2",
-                            "border-b border-border/60",
-                            "bg-muted/40 transition-colors hover:bg-muted/60",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        )}
-                    >
-                        <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
-                            {groupPic ? (
-                                <Image
-                                    src={`/group-pics/${groupPic}.png`}
-                                    alt={groupName}
-                                    fill
-                                    className="object-cover"
-                                />
-                            ) : (
-                                <div className="flex h-full w-full items-center justify-center">
-                                    <Users className="h-3 w-3 text-muted-foreground"/>
-                                </div>
+        <>
+            <article
+                className={cn(
+                    "rounded-2xl overflow-hidden",
+                    "bg-card text-card-foreground",
+                    "border border-border",
+                    "shadow-sm hover:shadow-md",
+                    "transition-shadow duration-200"
+                )}
+            >
+                {(groupName || isAllFeed) && (
+                    groupName ? (
+                        <Link
+                            href={`/group/${groupUuid}`}
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-2",
+                                "border-b border-border/60",
+                                "bg-muted/40 transition-colors hover:bg-muted/60",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             )}
-                        </div>
-                        <div
-                            className="text-sm text-muted-foreground tracking-wide"
-                            style={{position: "relative", top: "-1px"}}
                         >
-                            {groupName}
+                            <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                                {groupPic ? (
+                                    <Image
+                                        src={`/group-pics/${groupPic}.png`}
+                                        alt={groupName}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center">
+                                        <Users className="h-3 w-3 text-muted-foreground"/>
+                                    </div>
+                                )}
+                            </div>
+                            <div
+                                className="text-sm text-muted-foreground tracking-wide"
+                                style={{position: "relative", top: "-1px"}}
+                            >
+                                {groupName}
+                            </div>
+                        </Link>
+                    ) : (
+                        <div
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-2",
+                                "border-b border-border/60",
+                                "bg-muted/40"
+                            )}
+                        >
+                            <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
+                            <Skeleton className="h-3 w-20"/>
                         </div>
-                    </Link>
-                ) : (
-                    <div
+                    )
+                )}
+
+                <div className="flex items-center justify-between px-4 pt-3 pb-3">
+                    <div className="flex flex-row items-center gap-2.5">
+                        <UserAvatar userUuid={post.userUuid}/>
+                        <div className="text-muted-foreground">|</div>
+                        <div>
+                            <TimeAgo date={post.createdAt} className="text-sm text-muted-foreground"/>
+                        </div>
+                    </div>
+                    <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                className={cn(
+                                    "p-1.5 rounded-full transition-colors duration-150",
+                                    "text-muted-foreground hover:text-foreground",
+                                    "hover:bg-accent focus:outline-none"
+                                )}
+                            >
+                                <MoreHorizontal className="h-4 w-4"/>
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem onClick={handleOpenEditor} className="cursor-pointer">
+                                <Pencil className="mr-2 h-4 w-4"/>
+                                <span>수정</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={handleDelete}
+                                className="cursor-pointer text-destructive focus:text-destructive"
+                            >
+                                <Trash2 className="mr-2 h-4 w-4"/>
+                                <span>삭제</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
+                {postContent.trim().length > 0 && (
+                    <p
                         className={cn(
-                            "flex items-center gap-2 px-4 py-2",
-                            "border-b border-border/60",
-                            "bg-muted/40"
+                            "px-4 pb-3 text-[14px] leading-[1.7] tracking-[-0.005em]",
+                            "text-foreground/80"
                         )}
                     >
-                        <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
-                        <Skeleton className="h-3 w-20"/>
-                    </div>
-                )
-            )}
+                        {postContent}
+                    </p>
+                )}
 
-            <div className="flex items-center justify-between px-4 pt-3 pb-3">
-                <div className="flex flex-row gap-2.5 items-center">
-                    <UserAvatar userUuid={post.userUuid}/>
-                    <div className="text-muted-foreground">|</div>
-                    <div>
-                        <TimeAgo date={post.createdAt} className="text-sm text-muted-foreground"/>
-                    </div>
+                <div className="m-1 overflow-hidden rounded-xl">
+                    <PostPhotoGrid feedItem={feedItem} onClickPhotoAction={onClickPhotoAction}/>
                 </div>
-                <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger asChild>
+
+                <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center">
+                        <button
+                            onClick={handleLike}
+                            className={cn(
+                                "flex items-center gap-1.5 rounded-xl px-2.5 py-2",
+                                "transition-all duration-150 active:scale-90",
+                                liked
+                                    ? "text-destructive hover:bg-destructive/10"
+                                    : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            )}
+                        >
+                            <Heart
+                                className={cn(
+                                    "h-4.5 w-4.5 transition-all duration-300",
+                                    liked && "fill-current",
+                                    heartPop && "scale-[1.35]"
+                                )}
+                            />
+                            <span className="text-xs font-medium tabular-nums">{formatCount(likeCount)}</span>
+                        </button>
+
                         <button
                             className={cn(
-                                "p-1.5 rounded-full transition-colors duration-150",
-                                "text-muted-foreground hover:text-foreground",
-                                "hover:bg-accent focus:outline-none"
+                                "flex items-center gap-1.5 rounded-xl px-2.5 py-2",
+                                "text-muted-foreground hover:bg-accent hover:text-foreground",
+                                "transition-all duration-150 active:scale-90"
                             )}
                         >
-                            <MoreHorizontal className="h-4 w-4"/>
+                            <MessageCircle className="h-4.5 w-4.5"/>
+                            <span className="text-xs font-medium tabular-nums">{formatCount(12345)}</span>
                         </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem onClick={handleEditStart} className="cursor-pointer">
-                            <Pencil className="mr-2 h-4 w-4"/>
-                            <span>Edit</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handleDelete}
-                            className="text-destructive focus:text-destructive cursor-pointer"
-                        >
-                            <Trash2 className="mr-2 h-4 w-4"/>
-                            <span>Delete</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
 
-            {isEditing ? (
-                <div className="px-4 pb-3">
-                    <Textarea
-                        value={draftContent}
-                        onChange={(e) => setDraftContent(e.target.value)}
-                        className="min-h-[120px] resize-none"
-                        placeholder="Write something..."
-                        disabled={isSaving}
-                    />
-                    <div className="mt-3 flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={handleEditCancel} disabled={isSaving}>
-                            Cancel
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={handleEditSave}
-                            disabled={isSaving || draftContent === postContent}
-                        >
-                            {isSaving ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                    Saving
-                                </>
-                            ) : (
-                                "Save"
+                        <button
+                            className={cn(
+                                "flex items-center rounded-xl px-2.5 py-2",
+                                "text-muted-foreground hover:bg-accent hover:text-foreground",
+                                "transition-all duration-150 active:scale-90"
                             )}
-                        </Button>
+                        >
+                            <Share2 className="h-4.5 w-4.5"/>
+                        </button>
                     </div>
-                </div>
-            ) : postContent.trim().length > 0 ? (
-                <p
-                    className={cn(
-                        "px-4 pb-3 text-[14px] leading-[1.7] tracking-[-0.005em]",
-                        "text-foreground/80"
-                    )}
-                >
-                    {postContent}
-                </p>
-            ) : null}
 
-            <div className="m-1 rounded-xl overflow-hidden">
-                <PostPhotoGrid feedItem={feedItem} onClickPhotoAction={onClickPhotoAction}/>
-            </div>
-
-            <div className="flex items-center justify-between px-3 py-2">
-                <div className="flex items-center">
                     <button
-                        onClick={handleLike}
+                        onClick={() => setBookmarked((prev) => !prev)}
                         className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-2 rounded-xl",
+                            "flex items-center rounded-xl px-2.5 py-2",
                             "transition-all duration-150 active:scale-90",
-                            liked
-                                ? "text-destructive hover:bg-destructive/10"
-                                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            bookmarked
+                                ? "text-blue-500 dark:text-blue-400 hover:bg-blue-500/10"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
                         )}
                     >
-                        <Heart
+                        <Bookmark
                             className={cn(
                                 "h-4.5 w-4.5 transition-all duration-300",
-                                liked && "fill-current",
-                                heartPop && "scale-[1.35]"
+                                bookmarked && "fill-current"
                             )}
                         />
-                        <span className="text-xs font-medium tabular-nums">{formatCount(likeCount)}</span>
-                    </button>
-
-                    <button
-                        className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-2 rounded-xl",
-                            "text-muted-foreground hover:text-foreground hover:bg-accent",
-                            "transition-all duration-150 active:scale-90"
-                        )}
-                    >
-                        <MessageCircle className="h-4.5 w-4.5"/>
-                        <span className="text-xs font-medium tabular-nums">{formatCount(12345)}</span>
-                    </button>
-
-                    <button
-                        className={cn(
-                            "flex items-center px-2.5 py-2 rounded-xl",
-                            "text-muted-foreground hover:text-foreground hover:bg-accent",
-                            "transition-all duration-150 active:scale-90"
-                        )}
-                    >
-                        <Share2 className="h-4.5 w-4.5"/>
                     </button>
                 </div>
+            </article>
 
-                <button
-                    onClick={() => setBookmarked((prev) => !prev)}
-                    className={cn(
-                        "flex items-center px-2.5 py-2 rounded-xl",
-                        "transition-all duration-150 active:scale-90",
-                        bookmarked
-                            ? "text-blue-500 dark:text-blue-400 hover:bg-blue-500/10"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    )}
-                >
-                    <Bookmark
-                        className={cn(
-                            "h-4.5 w-4.5 transition-all duration-300",
-                            bookmarked && "fill-current"
-                        )}
-                    />
-                </button>
-            </div>
-        </article>
+            {editDialogOpen && (
+                <PostEditorDialog
+                    key={editDialogKey}
+                    open={editDialogOpen}
+                    onOpenChange={setEditDialogOpen}
+                    mode="edit"
+                    groupUuid={post.groupUuid}
+                    postUuid={post.postUuid}
+                    initialContent={postContent}
+                    initialPhotos={feedItem.photos}
+                    onSubmitted={({content}) => {
+                        setUpdatedContent(content);
+                    }}
+                />
+            )}
+        </>
     );
 }

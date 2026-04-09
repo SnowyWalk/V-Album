@@ -10,6 +10,7 @@ using V_Album_Server.Services.Group;
 using V_Album_Server.Services.Login;
 using V_Album_Server.Services.Login.Handlers;
 using V_Album_Server.Services.Member;
+using V_Album_Server.Services.Post;
 using V_Album_Server.Services.User;
 using V_Album_Server.UseCases.Feed;
 using V_Album_Server.UseCases.Post;
@@ -30,6 +31,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ILoginHandler, GoogleLoginHandler>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<MemberService>();
+builder.Services.AddScoped<PostPhotoService>();
 
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();

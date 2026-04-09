@@ -1,13 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using V_Album_Server.Infrastructures.Persistence.Mapping;
 using V_Album_Server.Infrastructures.Persistence.Scaffold;
+
 namespace V_Album_Server.Infrastructures.Persistence.Repositories;
 
 public class PhotoRepository(AppDbContext dbContext)
 {
     public async Task<DomainPhoto> AddPhotoAsync(Guid postUuid, Guid photoUuid, int sortOrder, Guid? worldUuid, int width, int height, long size, byte[] hash, string format, bool save, CancellationToken ct)
     {
-        PhotoEntity newPhotoEntity = new PhotoEntity { 
+        PhotoEntity newPhotoEntity = new PhotoEntity
+        {
             PhotoUuid = photoUuid,
             PostUuid = postUuid,
             SortOrder = sortOrder,
@@ -19,13 +21,27 @@ public class PhotoRepository(AppDbContext dbContext)
             Format = format,
         };
         await dbContext.Photos.AddAsync(newPhotoEntity, ct);
-        
+
         if (save)
             await dbContext.SaveChangesAsync(ct);
-        
+
         return newPhotoEntity.ToDomain();
     }
-    
+
+    public async Task<PhotoEntity[]> GetPhotosByPostAsync(Guid postUuid, CancellationToken ct)
+    {
+        return await dbContext.Photos
+            .Where(e => e.PostUuid == postUuid)
+            .OrderBy(e => e.SortOrder)
+            .ThenBy(e => e.PhotoUuid)
+            .ToArrayAsync(ct);
+    }
+
+    public void DeletePhotos(IEnumerable<PhotoEntity> photos)
+    {
+        dbContext.Photos.RemoveRange(photos);
+    }
+
     public async Task DeleteByPostAsync(Guid postUuid, CancellationToken ct)
     {
         List<PhotoEntity> photos = await dbContext.Photos.Where(e => e.PostUuid == postUuid).ToListAsync(ct);

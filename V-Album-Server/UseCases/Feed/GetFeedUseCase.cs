@@ -36,6 +36,8 @@ public class GetFeedUseCase(AppDbContext dbContext, UserRepository userRepositor
         PhotoEntity[] photoEntities = await dbContext.Photos
             .AsNoTracking()
             .Where(e => postUuids.Contains(e.PostUuid))
+            .OrderBy(e => e.SortOrder)
+            .ThenBy(e => e.PhotoUuid)
             .ToArrayAsync(ct);
         DomainPhoto[] photos = photoEntities.Select(e => e.ToDomain()).ToArray();
 

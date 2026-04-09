@@ -13,21 +13,23 @@ type LazyImageProps = Omit<ImageProps, "src"> & {
     src: string;
 };
 
-export default function LazyImage({src, ...props}: LazyImageProps) {
+export default function LazyImage({src, alt, onLoad, onError, ...props}: LazyImageProps) {
     const [currentSrc, setCurrentSrc] = useState(getPreviewSrc(src));
 
     return (
         <>
             <Image
-                alt={props.alt || ""}
+                alt={alt || ""}
                 {...props}
                 src={currentSrc}
-                onLoad={() => {
+                onLoad={(event) => {
+                    onLoad?.(event);
                     if (currentSrc !== src) {
                         setCurrentSrc(src);
                     }
                 }}
-                onError={() => {
+                onError={(event) => {
+                    onError?.(event);
                     if (currentSrc !== src) {
                         setCurrentSrc(src);
                     }
