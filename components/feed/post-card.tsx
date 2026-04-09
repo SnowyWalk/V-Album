@@ -1,60 +1,96 @@
 "use client";
 
-import {Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Trash2, Users} from "lucide-react";
-import {Skeleton} from "@/components/ui/skeleton";
+import {useQueryClient} from "@tanstack/react-query";
+import {
+    Bookmark,
+    Heart,
+    Loader2,
+    MessageCircle,
+    MoreHorizontal,
+    Pencil,
+    Share2,
+    Trash2,
+    Users,
+} from "lucide-react";
 import Image from "next/image";
-import {FeedItemDto} from "@/dto/feed-item-dto";
-import UserAvatar from "@/components/user-avatar";
+import Link from "next/link";
+import {useCallback, useState} from "react";
+import {toast} from "sonner";
+
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
 import {PhotoItem} from "@/components/image-viewer";
-import {useState, useCallback} from "react";
-import {cn} from "@/lib/utils";
+import TimeAgo from "@/components/time-ago";
+import {Button} from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {toast} from "sonner";
-import TimeAgo from "@/components/time-ago";
-import Link from "next/link";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Textarea} from "@/components/ui/textarea";
+import UserAvatar from "@/components/user-avatar";
+import {FeedItemDto} from "@/dto/feed-item-dto";
+import {cn} from "@/lib/utils";
 
 const formatCount = (n: number) =>
     n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
 
-const RequestDeletePost = async (postUuid: string): Promise<boolean> => {
+const requestDeletePost = async (postUuid: string): Promise<boolean> => {
     try {
         const result = await fetch("/api/group/delete-post", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                postUuid: postUuid,
-            }),
-        })
+            body: JSON.stringify({postUuid}),
+        });
 
-        if (result.status !== 200) {
-            toast.error("글 삭제에 실패했습니다.");
-            return false
+        if (!result.ok) {
+            toast.error("Failed to delete post.");
+            return false;
         }
 
-        toast.success("글이 삭제되었습니다.");
-        return true
-    } catch (error) {
-        toast.error("삭제 중 오류가 발생했습니다.");
-        return false
+        toast.success("Post deleted.");
+        return true;
+    } catch {
+        toast.error("Delete failed.");
+        return false;
     }
-}
+};
+
+const requestUpdatePost = async (postUuid: string, content: string): Promise<boolean> => {
+    try {
+        const result = await fetch("/api/group/update-post", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({postUuid, content}),
+        });
+
+        if (!result.ok) {
+            const errorData = await result.json().catch(() => ({}));
+            toast.error(errorData.error || "Failed to update post.");
+            return false;
+        }
+
+        toast.success("Post updated.");
+        return true;
+    } catch {
+        toast.error("Update failed.");
+        return false;
+    }
+};
 
 export default function PostCard({
-                                     feedItem,
-                                     onClickPhotoAction,
-                                     groupName,
-                                     groupUuid,
-                                     groupPic,
-                                     isAllFeed = false,
-                                 }: {
+    feedItem,
+    onClickPhotoAction,
+    groupName,
+    groupUuid,
+    groupPic,
+    isAllFeed = false,
+}: {
     feedItem: FeedItemDto;
     onClickPhotoAction: (photos: PhotoItem[], idx: number) => void;
     groupName?: string;
@@ -63,40 +99,81 @@ export default function PostCard({
     isAllFeed?: boolean;
 }) {
     const post = feedItem.post;
+    const queryClient = useQueryClient();
 
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(12345);
     const [bookmarked, setBookmarked] = useState(false);
     const [heartPop, setHeartPop] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [updatedContent, setUpdatedContent] = useState<string | null>(null);
+    const [draftContent, setDraftContent] = useState("");
+    const postContent = updatedContent ?? post.content ?? "";
 
     const handleLike = useCallback(() => {
         setHeartPop(true);
-        setLiked(prev => !prev);
-        setLikeCount(prev => liked ? prev - 1 : prev + 1);
+        setLiked((prev) => !prev);
+        setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
         setTimeout(() => setHeartPop(false), 350);
     }, [liked]);
 
     const handleDelete = useCallback(async () => {
-        if (confirm("정말로 이 글을 삭제하시겠습니까?")) {
-            const success = await RequestDeletePost(post.postUuid);
-            if (success) {
-                setIsDeleted(true);
-            }
+        if (!confirm("Delete this post?")) {
+            return;
         }
-    }, [post.postUuid]);
+
+        const success = await requestDeletePost(post.postUuid);
+        if (success) {
+            setIsDeleted(true);
+            await queryClient.invalidateQueries({queryKey: ["feed"]});
+        }
+    }, [post.postUuid, queryClient]);
+
+    const handleEditStart = useCallback(() => {
+        setDraftContent(postContent);
+        setIsEditing(true);
+    }, [postContent]);
+
+    const handleEditCancel = useCallback(() => {
+        setDraftContent(postContent);
+        setIsEditing(false);
+    }, [postContent]);
+
+    const handleEditSave = useCallback(async () => {
+        if (isSaving) {
+            return;
+        }
+
+        const hasPhotos = (feedItem.photos?.length ?? 0) > 0;
+        if (!hasPhotos && draftContent.trim().length === 0) {
+            toast.error("Posts without photos need text.");
+            return;
+        }
+
+        setIsSaving(true);
+        const success = await requestUpdatePost(post.postUuid, draftContent);
+        if (success) {
+            setUpdatedContent(draftContent);
+            setIsEditing(false);
+            await queryClient.invalidateQueries({queryKey: ["feed"]});
+        }
+        setIsSaving(false);
+    }, [draftContent, feedItem.photos, isSaving, post.postUuid, queryClient]);
 
     if (isDeleted) return null;
 
     return (
-        <article className={cn(
-            "rounded-2xl overflow-hidden",
-            "bg-card text-card-foreground",
-            "border border-border",
-            "shadow-sm hover:shadow-md",
-            "transition-shadow duration-200"
-        )}>
-            {/* ── Group Strip ────────────────────── */}
+        <article
+            className={cn(
+                "rounded-2xl overflow-hidden",
+                "bg-card text-card-foreground",
+                "border border-border",
+                "shadow-sm hover:shadow-md",
+                "transition-shadow duration-200"
+            )}
+        >
             {(groupName || isAllFeed) && (
                 groupName ? (
                     <Link
@@ -108,89 +185,123 @@ export default function PostCard({
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         )}
                     >
-                        <div
-                            className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                        <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
                             {groupPic ? (
-                                <Image src={`/group-pics/${groupPic}.png`} alt={groupName} fill
-                                       className="object-cover"/>
+                                <Image
+                                    src={`/group-pics/${groupPic}.png`}
+                                    alt={groupName}
+                                    fill
+                                    className="object-cover"
+                                />
                             ) : (
                                 <div className="flex h-full w-full items-center justify-center">
                                     <Users className="h-3 w-3 text-muted-foreground"/>
                                 </div>
                             )}
                         </div>
-                        <div className="text-sm text-muted-foreground tracking-wide"
-                             style={{position: 'relative', top: '-1px'}}>
+                        <div
+                            className="text-sm text-muted-foreground tracking-wide"
+                            style={{position: "relative", top: "-1px"}}
+                        >
                             {groupName}
                         </div>
                     </Link>
                 ) : (
-                    <div className={cn(
-                        "flex items-center gap-2 px-4 py-2",
-                        "border-b border-border/60",
-                        "bg-muted/40",
-                    )}>
+                    <div
+                        className={cn(
+                            "flex items-center gap-2 px-4 py-2",
+                            "border-b border-border/60",
+                            "bg-muted/40"
+                        )}
+                    >
                         <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
                         <Skeleton className="h-3 w-20"/>
                     </div>
                 )
             )}
 
-            {/* ── Header ─────────────────────────── */}
             <div className="flex items-center justify-between px-4 pt-3 pb-3">
                 <div className="flex flex-row gap-2.5 items-center">
                     <UserAvatar userUuid={post.userUuid}/>
-                    <div className="text-muted-foreground">
-                        ·
-                    </div>
+                    <div className="text-muted-foreground">|</div>
                     <div>
                         <TimeAgo date={post.createdAt} className="text-sm text-muted-foreground"/>
                     </div>
                 </div>
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
-                        <button className={cn(
-                            "p-1.5 rounded-full transition-colors duration-150",
-                            "text-muted-foreground hover:text-foreground",
-                            "hover:bg-accent focus:outline-none"
-                        )}>
+                        <button
+                            className={cn(
+                                "p-1.5 rounded-full transition-colors duration-150",
+                                "text-muted-foreground hover:text-foreground",
+                                "hover:bg-accent focus:outline-none"
+                            )}
+                        >
                             <MoreHorizontal className="h-4 w-4"/>
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem onClick={handleEditStart} className="cursor-pointer">
+                            <Pencil className="mr-2 h-4 w-4"/>
+                            <span>Edit</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={handleDelete}
-                            className="text-destructive focus:text-destructive cursor-pointer">
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                        >
                             <Trash2 className="mr-2 h-4 w-4"/>
-                            <span>글 삭제</span>
+                            <span>Delete</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
 
-            {/* ── Caption ────────────────────────── */}
-            {post.content && (
-                <p className={cn(
-                    "px-4 pb-3 text-[14px] leading-[1.7] tracking-[-0.005em]",
-                    "text-foreground/80"
-                )}>
-                    {post.content}
+            {isEditing ? (
+                <div className="px-4 pb-3">
+                    <Textarea
+                        value={draftContent}
+                        onChange={(e) => setDraftContent(e.target.value)}
+                        className="min-h-[120px] resize-none"
+                        placeholder="Write something..."
+                        disabled={isSaving}
+                    />
+                    <div className="mt-3 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={handleEditCancel} disabled={isSaving}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleEditSave}
+                            disabled={isSaving || draftContent === postContent}
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                    Saving
+                                </>
+                            ) : (
+                                "Save"
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            ) : postContent.trim().length > 0 ? (
+                <p
+                    className={cn(
+                        "px-4 pb-3 text-[14px] leading-[1.7] tracking-[-0.005em]",
+                        "text-foreground/80"
+                    )}
+                >
+                    {postContent}
                 </p>
-            )}
+            ) : null}
 
-            {/* ── Photos ─────────────────────────── */}
             <div className="m-1 rounded-xl overflow-hidden">
-                <PostPhotoGrid
-                    feedItem={feedItem}
-                    onClickPhotoAction={onClickPhotoAction}
-                />
+                <PostPhotoGrid feedItem={feedItem} onClickPhotoAction={onClickPhotoAction}/>
             </div>
 
-            {/* ── Footer ─────────────────────────── */}
             <div className="flex items-center justify-between px-3 py-2">
-                {/* 반응 버튼들 */}
                 <div className="flex items-center">
-                    {/* 좋아요 */}
                     <button
                         onClick={handleLike}
                         className={cn(
@@ -198,44 +309,43 @@ export default function PostCard({
                             "transition-all duration-150 active:scale-90",
                             liked
                                 ? "text-destructive hover:bg-destructive/10"
-                                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+                                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         )}
                     >
-                        <Heart className={cn(
-                            "h-4.5 w-4.5 transition-all duration-300",
-                            liked && "fill-current",
-                            heartPop && "scale-[1.35]"
-                        )}/>
-                        <span className="text-xs font-medium tabular-nums">
-                            {formatCount(likeCount)}
-                        </span>
+                        <Heart
+                            className={cn(
+                                "h-4.5 w-4.5 transition-all duration-300",
+                                liked && "fill-current",
+                                heartPop && "scale-[1.35]"
+                            )}
+                        />
+                        <span className="text-xs font-medium tabular-nums">{formatCount(likeCount)}</span>
                     </button>
 
-                    {/* 댓글 */}
-                    <button className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-2 rounded-xl",
-                        "text-muted-foreground hover:text-foreground hover:bg-accent",
-                        "transition-all duration-150 active:scale-90"
-                    )}>
+                    <button
+                        className={cn(
+                            "flex items-center gap-1.5 px-2.5 py-2 rounded-xl",
+                            "text-muted-foreground hover:text-foreground hover:bg-accent",
+                            "transition-all duration-150 active:scale-90"
+                        )}
+                    >
                         <MessageCircle className="h-4.5 w-4.5"/>
-                        <span className="text-xs font-medium tabular-nums">
-                            {formatCount(12345)}
-                        </span>
+                        <span className="text-xs font-medium tabular-nums">{formatCount(12345)}</span>
                     </button>
 
-                    {/* 공유 */}
-                    <button className={cn(
-                        "flex items-center px-2.5 py-2 rounded-xl",
-                        "text-muted-foreground hover:text-foreground hover:bg-accent",
-                        "transition-all duration-150 active:scale-90"
-                    )}>
+                    <button
+                        className={cn(
+                            "flex items-center px-2.5 py-2 rounded-xl",
+                            "text-muted-foreground hover:text-foreground hover:bg-accent",
+                            "transition-all duration-150 active:scale-90"
+                        )}
+                    >
                         <Share2 className="h-4.5 w-4.5"/>
                     </button>
                 </div>
 
-                {/* 북마크 */}
                 <button
-                    onClick={() => setBookmarked(prev => !prev)}
+                    onClick={() => setBookmarked((prev) => !prev)}
                     className={cn(
                         "flex items-center px-2.5 py-2 rounded-xl",
                         "transition-all duration-150 active:scale-90",
@@ -244,10 +354,12 @@ export default function PostCard({
                             : "text-muted-foreground hover:text-foreground hover:bg-accent"
                     )}
                 >
-                    <Bookmark className={cn(
-                        "h-4.5 w-4.5 transition-all duration-300",
-                        bookmarked && "fill-current"
-                    )}/>
+                    <Bookmark
+                        className={cn(
+                            "h-4.5 w-4.5 transition-all duration-300",
+                            bookmarked && "fill-current"
+                        )}
+                    />
                 </button>
             </div>
         </article>

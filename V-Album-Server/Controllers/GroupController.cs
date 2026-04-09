@@ -11,7 +11,8 @@ public class GroupController(
     CreatePostUseCase createPostUseCase, 
     GetFeedUseCase getFeedUseCase, 
     GetAllFeedUseCase getAllFeedUseCase,
-    DeletePostUseCase deletePostUseCase) : ControllerBase
+    DeletePostUseCase deletePostUseCase,
+    UpdatePostUseCase updatePostUseCase) : ControllerBase
 {
     public sealed record CreateRequest(string GroupName);
     public sealed record CreateResponse(DomainGroup CreatedGroup);
@@ -80,6 +81,7 @@ public class GroupController(
     }
     
     public sealed record DeletePostRequest(string PostUuid);
+    public sealed record UpdatePostRequest(string PostUuid, string? Content);
     
     [HttpPost("delete-post")]
     public async Task<IActionResult> DeletePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] DeletePostRequest request, CancellationToken ct)
@@ -89,6 +91,17 @@ public class GroupController(
         
         await deletePostUseCase.Execute(googleSub, new Guid(request.PostUuid), ct);
         
+        return Ok();
+    }
+
+    [HttpPost("update-post")]
+    public async Task<IActionResult> UpdatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] UpdatePostRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(googleSub))
+            return Unauthorized(new { error = "Missing X-Google-Sub header" });
+
+        await updatePostUseCase.Execute(googleSub, new Guid(request.PostUuid), request.Content, ct);
+
         return Ok();
     }
 }
