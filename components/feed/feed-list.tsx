@@ -107,6 +107,7 @@ export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedList
                         feedItem={{post, photos}} 
                         onClickPhotoAction={onClickPhotoAction}
                         groupName={group?.name}
+                        groupUuid={group?.groupUuid}
                         groupPic={group?.pic}
                         isAllFeed={type === "all"}
                     />

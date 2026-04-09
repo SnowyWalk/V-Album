@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {toast} from "sonner";
 import TimeAgo from "@/components/time-ago";
+import Link from "next/link";
 
 const formatCount = (n: number) =>
     n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
@@ -50,12 +51,14 @@ export default function PostCard({
                                      feedItem,
                                      onClickPhotoAction,
                                      groupName,
+                                     groupUuid,
                                      groupPic,
                                      isAllFeed = false,
                                  }: {
     feedItem: FeedItemDto;
     onClickPhotoAction: (photos: PhotoItem[], idx: number) => void;
     groupName?: string;
+    groupUuid?: string;
     groupPic?: string | null;
     isAllFeed?: boolean;
 }) {
@@ -102,6 +105,7 @@ export default function PostCard({
                 )}>
                     {groupName ? (
                         <>
+                            <Link href={`/group/${groupUuid}`} className="flex items-center gap-1.5">
                             <div
                                 className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
                                 {groupPic ? (
@@ -117,6 +121,7 @@ export default function PostCard({
                                  style={{position: 'relative', top: '-1px'}}>
                                 {groupName}
                             </div>
+                            </Link>
                         </>
                     ) : (
                         <>
