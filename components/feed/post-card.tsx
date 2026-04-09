@@ -98,38 +98,42 @@ export default function PostCard({
         )}>
             {/* ── Group Strip ────────────────────── */}
             {(groupName || isAllFeed) && (
-                <div className={cn(
-                    "flex items-center gap-2 px-4 py-2",
-                    "border-b border-border/60",
-                    "bg-muted/40",
-                )}>
-                    {groupName ? (
-                        <>
-                            <Link href={`/group/${groupUuid}`} className="flex items-center gap-1.5">
-                            <div
-                                className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
-                                {groupPic ? (
-                                    <Image src={`/group-pics/${groupPic}.png`} alt={groupName} fill
-                                           className="object-cover"/>
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center">
-                                        <Users className="h-3 w-3 text-muted-foreground"/>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="text-sm text-muted-foreground tracking-wide"
-                                 style={{position: 'relative', top: '-1px'}}>
-                                {groupName}
-                            </div>
-                            </Link>
-                        </>
-                    ) : (
-                        <>
-                            <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
-                            <Skeleton className="h-3 w-20"/>
-                        </>
-                    )}
-                </div>
+                groupName ? (
+                    <Link
+                        href={`/group/${groupUuid}`}
+                        className={cn(
+                            "flex items-center gap-2 px-4 py-2",
+                            "border-b border-border/60",
+                            "bg-muted/40 transition-colors hover:bg-muted/60",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        )}
+                    >
+                        <div
+                            className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                            {groupPic ? (
+                                <Image src={`/group-pics/${groupPic}.png`} alt={groupName} fill
+                                       className="object-cover"/>
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                    <Users className="h-3 w-3 text-muted-foreground"/>
+                                </div>
+                            )}
+                        </div>
+                        <div className="text-sm text-muted-foreground tracking-wide"
+                             style={{position: 'relative', top: '-1px'}}>
+                            {groupName}
+                        </div>
+                    </Link>
+                ) : (
+                    <div className={cn(
+                        "flex items-center gap-2 px-4 py-2",
+                        "border-b border-border/60",
+                        "bg-muted/40",
+                    )}>
+                        <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
+                        <Skeleton className="h-3 w-20"/>
+                    </div>
+                )
             )}
 
             {/* ── Header ─────────────────────────── */}
