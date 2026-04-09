@@ -462,9 +462,15 @@ export default function PostEditorDialog({
 
                         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-border/60 bg-muted/10 p-3 sm:p-4">
                             <div className="flex flex-wrap items-center justify-between gap-3">
-                                <div>
-                                    <div className="text-sm font-medium">사진 순서</div>
-                                    <div className="text-xs text-muted-foreground">드래그하거나 화살표 버튼으로 사진 순서를 조정하세요. 현재 {photos.length}장</div>
+                                <div className="space-y-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <div className="text-sm font-semibold tracking-tight">사진 순서</div>
+                                        <div className="inline-flex items-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm">
+                                            <span className="tabular-nums">{photos.length}</span>
+                                            <span className="ml-1 text-muted-foreground">장</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">드래그하거나 화살표 버튼으로 사진 순서를 조정하세요.</div>
                                 </div>
                                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                                     <Plus className="mr-2 h-4 w-4"/>
