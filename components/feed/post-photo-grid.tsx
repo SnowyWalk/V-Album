@@ -14,7 +14,9 @@ function PostPhotoGrid({
 }) {
     if (!feedItem.photos || feedItem.photos.length === 0) return null;
 
-    const photos = feedItem.photos;
+    const photos = [...feedItem.photos].sort(
+        (a, b) => a.sortOrder - b.sortOrder || a.photoUuid.localeCompare(b.photoUuid)
+    );
     const post = feedItem.post;
     const count = photos.length;
     
