@@ -71,6 +71,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => new { e.UserUuid, e.DeletedAt, e.CreatedAt }, "특정 유저의 좋아요 목록 최신순");
 
+            entity.HasIndex(e => new { e.PostUuid, e.DeletedAt, e.UserUuid }, "특정 포스트를 내가 좋아요 했는지");
+
             entity.HasIndex(e => new { e.PostUuid, e.DeletedAt }, "특정 포스트의 좋아요 목록");
 
             entity.Property(e => e.UserUuid)
