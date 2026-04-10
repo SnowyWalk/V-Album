@@ -342,8 +342,9 @@ export default function PostEditorDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="h-[min(92vh,980px)] w-[calc(100vw-1rem)] max-w-none grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden border-border/70 p-0 sm:w-[min(96vw,1320px)] sm:max-w-[min(96vw,1320px)]">
-                <div className="border-b border-border/60 bg-gradient-to-r from-muted/70 via-background to-muted/40 px-5 py-3 sm:px-6 sm:py-4">
+            <DialogContent className="h-[min(92vh,980px)] w-[calc(100vw-1rem)] max-w-none gap-0 overflow-hidden rounded-[calc(var(--radius)+10px)] border border-border/80 bg-card p-0 shadow-2xl shadow-primary/15 ring-1 ring-border/80 dark:shadow-primary/30 dark:ring-primary/18 sm:w-[min(96vw,1320px)] sm:max-w-[min(96vw,1320px)]">
+                <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[inherit] bg-card">
+                <div className="border-b border-border/70 bg-secondary/72 px-5 py-3 sm:px-6 sm:py-4">
                     <DialogHeader>
                         <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
                         <DialogDescription>{description}</DialogDescription>
@@ -352,7 +353,7 @@ export default function PostEditorDialog({
 
                 <div className="grid min-h-0 min-w-0 flex-1 gap-0 overflow-hidden bg-background xl:grid-cols-[minmax(0,1fr)_420px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
                     <section
-                        className="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-hidden border-b border-border/50 bg-background p-4 sm:p-5 xl:border-r xl:border-b-0 xl:p-6"
+                        className="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-hidden border-b border-border/70 bg-card p-4 sm:p-5 xl:border-r xl:border-b-0 xl:p-6"
                         onKeyDownCapture={handlePreviewAreaKeyDown}
                     >
                         <div className="mx-auto grid w-full max-w-[760px] grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-3 sm:grid-cols-[56px_minmax(0,1fr)_56px]">
@@ -362,7 +363,7 @@ export default function PostEditorDialog({
                                         type="button"
                                         size="icon"
                                         variant="secondary"
-                                        className="h-11 w-11 rounded-full border border-border/70 bg-background/92 shadow-sm"
+                                        className="h-11 w-11 rounded-full border border-border/70 bg-card/90 shadow-sm transition-colors hover:bg-secondary"
                                         onClick={() => moveSelectedPhotoFocus(-1)}
                                         disabled={selectedIndex <= 0}
                                     >
@@ -376,8 +377,10 @@ export default function PostEditorDialog({
                                 onDrop={handleDrop}
                                 tabIndex={0}
                                 className={cn(
-                                    "relative flex aspect-video w-full flex-none items-center justify-center overflow-hidden rounded-2xl border border-dashed select-none",
-                                    selectedPhoto ? "border-border bg-background" : "border-border/70 bg-gradient-to-br from-background via-muted/40 to-background"
+                                    "relative flex aspect-video w-full flex-none items-center justify-center overflow-hidden rounded-2xl border select-none shadow-sm",
+                                    selectedPhoto
+                                        ? "border-border/70 bg-card"
+                                        : "border-dashed border-border/70 bg-gradient-to-br from-card via-secondary/35 to-muted/45"
                                 )}
                             >
                                 {selectedPhoto ? (
@@ -408,11 +411,11 @@ export default function PostEditorDialog({
                                                 ))}
                                             </CarouselContent>
                                         </Carousel>
-                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent p-4 text-white">
-                                            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-white/70">
-                                                <span>{selectedIndex + 1}</span>
-                                                <span>/</span>
-                                                <span>{photos.length}</span>
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent p-4">
+                                            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/90 px-3 py-1 text-xs font-medium tracking-[0.2em] text-foreground shadow-sm backdrop-blur-sm">
+                                                <span className="tabular-nums">{selectedIndex + 1}</span>
+                                                <span className="text-muted-foreground">/</span>
+                                                <span className="tabular-nums text-muted-foreground">{photos.length}</span>
                                             </div>
                                         </div>
                                     </>
@@ -422,7 +425,7 @@ export default function PostEditorDialog({
                                         onClick={() => fileInputRef.current?.click()}
                                         className="flex h-full w-full flex-col items-center justify-center gap-4 px-8 py-12 text-center"
                                     >
-                                        <div className="rounded-full border border-border bg-background/80 p-4 shadow-sm">
+                                        <div className="rounded-full border border-border/70 bg-secondary p-4 shadow-sm">
                                             <Upload className="h-8 w-8 text-muted-foreground"/>
                                         </div>
                                         <div className="space-y-1">
@@ -441,7 +444,7 @@ export default function PostEditorDialog({
                                         type="button"
                                         size="icon"
                                         variant="secondary"
-                                        className="h-11 w-11 rounded-full border border-border/70 bg-background/92 shadow-sm"
+                                        className="h-11 w-11 rounded-full border border-border/70 bg-card/90 shadow-sm transition-colors hover:bg-secondary"
                                         onClick={() => moveSelectedPhotoFocus(1)}
                                         disabled={selectedIndex >= photos.length - 1}
                                     >
@@ -460,12 +463,12 @@ export default function PostEditorDialog({
                             onChange={handleFileChange}
                         />
 
-                        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-border/60 bg-muted/10 p-3 sm:p-4">
+                        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card/70 p-3 shadow-sm sm:p-4">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div className="space-y-1">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <div className="text-sm font-semibold tracking-tight">사진 순서</div>
-                                        <div className="inline-flex items-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm">
+                                        <div className="inline-flex items-center rounded-full border border-transparent bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground shadow-sm">
                                             <span className="tabular-nums">{photos.length}</span>
                                             <span className="ml-1 text-muted-foreground">장</span>
                                         </div>
@@ -496,16 +499,16 @@ export default function PostEditorDialog({
                                                 }
                                             }}
                                             className={cn(
-                                                "group relative flex w-[176px] shrink-0 flex-col overflow-hidden rounded-2xl border bg-background shadow-sm transition lg:w-[184px]",
-                                                selectedPhoto?.id === photo.id && "border-foreground shadow-md",
+                                                "group relative flex w-[176px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition lg:w-[184px]",
+                                                selectedPhoto?.id === photo.id && "border-primary/60 ring-2 ring-primary/15 shadow-md",
                                                 draggingPhotoId === photo.id && "opacity-50"
                                             )}
                                         >
                                             <button
                                                 type="button"
                                                 onClick={() => setSelectedPhotoId(photo.id)}
-                                                className="relative block aspect-video w-full bg-muted/20"
-                                            >
+                                            className="relative block aspect-video w-full bg-secondary/45"
+                                        >
                                                 <Image
                                                     src={photo.previewUrl}
                                                     alt={`photo-${index + 1}`}
@@ -521,7 +524,7 @@ export default function PostEditorDialog({
                                                         <GripVertical className="h-3.5 w-3.5"/>
                                                         <span>{index + 1}</span>
                                                     </div>
-                                                    <div className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                                    <div className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary-foreground">
                                                         {photo.kind === "existing" ? "기존" : "신규"}
                                                     </div>
                                                 </div>
@@ -562,7 +565,7 @@ export default function PostEditorDialog({
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="flex h-[156px] w-[176px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-background text-muted-foreground transition hover:border-foreground/40 hover:text-foreground lg:h-[162px] lg:w-[184px]"
+                                        className="flex h-[156px] w-[176px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-secondary/35 text-muted-foreground transition hover:bg-secondary/55 hover:text-foreground lg:h-[162px] lg:w-[184px]"
                                     >
                                         <ImageIcon className="h-7 w-7"/>
                                         <span className="text-sm font-medium">사진 추가</span>
@@ -572,9 +575,9 @@ export default function PostEditorDialog({
                         </div>
                     </section>
 
-                    <section className="min-h-0 min-w-0 overflow-y-auto px-4 pb-4 pt-0 sm:px-5 sm:pb-5 sm:pt-0 xl:px-5 xl:pb-5 xl:pt-0">
+                    <section className="min-h-0 min-w-0 overflow-y-auto bg-secondary/14 px-4 pb-4 pt-0 sm:px-5 sm:pb-5 sm:pt-0 xl:px-5 xl:pb-5 xl:pt-0">
                         <div className="flex flex-col gap-4 xl:mx-auto xl:w-full xl:max-w-[408px] 2xl:max-w-[424px]">
-                            <div className="rounded-2xl border border-border/60 bg-background p-4">
+                            <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
                                 <div className="mb-3 text-sm font-medium">글 내용</div>
                                 <Textarea
                                     value={content}
@@ -584,7 +587,7 @@ export default function PostEditorDialog({
                                 />
                             </div>
 
-                            <div className="rounded-2xl border border-border/60 bg-muted/30 p-4 text-sm text-muted-foreground">
+                            <div className="rounded-2xl border border-border/70 bg-secondary/65 p-4 text-sm text-muted-foreground shadow-sm">
                                 <div className="font-medium text-foreground">편집 안내</div>
                                 <div className="mt-2">사진을 선택해 크게 보고, 드래그로 순서를 바꾸고, 필요 없는 사진은 바로 제거할 수 있습니다.</div>
                             </div>
@@ -592,7 +595,7 @@ export default function PostEditorDialog({
                     </section>
                 </div>
 
-                <DialogFooter className="border-t border-border/60 px-5 py-3 sm:px-6">
+                <DialogFooter className="border-t border-border/70 bg-card px-5 py-3 sm:px-6">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                         취소
                     </Button>
@@ -609,6 +612,7 @@ export default function PostEditorDialog({
                         )}
                     </Button>
                 </DialogFooter>
+                </div>
             </DialogContent>
         </Dialog>
     );

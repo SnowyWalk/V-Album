@@ -24,12 +24,6 @@ public class GroupController(
     public sealed record FeedCursor(DateTime DateTime, Guid PostUuid);
     public sealed record FeedResponse(FeedItem[] FeedPosts, bool HasMore, FeedCursor? NextCursor);
     public sealed record DeletePostRequest(string PostUuid);
-    public sealed record UpdatePostRequest(
-        string PostUuid,
-        string? Content,
-        string? PhotoOrder,
-        List<string>? NewPhotoClientIds,
-        List<IFormFile>? NewPhotos);
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateGroup([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] CreateRequest request, CancellationToken ct)
@@ -102,18 +96,36 @@ public class GroupController(
     }
 
     [HttpPost("update-post")]
-    public async Task<IActionResult> UpdatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromForm] UpdatePostRequest request, CancellationToken ct)
+    public async Task<IActionResult> UpdatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
             return Unauthorized(new { error = "Missing X-Google-Sub header" });
 
+        if (!Request.HasFormContentType)
+            return StatusCode(StatusCodes.Status415UnsupportedMediaType, new { error = "multipart/form-data request is required." });
+
+        IFormCollection form = await Request.ReadFormAsync(ct);
+        string? postUuid = form["postUuid"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(postUuid))
+            return BadRequest(new { error = "postUuid is required." });
+        if (!Guid.TryParse(postUuid, out Guid postGuid))
+            return BadRequest(new { error = "postUuid is invalid." });
+
+        List<string>? newPhotoClientIds = form.TryGetValue("newPhotoClientIds", out var clientIds)
+            ? clientIds
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Select(value => value!)
+                .ToList()
+            : null;
+        List<IFormFile> newPhotos = form.Files.GetFiles("newPhotos").ToList();
+
         await updatePostUseCase.Execute(
             googleSub,
-            new Guid(request.PostUuid),
-            request.Content,
-            request.PhotoOrder,
-            request.NewPhotoClientIds,
-            request.NewPhotos,
+            postGuid,
+            form["content"].FirstOrDefault(),
+            form["photoOrder"].FirstOrDefault(),
+            newPhotoClientIds is { Count: > 0 } ? newPhotoClientIds : null,
+            newPhotos.Count > 0 ? newPhotos : null,
             ct);
 
         return Ok();
