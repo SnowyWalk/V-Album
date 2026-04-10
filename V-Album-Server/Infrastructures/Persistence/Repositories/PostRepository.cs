@@ -23,6 +23,15 @@ public class PostRepository(AppDbContext dbContext)
         return await dbContext.Posts.FirstOrDefaultAsync(p => p.PostUuid == postUuid && p.DeletedAt == null, ct);
     }
 
+    public async Task<DateTime?> GetAlivePostCreatedAtAsync(Guid postUuid, CancellationToken ct)
+    {
+        return await dbContext.Posts
+            .AsNoTracking()
+            .Where(p => p.PostUuid == postUuid && p.DeletedAt == null)
+            .Select(p => (DateTime?)p.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<bool> IsPostAlive(Guid postUuid, CancellationToken ct)
     {
         return await dbContext.Posts.AsNoTracking().AnyAsync(p => p.PostUuid == postUuid && p.DeletedAt == null, ct);

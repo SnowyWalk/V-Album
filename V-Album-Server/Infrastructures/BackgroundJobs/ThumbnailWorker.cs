@@ -18,7 +18,7 @@ public class ThumbnailWorker : BackgroundService
         m_scopeFactory = scopeFactory;
         m_logger = logger;
 
-        CommonUtils.EnsureDirectoryExists(m_tempPath);
+        Directory.CreateDirectory(m_tempPath);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
