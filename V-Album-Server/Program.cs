@@ -40,6 +40,7 @@ builder.Services.AddScoped<GetFeedUseCase>();
 builder.Services.AddScoped<GetAllFeedUseCase>();
 builder.Services.AddScoped<DeletePostUseCase>();
 builder.Services.AddScoped<UpdatePostUseCase>();
+builder.Services.AddScoped<UpdatePostLikeUseCase>();
 
 // Repository
 builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();

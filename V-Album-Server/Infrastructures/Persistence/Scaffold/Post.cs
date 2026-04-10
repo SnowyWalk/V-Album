@@ -21,6 +21,8 @@ public partial class Post
 
     public virtual Group GroupUu { get; set; } = null!;
 
+    public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
+
     public virtual ICollection<Photo> Photos { get; set; } = new List<Photo>();
 
     public virtual User UserUu { get; set; } = null!;

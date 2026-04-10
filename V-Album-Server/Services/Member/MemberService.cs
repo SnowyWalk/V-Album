@@ -19,6 +19,11 @@ public class MemberService(AppDbContext dbContext)
 
         return userUuid == writerUserUuid;
     }
+    
+    public async Task<bool> IsMemberAsync(Guid userUuid, Guid groupUuid, CancellationToken ct)
+    {
+        return await dbContext.Members.AsNoTracking().AnyAsync(e => e.UserUuid == userUuid && e.GroupUuid == groupUuid && e.DeletedAt == null, ct);
+    }
 }
 
 public class InvalidMemberRoleException(string message) : Exception(message);

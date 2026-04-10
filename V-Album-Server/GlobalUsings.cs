@@ -12,3 +12,6 @@ global using PostEntity = V_Album_Server.Infrastructures.Persistence.Scaffold.Po
 
 global using DomainPhoto = V_Album_Server.Domains.Photo.Photo;
 global using PhotoEntity = V_Album_Server.Infrastructures.Persistence.Scaffold.Photo;
+
+global using DomainLike = V_Album_Server.Domains.Like.Like;
+global using LikeEntity = V_Album_Server.Infrastructures.Persistence.Scaffold.Like;

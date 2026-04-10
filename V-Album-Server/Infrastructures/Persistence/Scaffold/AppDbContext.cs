@@ -13,6 +13,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Group> Groups { get; set; }
 
+    public virtual DbSet<Like> Likes { get; set; }
+
     public virtual DbSet<Member> Members { get; set; }
 
     public virtual DbSet<Photo> Photos { get; set; }
@@ -57,6 +59,45 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<Like>(entity =>
+        {
+            entity.HasKey(e => new { e.UserUuid, e.PostUuid })
+                .HasName("PRIMARY")
+                .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+            entity.ToTable("like");
+
+            entity.HasIndex(e => new { e.UserUuid, e.DeletedAt, e.CreatedAt }, "특정 유저의 좋아요 목록 최신순");
+
+            entity.HasIndex(e => new { e.PostUuid, e.DeletedAt }, "특정 포스트의 좋아요 목록");
+
+            entity.Property(e => e.UserUuid)
+                .HasColumnName("user_uuid")
+                .UseCollation("utf8mb4_general_ci")
+                .HasCharSet("utf8mb4");
+            entity.Property(e => e.PostUuid)
+                .HasColumnName("post_uuid")
+                .UseCollation("utf8mb4_general_ci")
+                .HasCharSet("utf8mb4");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("deleted_at");
+
+            entity.HasOne(d => d.PostUu).WithMany(p => p.Likes)
+                .HasForeignKey(d => d.PostUuid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_like_post");
+
+            entity.HasOne(d => d.UserUu).WithMany(p => p.Likes)
+                .HasForeignKey(d => d.UserUuid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_like_user");
         });
 
         modelBuilder.Entity<Member>(entity =>

@@ -19,6 +19,8 @@ public partial class User
 
     public DateTime? DeletedAt { get; set; }
 
+    public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
+
     public virtual ICollection<Member> Members { get; set; } = new List<Member>();
 
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
