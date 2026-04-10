@@ -12,14 +12,14 @@ public class GetAllFeedUseCase(AppDbContext dbContext, UserRepository userReposi
     public async Task<GroupController.FeedResponse> Execute(string googleSub, int limit, DateTime? cursorDateTime, Guid? cursorPostUuid, CancellationToken ct)
     {
         // 1. 사용자 존재 확인 및 UUID 획득
-        var user = await userRepository.GetUserByGoogleSub(googleSub, ct);
-        if (user == null)
+        DomainUser? me = await userRepository.GetUserByGoogleSub(googleSub, ct);
+        if (me == null)
             throw new UserNotFoundException(googleSub);
 
         // 2. 사용자가 가입한 그룹 UUID 목록 조회
         var groupUuids = await dbContext.Members
             .AsNoTracking()
-            .Where(m => m.UserUuid == user.UserUuid && m.DeletedAt == null)
+            .Where(m => m.UserUuid == me.UserUuid && m.DeletedAt == null)
             .Select(m => m.GroupUuid)
             .ToListAsync(ct);
 
@@ -63,19 +63,33 @@ public class GetAllFeedUseCase(AppDbContext dbContext, UserRepository userReposi
             .GroupBy(e => e.PostUuid)
             .ToDictionary(g => g.Key, g => g.ToArray());
 
-        // 7. 결과 매핑
-        var feedItems = postsToReturn.Select(e => new GroupController.FeedItem(
-            e.ToDomain(),
-            photoMap.GetValueOrDefault(e.PostUuid)
-        )).ToArray();
+        // 그 Post들의 Like 조회
+        Dictionary<Guid, GroupController.LikeStatus> likesMap = await dbContext.Likes
+            .AsNoTracking()
+            .Where(l => postUuids.Contains(l.PostUuid) && l.DeletedAt == null)
+            .GroupBy(l => l.PostUuid)
+            .Select(g => new GroupController.LikeStatus(g.Key,g.Any(l=>l.UserUuid==me.UserUuid) , g.Count()))
+            .ToDictionaryAsync(l => l.PostUuid, ct);
+        
+        GroupController.FeedItem[] results = postEntities
+            .Select(e =>
+            {
+                GroupController.LikeStatus? likeStatus = likesMap.GetValueOrDefault(e.PostUuid);
+                return new GroupController.FeedItem(
+                    e.ToDomain(),
+                    photoMap.GetValueOrDefault(e.PostUuid),
+                    likeStatus?.IsLiked ?? false,
+                    likeStatus?.LikeCount ?? 0);
+            })
+            .ToArray();
 
         GroupController.FeedCursor? nextCursor = null;
-        if (hasMore && feedItems.Length > 0)
+        if (hasMore && results.Length > 0)
         {
-            var lastItem = feedItems.Last();
+            var lastItem = results.Last();
             nextCursor = new GroupController.FeedCursor(lastItem.Post.CreatedAt, lastItem.Post.PostUuid);
         }
 
-        return new GroupController.FeedResponse(feedItems, hasMore, nextCursor);
+        return new GroupController.FeedResponse(results, hasMore, nextCursor);
     }
 }

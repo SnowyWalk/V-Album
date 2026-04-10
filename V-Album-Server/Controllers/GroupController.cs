@@ -20,7 +20,8 @@ public class GroupController(
     public sealed record PostRequest(string Content, string GroupUuid, List<IFormFile>? Photos);
     public sealed record PostResponse(Guid GroupUuid, Guid PostUuid);
     public sealed record FeedRequest(string GroupUuid, DateTime? CursorDateTime, string? CursorPostUuid, int Limit);
-    public sealed record FeedItem(DomainPost Post, DomainPhoto[]? Photos);
+    public sealed record FeedItem(DomainPost Post, DomainPhoto[]? Photos, bool LikedByMe, int LikeCount);
+    public sealed record LikeStatus(Guid PostUuid, bool IsLiked, int LikeCount);
     public sealed record FeedCursor(DateTime DateTime, Guid PostUuid);
     public sealed record FeedResponse(FeedItem[] FeedPosts, bool HasMore, FeedCursor? NextCursor);
     public sealed record DeletePostRequest(string PostUuid);
