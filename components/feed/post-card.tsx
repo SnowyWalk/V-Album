@@ -57,6 +57,75 @@ const requestDeletePost = async (postUuid: string): Promise<boolean> => {
     }
 };
 
+export function PostCardSkeleton({
+    showGroupHeader = false,
+    index = 0,
+}: {
+    showGroupHeader?: boolean;
+    index?: number;
+}) {
+    const contentWidths = [
+        ["w-11/12", "w-4/5", "w-2/3"],
+        ["w-5/6", "w-3/4", "w-1/2"],
+        ["w-10/12", "w-2/3", "w-3/5"],
+    ] as const;
+    const [firstLine, secondLine, thirdLine] = contentWidths[index % contentWidths.length];
+
+    return (
+        <article
+            aria-hidden="true"
+            className={cn(
+                "rounded-2xl overflow-hidden",
+                "bg-card text-card-foreground",
+                "border border-border",
+                "shadow-sm"
+            )}
+        >
+            {showGroupHeader && (
+                <div
+                    className={cn(
+                        "flex items-center gap-2 px-4 py-2",
+                        "border-b border-border/60",
+                        "bg-muted/40"
+                    )}
+                >
+                    <Skeleton className="h-6 w-6 shrink-0 rounded-full"/>
+                    <Skeleton className="h-3 w-24"/>
+                </div>
+            )}
+
+            <div className="flex items-center justify-between px-4 pb-3 pt-3">
+                <div className="flex items-center gap-2.5">
+                    <Skeleton className="h-8 w-8 shrink-0 rounded-full"/>
+                    <Skeleton className="h-4 w-24"/>
+                    <div className="text-muted-foreground">|</div>
+                    <Skeleton className="h-4 w-16"/>
+                </div>
+                <Skeleton className="h-8 w-8 rounded-full"/>
+            </div>
+
+            <div className="space-y-2 px-4 pb-3">
+                <Skeleton className={`h-4 ${firstLine}`}/>
+                <Skeleton className={`h-4 ${secondLine}`}/>
+                <Skeleton className={`h-4 ${thirdLine}`}/>
+            </div>
+
+            <div className="m-1 overflow-hidden rounded-xl">
+                <Skeleton className="aspect-4/3 w-full rounded-none"/>
+            </div>
+
+            <div className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-9 w-16 rounded-xl"/>
+                    <Skeleton className="h-9 w-16 rounded-xl"/>
+                    <Skeleton className="h-9 w-9 rounded-xl"/>
+                </div>
+                <Skeleton className="h-9 w-9 rounded-xl"/>
+            </div>
+        </article>
+    );
+}
+
 export default function PostCard({
     feedItem,
     onClickPhotoAction,

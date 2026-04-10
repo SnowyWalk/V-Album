@@ -1,16 +1,16 @@
 "use client"
 
-import {useRef, useEffect} from "react"
+import {useEffect, useRef} from "react"
 import {InfiniteData, QueryFunctionContext, useInfiniteQuery} from "@tanstack/react-query"
-import {PostDto} from "@/dto/post-dto";
-import {PhotoDto} from "@/dto/photo-dto";
-import PostCard from "@/components/feed/post-card";
-import {PhotoItem} from "@/components/image-viewer";
-import {useMyGroups} from "@/hooks/use-my-groups";
-import {Loader2} from "lucide-react";
+
+import PostCard, {PostCardSkeleton} from "@/components/feed/post-card"
+import {PhotoItem} from "@/components/image-viewer"
+import {PhotoDto} from "@/dto/photo-dto"
+import {PostDto} from "@/dto/post-dto"
+import {useMyGroups} from "@/hooks/use-my-groups"
 
 type PageParam = {
-    dateTime: string,
+    dateTime: string
     postUuid: string
 } | null
 
@@ -29,12 +29,14 @@ type FeedType = "group" | "all"
 
 type FeedQueryKey = ["feed", FeedType, string | undefined]
 
+const FEED_PAGE_LIMIT = 5
+
 async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKey, PageParam>) {
-    const [_, type, groupUuid] = queryKey
-    
-    let url = type === "all" 
-        ? `/api/group/feed/all?limit=5` 
-        : `/api/group/feed?groupUuid=${groupUuid}&limit=5`
+    const [, type, groupUuid] = queryKey
+
+    let url = type === "all"
+        ? `/api/group/feed/all?limit=${FEED_PAGE_LIMIT}`
+        : `/api/group/feed?groupUuid=${groupUuid}&limit=${FEED_PAGE_LIMIT}`
 
     if (pageParam) {
         url += `&cursorDateTime=${pageParam.dateTime}`
@@ -76,6 +78,7 @@ export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedList
     })
 
     const posts = data?.pages.flatMap(p => p.feedPosts) ?? []
+    const shouldShowSkeletons = isLoading || isFetchingNextPage
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -96,15 +99,14 @@ export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedList
     return (
         <div className="flex flex-col gap-6">
             {posts.map(({post, photos}) => {
-                // 통합 피드일 때만 그룹 정보를 표시하기 위해 그룹 정보를 찾음
-                const group = type === "all" 
+                const group = type === "all"
                     ? myGroups?.groups.find(g => g.groupUuid === post.groupUuid)
-                    : null;
-                
+                    : null
+
                 return (
-                    <PostCard 
-                        key={post.postUuid} 
-                        feedItem={{post, photos}} 
+                    <PostCard
+                        key={post.postUuid}
+                        feedItem={{post, photos}}
                         onClickPhotoAction={onClickPhotoAction}
                         groupName={group?.name}
                         groupUuid={group?.groupUuid}
@@ -114,25 +116,31 @@ export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedList
                 )
             })}
 
-            <div ref={loaderRef} className="h-20 flex items-center justify-center">
-                {(isFetchingNextPage || isLoading) && (
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                )}
-                {!hasNextPage && posts.length > 0 && (
-                    <div className="text-center text-sm text-muted-foreground py-8">
-                        <div className="mb-2 text-border">───────</div>
-                        <div>마지막 게시물입니다</div>
-                    </div>
-                )}
-                {!isLoading && posts.length === 0 && (
-                    <div className="flex flex-col items-center gap-2 py-20 text-muted-foreground">
-                        <p>아직 게시물이 없습니다.</p>
-                        <p className="text-xs">
-                            {type === "all" ? "그룹에 가입하여 사진을 공유해보세요!" : "첫 번째 사진을 공유해보세요!"}
-                        </p>
-                    </div>
-                )}
-            </div>
+            {shouldShowSkeletons && Array.from({length: FEED_PAGE_LIMIT}, (_, index) => (
+                <PostCardSkeleton
+                    key={`feed-skeleton-${type}-${posts.length}-${index}`}
+                    index={index}
+                    showGroupHeader={type === "all"}
+                />
+            ))}
+
+            <div ref={loaderRef} className="h-px" />
+
+            {!isLoading && !hasNextPage && posts.length > 0 && (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                    <div className="mb-2 text-border">........</div>
+                    <div>마지막 게시물입니다</div>
+                </div>
+            )}
+
+            {!isLoading && posts.length === 0 && (
+                <div className="flex flex-col items-center gap-2 py-20 text-muted-foreground">
+                    <p>아직 게시물이 없습니다.</p>
+                    <p className="text-xs">
+                        {type === "all" ? "그룹에 가입하고 사진을 공유해보세요!" : "첫 번째 사진을 공유해보세요!"}
+                    </p>
+                </div>
+            )}
         </div>
     )
 }
