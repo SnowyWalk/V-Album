@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `like` (
   PRIMARY KEY (`user_uuid`,`post_uuid`),
   KEY `특정 포스트의 좋아요 목록` (`post_uuid`,`deleted_at`),
   KEY `특정 유저의 좋아요 목록 최신순` (`user_uuid`,`deleted_at`,`created_at`) USING BTREE,
+  KEY `특정 포스트를 내가 좋아요 했는지` (`post_uuid`,`deleted_at`,`user_uuid`),
   CONSTRAINT `FK_like_post` FOREIGN KEY (`post_uuid`) REFERENCES `post` (`post_uuid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `FK_like_user` FOREIGN KEY (`user_uuid`) REFERENCES `user` (`user_uuid`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
