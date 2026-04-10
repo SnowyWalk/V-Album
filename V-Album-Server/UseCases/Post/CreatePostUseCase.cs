@@ -1,4 +1,5 @@
 using V_Album_Server.Controllers;
+using V_Album_Server.Infrastructures.BackgroundJobs;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
 using V_Album_Server.Interfaces;
 using V_Album_Server.Services.Post;
@@ -19,18 +20,23 @@ public class CreatePostUseCase(
             throw new UserNotFoundException(googleSub);
 
         DomainPost createdPost = await postRepository.CreatePostAsync(groupUuid, me.UserUuid, content, ct);
+        List<ThumbnailJob> thumbnailJobs = [];
 
         if (photos is not null)
         {
             int sortOrder = 1;
             foreach (IFormFile photo in photos)
             {
-                await postPhotoService.AddPhotoAsync(createdPost.PostUuid, groupUuid, sortOrder, photo, ct);
+                ThumbnailJob thumbnailJob = await postPhotoService.AddPhotoAsync(createdPost.PostUuid, groupUuid, sortOrder, photo, ct);
+                thumbnailJobs.Add(thumbnailJob);
                 sortOrder++;
             }
         }
 
         await uow.SaveChangesAsync(ct);
+
+        foreach (ThumbnailJob thumbnailJob in thumbnailJobs)
+            await postPhotoService.EnqueueThumbnailAsync(thumbnailJob, ct);
 
         return new GroupController.PostResponse(groupUuid, createdPost.PostUuid);
     }

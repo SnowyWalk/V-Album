@@ -11,7 +11,7 @@ public class PostPhotoService(
     PhotoRepository photoRepository,
     ILogger<PostPhotoService> logger)
 {
-    public async Task AddPhotoAsync(Guid postUuid, Guid groupUuid, int sortOrder, IFormFile image, CancellationToken ct)
+    public async Task<ThumbnailJob> AddPhotoAsync(Guid postUuid, Guid groupUuid, int sortOrder, IFormFile image, CancellationToken ct)
     {
         Guid photoUuid = Guid.NewGuid();
         string format = Path.GetExtension(image.FileName);
@@ -42,13 +42,19 @@ public class PostPhotoService(
             false,
             ct);
 
-        await thumbnailQueue.EnqueueAsync(new ThumbnailJob
+        return new ThumbnailJob
         {
             GroupUuid = groupUuid,
             PostUuid = postUuid,
             PhotoUuid = photoUuid,
             Format = format,
-        });
+        };
+    }
+
+    public async Task EnqueueThumbnailAsync(ThumbnailJob job, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        await thumbnailQueue.EnqueueAsync(job);
     }
 
     public Task DeletePhotoFilesAsync(Guid groupUuid, Guid postUuid, IEnumerable<DomainPhoto> photos, CancellationToken ct)

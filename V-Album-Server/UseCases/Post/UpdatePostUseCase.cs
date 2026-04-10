@@ -1,4 +1,5 @@
 using System.Text.Json;
+using V_Album_Server.Infrastructures.BackgroundJobs;
 using V_Album_Server.Infrastructures.Persistence.Mapping;
 using V_Album_Server.Infrastructures.Persistence.Repositories;
 using V_Album_Server.Interfaces;
@@ -72,6 +73,7 @@ public class UpdatePostUseCase(
         postEntity.UpdatedAt = DateTime.UtcNow;
 
         HashSet<Guid> keptPhotoUuids = [];
+        List<ThumbnailJob> thumbnailJobs = [];
         int sortOrder = 1;
         foreach (OrderedPhoto orderedPhoto in orderedPhotos)
         {
@@ -84,7 +86,8 @@ public class UpdatePostUseCase(
             }
             else
             {
-                await postPhotoService.AddPhotoAsync(postUuid, postEntity.GroupUuid, sortOrder, newPhotoMap[orderedPhoto.Id], ct);
+                ThumbnailJob thumbnailJob = await postPhotoService.AddPhotoAsync(postUuid, postEntity.GroupUuid, sortOrder, newPhotoMap[orderedPhoto.Id], ct);
+                thumbnailJobs.Add(thumbnailJob);
             }
 
             sortOrder++;
@@ -98,6 +101,10 @@ public class UpdatePostUseCase(
         photoRepository.DeletePhotos(existingPhotoEntities.Where(e => !keptPhotoUuids.Contains(e.PhotoUuid)));
 
         await uow.SaveChangesAsync(ct);
+
+        foreach (ThumbnailJob thumbnailJob in thumbnailJobs)
+            await postPhotoService.EnqueueThumbnailAsync(thumbnailJob, ct);
+
         await postPhotoService.DeletePhotoFilesAsync(postEntity.GroupUuid, postUuid, removedPhotos, ct);
     }
 
