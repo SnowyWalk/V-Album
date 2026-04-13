@@ -48,22 +48,22 @@ type PostDetailModalProps = {
 };
 
 const KR = {
-    title: "\uAC8C\uC2DC\uBB3C \uC0C1\uC138 \uBCF4\uAE30",
-    noPhotos: "\uB4F1\uB85D\uB41C \uC0AC\uC9C4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
-    loadingAuthor: "\uC791\uC131\uC790 \uBD88\uB7EC\uC624\uB294 \uC911",
-    authorFallback: "\uC791\uC131\uC790",
-    meFallback: "\uB098",
-    signedInUser: "\uB85C\uADF8\uC778 \uC0AC\uC6A9\uC790",
-    composerHint: "\uB313\uAE00\uC744 \uB0A8\uACA8\uBCF4\uC138\uC694.",
-    composerPlaceholder: "\uC774 \uAC8C\uC2DC\uBB3C\uC5D0 \uB313\uAE00 \uB2EC\uAE30...",
-    submitComment: "\uB313\uAE00 \uAC8C\uC2DC",
-    comments: "\uB313\uAE00",
-    commentPosted: "\uB313\uAE00\uC744 \uB0A8\uACBC\uC2B5\uB2C8\uB2E4.",
-    firstComment: "\uCCAB \uB313\uAE00\uC744 \uB0A8\uACA8\uBCF4\uC138\uC694.",
-    chars: "\uC790",
-    countSuffix: "\uAC1C",
-    photoAria: (index: number) => `${index}\uBC88\uC9F8 \uC0AC\uC9C4 \uBCF4\uAE30`,
-    close: "\uB2EB\uAE30",
+    title: "게시물 상세 보기",
+    noPhotos: "등록된 사진이 없습니다.",
+    loadingAuthor: "작성자 불러오는 중",
+    authorFallback: "작성자",
+    meFallback: "나",
+    signedInUser: "로그인 사용자",
+    composerHint: "댓글을 남겨보세요.",
+    composerPlaceholder: "이 게시물에 댓글 달기...",
+    submitComment: "댓글 게시",
+    comments: "댓글",
+    commentPosted: "댓글을 남겼습니다.",
+    firstComment: "첫 댓글을 남겨보세요.",
+    chars: "자",
+    countSuffix: "개",
+    photoAria: (index: number) => `${index}번째 사진 보기`,
+    close: "닫기",
 };
 
 const formatAbsoluteDateTime = (value: string) =>

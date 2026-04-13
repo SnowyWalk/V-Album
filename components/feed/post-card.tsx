@@ -21,10 +21,10 @@ import {FeedItemDto} from "@/dto/feed-item-dto";
 import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
 
 const KR = {
-    deleteFailed: "\uAC8C\uC2DC\uAE00 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.",
-    deleteSuccess: "\uAC8C\uC2DC\uAE00\uC744 \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4.",
-    deleteError: "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
-    deleteConfirm: "\uC774 \uAC8C\uC2DC\uBB3C\uC744 \uC0AD\uC81C\uD560\uAE4C\uC694?",
+    deleteFailed: "게시글 삭제에 실패했습니다.",
+    deleteSuccess: "게시글을 삭제했습니다.",
+    deleteError: "삭제 중 오류가 발생했습니다.",
+    deleteConfirm: "이 게시물을 삭제할까요?",
 };
 
 const requestDeletePost = async (postUuid: string): Promise<boolean> => {

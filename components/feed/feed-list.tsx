@@ -131,7 +131,7 @@ export default function FeedList({type, groupUuid}: FeedListProps) {
                     <p>아직 게시물이 없습니다.</p>
                     <p className="text-xs">
                         {type === "all"
-                            ? "그룹에 가입하고 사진을 공유해보세요!"
+                            ? "가입한 그룹에서 사진과 추억을 공유해보세요!"
                             : "첫 번째 사진을 공유해보세요!"}
                     </p>
                 </div>
