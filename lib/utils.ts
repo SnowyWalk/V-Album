@@ -25,3 +25,6 @@ export function GetPhotoUrl(
 
   return `/uploads/${post.groupUuid}/${post.postUuid}/${photo.photoUuid}${photo.format}`;
 }
+
+export const formatCount = (n: number) =>
+    n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
