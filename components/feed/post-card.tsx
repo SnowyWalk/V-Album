@@ -1,35 +1,31 @@
 "use client";
 
+import type {KeyboardEvent, SyntheticEvent} from "react";
+import {useCallback, useMemo, useState} from "react";
 import {useQueryClient} from "@tanstack/react-query";
-import {
-    Bookmark,
-    MessageCircle,
-    MoreHorizontal,
-    Pencil,
-    Share2,
-    Trash2,
-    Users,
-} from "lucide-react";
+import {Bookmark, MessageCircle, Share2, Users} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {useCallback, useState} from "react";
 import {toast} from "sonner";
 
 import LikeButton from "@/components/feed/like-button";
+import PostControlMenu from "@/components/feed/post-control-menu";
+import PostDetailModal, {LocalPostComment} from "@/components/feed/post-detail-modal";
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
-import {PhotoItem} from "@/components/image-viewer";
 import PostEditorDialog from "@/components/post-editor-dialog";
 import TimeAgo from "@/components/time-ago";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import {ImageViewer, PhotoItem} from "@/components/image-viewer";
 import {Skeleton} from "@/components/ui/skeleton";
 import UserAvatar from "@/components/user-avatar";
-import {cn, formatCount} from "@/lib/utils";
 import {FeedItemDto} from "@/dto/feed-item-dto";
+import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
+
+const KR = {
+    deleteFailed: "\uAC8C\uC2DC\uAE00 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.",
+    deleteSuccess: "\uAC8C\uC2DC\uAE00\uC744 \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4.",
+    deleteError: "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
+    deleteConfirm: "\uC774 \uAC8C\uC2DC\uBB3C\uC744 \uC0AD\uC81C\uD560\uAE4C\uC694?",
+};
 
 const requestDeletePost = async (postUuid: string): Promise<boolean> => {
     try {
@@ -42,14 +38,14 @@ const requestDeletePost = async (postUuid: string): Promise<boolean> => {
         });
 
         if (!result.ok) {
-            toast.error("게시글 삭제에 실패했습니다.");
+            toast.error(KR.deleteFailed);
             return false;
         }
 
-        toast.success("게시글을 삭제했습니다.");
+        toast.success(KR.deleteSuccess);
         return true;
     } catch {
-        toast.error("삭제 중 오류가 발생했습니다.");
+        toast.error(KR.deleteError);
         return false;
     }
 };
@@ -71,21 +67,10 @@ export function PostCardSkeleton({
     return (
         <article
             aria-hidden="true"
-            className={cn(
-                "rounded-2xl overflow-hidden",
-                "bg-card text-card-foreground",
-                "border border-border",
-                "shadow-sm"
-            )}
+            className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm"
         >
             {showGroupHeader && (
-                <div
-                    className={cn(
-                        "flex items-center gap-2 px-4 py-2",
-                        "border-b border-border/60",
-                        "bg-muted/40"
-                    )}
-                >
+                <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-4 py-2">
                     <Skeleton className="h-6 w-6 shrink-0 rounded-full"/>
                     <Skeleton className="h-3 w-24"/>
                 </div>
@@ -123,21 +108,21 @@ export function PostCardSkeleton({
     );
 }
 
-export default function PostCard({
-    feedItem,
-    onClickPhotoAction,
-    groupName,
-    groupUuid,
-    groupPic,
-    isAllFeed = false,
-}: {
+type PostCardProps = {
     feedItem: FeedItemDto;
-    onClickPhotoAction: (photos: PhotoItem[], idx: number) => void;
     groupName?: string;
     groupUuid?: string;
     groupPic?: string | null;
     isAllFeed?: boolean;
-}) {
+};
+
+export default function PostCard({
+    feedItem,
+    groupName,
+    groupUuid,
+    groupPic,
+    isAllFeed = false,
+}: PostCardProps) {
     const post = feedItem.post;
     const queryClient = useQueryClient();
 
@@ -146,16 +131,37 @@ export default function PostCard({
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editDialogKey, setEditDialogKey] = useState(0);
     const [updatedContent, setUpdatedContent] = useState<string | null>(null);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [detailModalFocusComment, setDetailModalFocusComment] = useState(false);
+    const [comments, setComments] = useState<LocalPostComment[]>([]);
+    const [imageViewerOpen, setImageViewerOpen] = useState(false);
+    const [imageViewerIndex, setImageViewerIndex] = useState(0);
+
+    const photoItems = useMemo<PhotoItem[]>(
+        () => [...(feedItem.photos ?? [])]
+            .sort((a, b) => a.sortOrder - b.sortOrder || a.photoUuid.localeCompare(b.photoUuid))
+            .map((photo) => ({
+                src: GetPhotoUrl(post, photo),
+            })),
+        [feedItem.photos, post]
+    );
 
     const postContent = updatedContent ?? post.content ?? "";
+    const commentCount = comments.length;
+
+    const stopEvent = (event: SyntheticEvent) => {
+        event.stopPropagation();
+    };
 
     const handleDelete = useCallback(async () => {
-        if (!confirm("이 게시글을 삭제할까요?")) {
+        if (!confirm(KR.deleteConfirm)) {
             return;
         }
 
         const success = await requestDeletePost(post.postUuid);
         if (success) {
+            setDetailModalOpen(false);
+            setImageViewerOpen(false);
             setIsDeleted(true);
             await queryClient.invalidateQueries({queryKey: ["feed"]});
         }
@@ -166,27 +172,59 @@ export default function PostCard({
         setEditDialogOpen(true);
     }, []);
 
+    const openDetailModal = useCallback((focusCommentComposer = false) => {
+        setDetailModalFocusComment(focusCommentComposer);
+        setDetailModalOpen(true);
+    }, []);
+
+    const openImageViewer = useCallback((photoIndex = 0) => {
+        setImageViewerIndex(photoIndex);
+        setImageViewerOpen(true);
+    }, []);
+
+    const handlePhotoGridClick = useCallback((photoIndex: number) => {
+        openImageViewer(photoIndex);
+    }, [openImageViewer]);
+
+    const handleAddComment = useCallback((body: string) => {
+        setComments((prev) => [
+            ...prev,
+            {
+                commentUuid: crypto.randomUUID(),
+                body,
+                createdAt: new Date().toISOString(),
+            },
+        ]);
+    }, []);
+
+    const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openDetailModal(false);
+        }
+    };
+
     if (isDeleted) return null;
 
     return (
         <>
             <article
+                role="button"
+                tabIndex={0}
+                onClick={() => openDetailModal(false)}
+                onKeyDown={handleCardKeyDown}
                 className={cn(
-                    "rounded-2xl overflow-hidden",
-                    "bg-card text-card-foreground",
-                    "border border-border",
-                    "shadow-sm hover:shadow-md",
-                    "transition-shadow duration-200"
+                    "cursor-pointer overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-shadow duration-200",
+                    "hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 )}
             >
                 {(groupName || isAllFeed) && (
                     groupName ? (
                         <Link
                             href={`/group/${groupUuid}`}
+                            onClick={stopEvent}
                             className={cn(
-                                "flex items-center gap-2 px-4 py-2",
-                                "border-b border-border/60",
-                                "bg-muted/40 transition-colors hover:bg-muted/60",
+                                "flex items-center gap-2 border-b border-border/60 bg-muted/40 px-4 py-2 transition-colors hover:bg-muted/60",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             )}
                         >
@@ -205,27 +243,21 @@ export default function PostCard({
                                 )}
                             </div>
                             <div
-                                className="text-sm text-muted-foreground tracking-wide"
+                                className="text-sm tracking-wide text-muted-foreground"
                                 style={{position: "relative", top: "-1px"}}
                             >
                                 {groupName}
                             </div>
                         </Link>
                     ) : (
-                        <div
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-2",
-                                "border-b border-border/60",
-                                "bg-muted/40"
-                            )}
-                        >
-                            <Skeleton className="h-6 w-6 rounded-full shrink-0"/>
+                        <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-4 py-2">
+                            <Skeleton className="h-6 w-6 shrink-0 rounded-full"/>
                             <Skeleton className="h-3 w-20"/>
                         </div>
                     )
                 )}
 
-                <div className="flex items-center justify-between px-4 pt-3 pb-3">
+                <div className="flex items-center justify-between px-4 pb-3 pt-3">
                     <div className="flex flex-row items-center gap-2.5">
                         <UserAvatar userUuid={post.userUuid}/>
                         <div className="text-muted-foreground">|</div>
@@ -233,73 +265,49 @@ export default function PostCard({
                             <TimeAgo date={post.createdAt} className="text-sm text-muted-foreground"/>
                         </div>
                     </div>
-                    <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                className={cn(
-                                    "p-1.5 rounded-full transition-colors duration-150",
-                                    "text-muted-foreground hover:text-foreground",
-                                    "hover:bg-accent focus:outline-none"
-                                )}
-                            >
-                                <MoreHorizontal className="h-4 w-4"/>
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-32">
-                            <DropdownMenuItem onClick={handleOpenEditor} className="cursor-pointer">
-                                <Pencil className="mr-2 h-4 w-4"/>
-                                <span>수정</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={handleDelete}
-                                className="cursor-pointer text-destructive focus:text-destructive"
-                            >
-                                <Trash2 className="mr-2 h-4 w-4"/>
-                                <span>삭제</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div onClick={stopEvent}>
+                        <PostControlMenu onEdit={handleOpenEditor} onDelete={handleDelete}/>
+                    </div>
                 </div>
 
                 {postContent.trim().length > 0 && (
-                    <p
-                        className={cn(
-                            "px-4 pb-3 text-[14px] leading-[1.7] tracking-[-0.005em]",
-                            "text-foreground/80"
-                        )}
-                    >
+                    <p className="px-4 pb-3 text-[14px] leading-[1.7] tracking-[-0.005em] text-foreground/80">
                         {postContent}
                     </p>
                 )}
 
                 <div className="m-1 overflow-hidden rounded-xl">
-                    <PostPhotoGrid feedItem={feedItem} onClickPhotoAction={onClickPhotoAction}/>
+                    <PostPhotoGrid feedItem={feedItem} onClickPhotoAction={handlePhotoGridClick}/>
                 </div>
 
                 <div className="flex items-center justify-between px-3 py-2">
-                    <div className="flex items-center">
+                    <div className="flex items-center" onClick={stopEvent}>
                         <LikeButton
+                            key={`${post.postUuid}-${feedItem.likedByMe}-${feedItem.likeCount}-card`}
                             postUuid={post.postUuid}
                             initialLiked={feedItem.likedByMe}
                             initialLikeCount={feedItem.likeCount}
                         />
 
                         <button
+                            type="button"
+                            onClick={() => openDetailModal(true)}
                             className={cn(
                                 "flex items-center gap-1.5 rounded-xl px-2.5 py-2",
-                                "text-muted-foreground hover:bg-accent hover:text-foreground",
-                                "transition-all duration-150 active:scale-90"
+                                "text-muted-foreground transition-all duration-150",
+                                "hover:bg-accent hover:text-foreground active:scale-90"
                             )}
                         >
                             <MessageCircle className="h-4.5 w-4.5"/>
-                            <span className="text-xs font-medium tabular-nums">{formatCount(12345)}</span>
+                            <span className="text-xs font-medium tabular-nums">{formatCount(commentCount)}</span>
                         </button>
 
                         <button
+                            type="button"
                             className={cn(
                                 "flex items-center rounded-xl px-2.5 py-2",
-                                "text-muted-foreground hover:bg-accent hover:text-foreground",
-                                "transition-all duration-150 active:scale-90"
+                                "text-muted-foreground transition-all duration-150",
+                                "hover:bg-accent hover:text-foreground active:scale-90"
                             )}
                         >
                             <Share2 className="h-4.5 w-4.5"/>
@@ -307,12 +315,15 @@ export default function PostCard({
                     </div>
 
                     <button
-                        onClick={() => setBookmarked((prev) => !prev)}
+                        type="button"
+                        onClick={(event) => {
+                            stopEvent(event);
+                            setBookmarked((prev) => !prev);
+                        }}
                         className={cn(
-                            "flex items-center rounded-xl px-2.5 py-2",
-                            "transition-all duration-150 active:scale-90",
+                            "flex items-center rounded-xl px-2.5 py-2 transition-all duration-150 active:scale-90",
                             bookmarked
-                                ? "text-blue-500 dark:text-blue-400 hover:bg-blue-500/10"
+                                ? "text-blue-500 hover:bg-blue-500/10 dark:text-blue-400"
                                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
                         )}
                     >
@@ -339,6 +350,31 @@ export default function PostCard({
                     onSubmitted={({content}) => {
                         setUpdatedContent(content);
                     }}
+                />
+            )}
+
+            {detailModalOpen && (
+                <PostDetailModal
+                    open={detailModalOpen}
+                    onOpenChange={setDetailModalOpen}
+                    feedItem={feedItem}
+                    postContent={postContent}
+                    bookmarked={bookmarked}
+                    onToggleBookmark={() => setBookmarked((prev) => !prev)}
+                    onEdit={handleOpenEditor}
+                    onDelete={handleDelete}
+                    comments={comments}
+                    onAddComment={handleAddComment}
+                    focusCommentComposer={detailModalFocusComment}
+                />
+            )}
+
+            {imageViewerOpen && photoItems.length > 0 && (
+                <ImageViewer
+                    photoItems={photoItems}
+                    initialIndex={imageViewerIndex}
+                    open={imageViewerOpen}
+                    onOpenChange={setImageViewerOpen}
                 />
             )}
         </>

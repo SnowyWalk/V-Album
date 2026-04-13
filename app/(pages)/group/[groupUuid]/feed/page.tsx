@@ -1,10 +1,9 @@
 "use client";
 
 import {use} from "react";
-import {CreatePostDialog} from "@/components/create-post-dialog";
-import {ImageViewer, PhotoItem} from "@/components/image-viewer";
-import {useState} from "react";
+
 import FeedList from "@/components/feed/feed-list";
+import {CreatePostDialog} from "@/components/create-post-dialog";
 
 interface PageProps {
     params: Promise<{
@@ -14,15 +13,6 @@ interface PageProps {
 
 export default function GroupFeedPage({params}: PageProps) {
     const {groupUuid} = use(params);
-    const [viewerOpen, setViewerOpen] = useState(false);
-    const [selectedPhotos, setSelectedPhotos] = useState<PhotoItem[]>([]);
-    const [initialIndex, setInitialIndex] = useState(0);
-
-    const handleImageClick = (photos: PhotoItem[], index: number) => {
-        setSelectedPhotos(photos);
-        setInitialIndex(index);
-        setViewerOpen(true);
-    };
 
     return (
         <div className="mx-auto max-w-2xl space-y-6">
@@ -31,15 +21,9 @@ export default function GroupFeedPage({params}: PageProps) {
                 <p className="text-sm text-muted-foreground">ID: {groupUuid}</p>
             </header>
 
-            <FeedList type="group" groupUuid={groupUuid} onClickPhotoAction={handleImageClick}/>
+            <FeedList type="group" groupUuid={groupUuid}/>
 
             <CreatePostDialog groupUuid={groupUuid}/>
-            <ImageViewer
-                photoItems={selectedPhotos}
-                initialIndex={initialIndex}
-                open={viewerOpen}
-                onOpenChange={setViewerOpen}
-            />
         </div>
     );
 }

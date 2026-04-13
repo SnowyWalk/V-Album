@@ -1,7 +1,6 @@
 "use client";
 
 import { FeedItemDto } from "@/dto/feed-item-dto";
-import { PhotoItem } from "@/components/image-viewer";
 import PhotoTile from "@/components/feed/photo-tile";
 import { memo } from "react";
 
@@ -10,7 +9,7 @@ function PostPhotoGrid({
                                           onClickPhotoAction,
                                       }: {
     feedItem: FeedItemDto;
-    onClickPhotoAction?: (photos: PhotoItem[], idx: number) => void;
+    onClickPhotoAction?: (idx: number) => void;
 }) {
     if (!feedItem.photos || feedItem.photos.length === 0) return null;
 

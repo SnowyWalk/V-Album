@@ -1,37 +1,35 @@
 "use client";
 
+import type {MouseEvent} from "react";
+
 import {cn, GetPhotoUrl} from "@/lib/utils";
 import LazyImage from "@/components/lazy-image";
 import {PhotoDto} from "@/dto/photo-dto";
 import {PostDto} from "@/dto/post-dto";
-import {PhotoItem} from "@/components/image-viewer";
 
 export default function PhotoTile({post, photos, idx, onClickPhotoAction, className}: {
     post: PostDto;
     photos: PhotoDto[] | null;
     idx: number;
-    onClickPhotoAction?: (photos: PhotoItem[], idx: number) => void;
+    onClickPhotoAction?: (idx: number) => void;
     className?: string
 }) {
     if (!photos || photos.length === 0) return null;
-
-    const photoItems: PhotoItem[] = photos.map(photo => ({
-        src: GetPhotoUrl(post, photo),
-        photo,
-    }));
 
     const photo = photos[idx];
     const count = photos.length;
     const isOverlay = count > 7 && idx === 5;
     const remaining = count - 6;
 
-    const handleClick = (idx: number) =>
-        onClickPhotoAction?.(photoItems, idx);
+    const handleClick = (event: MouseEvent<HTMLDivElement>, index: number) => {
+        event.stopPropagation();
+        onClickPhotoAction?.(index);
+    };
 
     return (
         <div
             key={photo.photoUuid}
-            onClick={() => handleClick(idx)}
+            onClick={(event) => handleClick(event, idx)}
             className={cn(
                 "relative overflow-hidden bg-muted cursor-pointer group",
                 className

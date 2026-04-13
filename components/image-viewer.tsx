@@ -316,7 +316,7 @@ export function ImageViewer({
             >
                 <DialogTitle className="sr-only">사진 뷰어</DialogTitle>
                 <DialogDescription className="sr-only">
-                    {currentIndex + 1} / {photoItems.length} 번째 사진
+                    {currentIndex + 1} / {photoItems.length}번째 사진
                 </DialogDescription>
 
                 {/* Header - 닫기 버튼 */}
