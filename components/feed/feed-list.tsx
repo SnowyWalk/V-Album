@@ -8,19 +8,15 @@ import {PhotoItem} from "@/components/image-viewer"
 import {PhotoDto} from "@/dto/photo-dto"
 import {PostDto} from "@/dto/post-dto"
 import {useMyGroups} from "@/hooks/use-my-groups"
+import {FeedItemDto} from "@/dto/feed-item-dto";
 
 type PageParam = {
     dateTime: string
     postUuid: string
 } | null
 
-type FeedItem = {
-    post: PostDto
-    photos: PhotoDto[] | null
-}
-
 type FeedResponse = {
-    feedPosts: FeedItem[]
+    feedPosts: FeedItemDto[]
     hasMore: boolean
     nextCursor: PageParam | null
 }
@@ -98,7 +94,7 @@ export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedList
 
     return (
         <div className="flex flex-col gap-6">
-            {posts.map(({post, photos}) => {
+            {posts.map(({post, photos, likedByMe, likeCount}) => {
                 const group = type === "all"
                     ? myGroups?.groups.find(g => g.groupUuid === post.groupUuid)
                     : null
@@ -106,7 +102,7 @@ export default function FeedList({type, groupUuid, onClickPhotoAction}: FeedList
                 return (
                     <PostCard
                         key={post.postUuid}
-                        feedItem={{post, photos}}
+                        feedItem={{post, photos, likedByMe, likeCount}}
                         onClickPhotoAction={onClickPhotoAction}
                         groupName={group?.name}
                         groupUuid={group?.groupUuid}

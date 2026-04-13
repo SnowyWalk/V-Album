@@ -1,6 +1,6 @@
 "use client";
 
-import {useQueryClient} from "@tanstack/react-query";
+import {InfiniteData, QueryClient, useQueryClient} from "@tanstack/react-query";
 import {
     Bookmark,
     Heart,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {toast} from "sonner";
 
 import PostPhotoGrid from "@/components/feed/post-photo-grid";
@@ -33,6 +33,74 @@ import {cn} from "@/lib/utils";
 
 const formatCount = (n: number) =>
     n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : String(n);
+
+const LIKE_COOLDOWN_MS = 400;
+
+type LikeMutationResponse = {
+    isSuccess: boolean;
+    isLikedByMe: boolean;
+    likeCount: number;
+    mutationUuid: string;
+};
+
+type FeedPage = {
+    feedPosts: FeedItemDto[];
+    hasMore: boolean;
+    nextCursor: unknown;
+};
+
+const updateLikeStateInFeedCache = (
+    queryClient: QueryClient,
+    postUuid: string,
+    nextLikedByMe: boolean,
+    nextLikeCount: number
+) => {
+    queryClient.setQueriesData<InfiniteData<FeedPage>>(
+        {queryKey: ["feed"]},
+        (currentData) => {
+            if (!currentData) {
+                return currentData;
+            }
+
+            return {
+                ...currentData,
+                pages: currentData.pages.map((page) => ({
+                    ...page,
+                    feedPosts: page.feedPosts.map((item) =>
+                        item.post.postUuid === postUuid
+                            ? {...item, likedByMe: nextLikedByMe, likeCount: nextLikeCount}
+                            : item
+                    ),
+                })),
+            };
+        }
+    );
+};
+
+const requestLikeMutation = async (
+    postUuid: string,
+    shouldLike: boolean,
+    mutationUuid: string
+): Promise<LikeMutationResponse> => {
+    const response = await fetch("/api/post/like", {
+        method: shouldLike ? "PUT" : "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({postUuid, mutationUuid}),
+    });
+
+    const data = await response.json().catch(() => null) as LikeMutationResponse | { error?: string } | null;
+    if (!response.ok) {
+        throw new Error(data && "error" in data && data.error ? data.error : "Failed to update like.");
+    }
+
+    if (!data || !("mutationUuid" in data)) {
+        throw new Error("Invalid like response.");
+    }
+
+    return data;
+};
 
 const requestDeletePost = async (postUuid: string): Promise<boolean> => {
     try {
@@ -144,23 +212,94 @@ export default function PostCard({
     const post = feedItem.post;
     const queryClient = useQueryClient();
 
-    const [liked, setLiked] = useState(false);
-    const [likeCount, setLikeCount] = useState(12345);
+    const [liked, setLiked] = useState(feedItem.likedByMe);
+    const [likeCount, setLikeCount] = useState(feedItem.likeCount);
     const [bookmarked, setBookmarked] = useState(false);
     const [heartPop, setHeartPop] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editDialogKey, setEditDialogKey] = useState(0);
     const [updatedContent, setUpdatedContent] = useState<string | null>(null);
+    const [likeCooldownUntil, setLikeCooldownUntil] = useState(0);
+    const [isLikeCoolingDown, setIsLikeCoolingDown] = useState(false);
+    const latestLikeMutationUuidRef = useRef<string | null>(null);
+    const committedLikeStateRef = useRef({
+        likedByMe: feedItem.likedByMe,
+        likeCount: feedItem.likeCount,
+    });
 
     const postContent = updatedContent ?? post.content ?? "";
 
+    useEffect(() => {
+        if (likeCooldownUntil <= 0) {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setLikeCooldownUntil(0);
+            setIsLikeCoolingDown(false);
+        }, Math.max(0, likeCooldownUntil - Date.now()));
+
+        return () => window.clearTimeout(timeoutId);
+    }, [likeCooldownUntil]);
+
     const handleLike = useCallback(() => {
+        if (isLikeCoolingDown) {
+            return;
+        }
+
+        const nextLiked = !liked;
+        const nextLikeCount = Math.max(0, likeCount + (nextLiked ? 1 : -1));
+        const mutationUuid = crypto.randomUUID();
+
+        latestLikeMutationUuidRef.current = mutationUuid;
+        setLikeCooldownUntil(Date.now() + LIKE_COOLDOWN_MS);
+        setIsLikeCoolingDown(true);
         setHeartPop(true);
-        setLiked((prev) => !prev);
-        setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
-        setTimeout(() => setHeartPop(false), 350);
-    }, [liked]);
+        setLiked(nextLiked);
+        setLikeCount(nextLikeCount);
+        updateLikeStateInFeedCache(queryClient, post.postUuid, nextLiked, nextLikeCount);
+
+        window.setTimeout(() => setHeartPop(false), 350);
+
+        requestLikeMutation(post.postUuid, nextLiked, mutationUuid)
+            .then((response) => {
+                if (latestLikeMutationUuidRef.current !== response.mutationUuid) {
+                    return;
+                }
+
+                latestLikeMutationUuidRef.current = null;
+                committedLikeStateRef.current = {
+                    likedByMe: response.isLikedByMe,
+                    likeCount: response.likeCount,
+                };
+                setLiked(response.isLikedByMe);
+                setLikeCount(response.likeCount);
+                updateLikeStateInFeedCache(
+                    queryClient,
+                    post.postUuid,
+                    response.isLikedByMe,
+                    response.likeCount
+                );
+            })
+            .catch((error: unknown) => {
+                if (latestLikeMutationUuidRef.current !== mutationUuid) {
+                    return;
+                }
+
+                latestLikeMutationUuidRef.current = null;
+                const rollbackState = committedLikeStateRef.current;
+                setLiked(rollbackState.likedByMe);
+                setLikeCount(rollbackState.likeCount);
+                updateLikeStateInFeedCache(
+                    queryClient,
+                    post.postUuid,
+                    rollbackState.likedByMe,
+                    rollbackState.likeCount
+                );
+                toast.error(error instanceof Error ? error.message : "Failed to update like.");
+            });
+    }, [isLikeCoolingDown, likeCount, liked, post.postUuid, queryClient]);
 
     const handleDelete = useCallback(async () => {
         if (!confirm("이 게시글을 삭제할까요?")) {
@@ -293,9 +432,11 @@ export default function PostCard({
                     <div className="flex items-center">
                         <button
                             onClick={handleLike}
+                            disabled={isLikeCoolingDown}
                             className={cn(
                                 "flex items-center gap-1.5 rounded-xl px-2.5 py-2",
                                 "transition-all duration-150 active:scale-90",
+                                "disabled:opacity-60 disabled:active:scale-100",
                                 liked
                                     ? "text-destructive hover:bg-destructive/10"
                                     : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"

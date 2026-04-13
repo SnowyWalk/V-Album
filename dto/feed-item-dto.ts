@@ -4,6 +4,8 @@ import {PhotoDto} from "@/dto/photo-dto";
 export interface FeedItemDto {
     post: PostDto;
     photos: PhotoDto[] | null;
+    likedByMe: boolean;
+    likeCount: number;
 }
 
 export type FeedItemsDto = FeedItemDto[];
