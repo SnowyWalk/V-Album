@@ -90,6 +90,7 @@ export default function PostDetailModal({
     const {data: me} = useMe();
     const [commentDraft, setCommentDraft] = useState("");
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(initialPhotoIndex);
+    const [dialogContainer, setDialogContainer] = useState<HTMLDivElement | null>(null);
     const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
     const photos = [...(feedItem.photos ?? [])].sort(
@@ -194,7 +195,7 @@ export default function PostDetailModal({
             style={{
                 position: "fixed",
                 inset: 0,
-                zIndex: 2147483647,
+                zIndex: 70,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -207,6 +208,7 @@ export default function PostDetailModal({
                 role="dialog"
                 aria-modal="true"
                 aria-label={KR.title}
+                ref={setDialogContainer}
                 onClick={(event) => event.stopPropagation()}
                 style={{
                     direction: "ltr",
@@ -340,7 +342,12 @@ export default function PostDetailModal({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <PostControlMenu onEdit={onEdit} onDelete={onDelete} triggerClassName="shrink-0"/>
+                            <PostControlMenu
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                                triggerClassName="shrink-0"
+                                portalContainer={dialogContainer}
+                            />
                             <Button
                                 type="button"
                                 variant="ghost"

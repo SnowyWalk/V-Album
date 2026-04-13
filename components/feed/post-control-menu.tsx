@@ -14,12 +14,16 @@ type PostControlMenuProps = {
     onEdit: () => void;
     onDelete: () => void;
     triggerClassName?: string;
+    contentClassName?: string;
+    portalContainer?: HTMLElement | null;
 };
 
 export default function PostControlMenu({
     onEdit,
     onDelete,
     triggerClassName,
+    contentClassName,
+    portalContainer,
 }: PostControlMenuProps) {
     return (
         <DropdownMenu modal={false}>
@@ -36,7 +40,11 @@ export default function PostControlMenu({
                     <MoreHorizontal className="h-4 w-4"/>
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuContent
+                align="end"
+                container={portalContainer}
+                className={cn("z-[80] w-32", contentClassName)}
+            >
                 <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
                     <Pencil className="mr-2 h-4 w-4"/>
                     <span>수정</span>

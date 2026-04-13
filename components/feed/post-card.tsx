@@ -172,6 +172,12 @@ export default function PostCard({
         setEditDialogOpen(true);
     }, []);
 
+    const handleOpenEditorFromDetail = useCallback(() => {
+        setDetailModalOpen(false);
+        setEditDialogKey((prev) => prev + 1);
+        setEditDialogOpen(true);
+    }, []);
+
     const openDetailModal = useCallback((focusCommentComposer = false) => {
         setDetailModalFocusComment(focusCommentComposer);
         setDetailModalOpen(true);
@@ -361,7 +367,7 @@ export default function PostCard({
                     postContent={postContent}
                     bookmarked={bookmarked}
                     onToggleBookmark={() => setBookmarked((prev) => !prev)}
-                    onEdit={handleOpenEditor}
+                    onEdit={handleOpenEditorFromDetail}
                     onDelete={handleDelete}
                     comments={comments}
                     onAddComment={handleAddComment}
