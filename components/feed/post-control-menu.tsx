@@ -15,7 +15,6 @@ type PostControlMenuProps = {
     onDelete: () => void;
     triggerClassName?: string;
     contentClassName?: string;
-    portalContainer?: HTMLElement | null;
 };
 
 export default function PostControlMenu({
@@ -23,7 +22,6 @@ export default function PostControlMenu({
     onDelete,
     triggerClassName,
     contentClassName,
-    portalContainer,
 }: PostControlMenuProps) {
     return (
         <DropdownMenu modal={false}>
@@ -42,7 +40,6 @@ export default function PostControlMenu({
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align="end"
-                container={portalContainer}
                 className={cn("z-[80] w-32", contentClassName)}
             >
                 <DropdownMenuItem onClick={onEdit} className="cursor-pointer">

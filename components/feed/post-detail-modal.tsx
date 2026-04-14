@@ -22,7 +22,6 @@ import {Button} from "@/components/ui/button";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Textarea} from "@/components/ui/textarea";
 import {FeedItemDto} from "@/dto/feed-item-dto";
-import {useMe} from "@/hooks/use-me";
 import {useUser} from "@/hooks/use-user";
 import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
 
@@ -60,8 +59,6 @@ const KR = {
     comments: "댓글",
     commentPosted: "댓글을 남겼습니다.",
     firstComment: "첫 댓글을 남겨보세요.",
-    chars: "자",
-    countSuffix: "개",
     photoAria: (index: number) => `${index}번째 사진 보기`,
     close: "닫기",
 };
@@ -87,10 +84,8 @@ export default function PostDetailModal({
     focusCommentComposer = false,
 }: PostDetailModalProps) {
     const {data: author} = useUser(open ? feedItem.post.userUuid : null);
-    const {data: me} = useMe();
     const [commentDraft, setCommentDraft] = useState("");
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(initialPhotoIndex);
-    const [dialogContainer, setDialogContainer] = useState<HTMLDivElement | null>(null);
     const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
     const photos = [...(feedItem.photos ?? [])].sort(
@@ -208,7 +203,6 @@ export default function PostDetailModal({
                 role="dialog"
                 aria-modal="true"
                 aria-label={KR.title}
-                ref={setDialogContainer}
                 onClick={(event) => event.stopPropagation()}
                 style={{
                     direction: "ltr",
@@ -346,7 +340,6 @@ export default function PostDetailModal({
                                 onEdit={onEdit}
                                 onDelete={onDelete}
                                 triggerClassName="shrink-0"
-                                portalContainer={dialogContainer}
                             />
                             <Button
                                 type="button"
@@ -362,14 +355,14 @@ export default function PostDetailModal({
                     </div>
 
                     <ScrollArea className="min-h-0 flex-1">
-                        <div className="space-y-5 px-5 py-5 lg:space-y-6 lg:px-6 lg:py-6">
+                        <div className="space-y-10 px-5 py-6 lg:space-y-14 lg:px-6 lg:py-7">
                             {postContent.trim().length > 0 && (
-                                <p className="whitespace-pre-wrap text-[15px] leading-7 text-foreground/90">
+                                <p className="pt-3 whitespace-pre-wrap text-[15px] leading-7 text-foreground/90">
                                     {postContent}
                                 </p>
                             )}
 
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between pt-3">
                                 <div className="flex items-center gap-1">
                                     <LikeButton
                                         key={`${feedItem.post.postUuid}-${feedItem.likedByMe}-${feedItem.likeCount}-modal`}
@@ -407,92 +400,66 @@ export default function PostDetailModal({
                                 </button>
                             </div>
 
-                            <div className="rounded-2xl border border-border bg-muted/20 p-4">
-                                <div className="mb-3 flex items-center gap-3">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarImage
-                                            src={me?.pic ? `/profile-pics/${me.pic}.png` : undefined}
-                                            alt={me?.nickname ?? KR.meFallback}
-                                        />
-                                        <AvatarFallback>{(me?.nickname ?? KR.meFallback).slice(0, 1)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="min-w-0">
-                                        <div className="truncate text-sm font-medium">
-                                            {me?.nickname ?? KR.signedInUser}
+                            <div className="space-y-6 pt-4">
+                                <h3 className="text-sm font-semibold">{KR.comments}</h3>
+
+                                <div className="space-y-3">
+                                    {comments.length > 0 ? (
+                                        comments.map((comment) => (
+                                            <div
+                                                key={comment.commentUuid}
+                                                className="rounded-2xl border border-border/80 bg-background/85 px-4 py-3"
+                                            >
+                                                <div className="min-w-0">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <TimeAgo
+                                                            date={comment.createdAt}
+                                                            className="text-xs text-muted-foreground"
+                                                        />
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {formatAbsoluteDateTime(comment.createdAt)}
+                                                        </span>
+                                                    </div>
+                                                    <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-foreground/85">
+                                                        {comment.body}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="rounded-2xl border border-dashed border-border px-4 text-center text-sm text-muted-foreground py-16">
+                                            {KR.firstComment}
                                         </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {KR.composerHint}
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
+                            </div>
+                        </div>
+                    </ScrollArea>
+
+                    <div className="border-t border-border bg-background/95 px-5 py-4 lg:px-6 lg:py-5">
+                        <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/20 p-2">
+                            <div className="min-w-0 flex-1 rounded-2xl bg-background">
                                 <Textarea
                                     ref={commentInputRef}
                                     value={commentDraft}
                                     onChange={(event) => setCommentDraft(event.target.value)}
                                     placeholder={KR.composerPlaceholder}
-                                    className="min-h-24 resize-none border-0 bg-background"
+                                    rows={4}
+                                    className="min-h-4 resize-none border-0 bg-transparent p-2 shadow-none focus-visible:ring-0"
                                 />
-                                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                                    <span>{commentDraft.trim().length}{KR.chars}</span>
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        onClick={handleSubmitComment}
-                                        disabled={!commentDraft.trim()}
-                                    >
-                                        <SendHorizontal className="h-4 w-4"/>
-                                        {KR.submitComment}
-                                    </Button>
-                                </div>
                             </div>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-semibold">{KR.comments}</h3>
-                                    <span className="text-xs text-muted-foreground">
-                                        {comments.length}{KR.countSuffix}
-                                    </span>
-                                </div>
-
-                                {comments.length > 0 ? (
-                                    comments.map((comment) => (
-                                        <div
-                                            key={comment.commentUuid}
-                                            className="rounded-2xl border border-border bg-card px-4 py-3"
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <Avatar className="mt-0.5 h-8 w-8">
-                                                    <AvatarImage
-                                                        src={me?.pic ? `/profile-pics/${me.pic}.png` : undefined}
-                                                        alt={me?.nickname ?? KR.meFallback}
-                                                    />
-                                                    <AvatarFallback>{(me?.nickname ?? KR.meFallback).slice(0, 1)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="text-sm font-medium">
-                                                            {me?.nickname ?? KR.meFallback}
-                                                        </span>
-                                                        <TimeAgo
-                                                            date={comment.createdAt}
-                                                            className="text-xs text-muted-foreground"
-                                                        />
-                                                    </div>
-                                                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-foreground/85">
-                                                        {comment.body}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                                        {KR.firstComment}
-                                    </div>
-                                )}
-                            </div>
+                            <Button
+                                type="button"
+                                size="icon"
+                                className="h-11 w-11 shrink-0 self-center rounded-2xl"
+                                onClick={handleSubmitComment}
+                                disabled={!commentDraft.trim()}
+                            >
+                                <SendHorizontal className="h-4.5 w-4.5"/>
+                                <span className="sr-only">{KR.submitComment}</span>
+                            </Button>
                         </div>
-                    </ScrollArea>
+                    </div>
                 </section>
             </div>
         </div>,
