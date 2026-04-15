@@ -19,6 +19,23 @@
 CREATE DATABASE IF NOT EXISTS `test` /*!40100 DEFAULT CHARACTER SET utf8 */;
 USE `test`;
 
+-- 테이블 test.comment 구조 내보내기
+CREATE TABLE IF NOT EXISTS `comment` (
+  `comment_uuid` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '0',
+  `post_uuid` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
+  `user_uuid` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
+  `content` varchar(500) CHARACTER SET utf8mb4 NOT NULL,
+  `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`comment_uuid`),
+  KEY `FK_comment_user` (`user_uuid`),
+  KEY `특정 글에 달린 댓글 목록 등록순` (`post_uuid`,`deleted_at`,`created_at`),
+  CONSTRAINT `FK_comment_post` FOREIGN KEY (`post_uuid`) REFERENCES `post` (`post_uuid`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `FK_comment_user` FOREIGN KEY (`user_uuid`) REFERENCES `user` (`user_uuid`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 내보낼 데이터가 선택되어 있지 않습니다.
+
 -- 테이블 test.groups 구조 내보내기
 CREATE TABLE IF NOT EXISTS `groups` (
   `group_uuid` char(36) NOT NULL,

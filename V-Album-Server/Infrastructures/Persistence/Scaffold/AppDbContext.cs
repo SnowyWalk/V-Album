@@ -11,6 +11,8 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Comment> Comments { get; set; }
+
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<Like> Likes { get; set; }
@@ -30,6 +32,55 @@ public partial class AppDbContext : DbContext
         modelBuilder
             .UseCollation("utf8_general_ci")
             .HasCharSet("utf8");
+
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.HasKey(e => e.CommentUuid).HasName("PRIMARY");
+
+            entity.ToTable("comment");
+
+            entity.HasIndex(e => e.UserUuid, "FK_comment_user");
+
+            entity.HasIndex(e => new { e.PostUuid, e.DeletedAt, e.CreatedAt }, "특정 글에 달린 댓글 목록 등록순");
+
+            entity.Property(e => e.CommentUuid)
+                .HasDefaultValueSql("'0'")
+                .HasColumnName("comment_uuid")
+                .UseCollation("utf8mb4_general_ci")
+                .HasCharSet("utf8mb4");
+            entity.Property(e => e.Content)
+                .HasMaxLength(500)
+                .HasColumnName("content")
+                .UseCollation("utf8mb4_general_ci")
+                .HasCharSet("utf8mb4");
+            entity.Property(e => e.CreatedAt)
+                .HasMaxLength(6)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("deleted_at");
+            entity.Property(e => e.PostUuid)
+                .HasDefaultValueSql("''")
+                .HasColumnName("post_uuid")
+                .UseCollation("utf8mb4_general_ci")
+                .HasCharSet("utf8mb4");
+            entity.Property(e => e.UserUuid)
+                .HasDefaultValueSql("''")
+                .HasColumnName("user_uuid")
+                .UseCollation("utf8mb4_general_ci")
+                .HasCharSet("utf8mb4");
+
+            entity.HasOne(d => d.PostUu).WithMany(p => p.Comments)
+                .HasForeignKey(d => d.PostUuid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_comment_post");
+
+            entity.HasOne(d => d.UserUu).WithMany(p => p.Comments)
+                .HasForeignKey(d => d.UserUuid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_comment_user");
+        });
 
         modelBuilder.Entity<Group>(entity =>
         {
