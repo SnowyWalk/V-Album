@@ -355,14 +355,14 @@ export default function PostDetailModal({
                     </div>
 
                     <ScrollArea className="min-h-0 flex-1">
-                        <div className="space-y-10 px-5 py-6 lg:space-y-14 lg:px-6 lg:py-7">
+                        <div className="px-5 py-6 lg:px-6 lg:py-7">
                             {postContent.trim().length > 0 && (
-                                <p className="pt-3 whitespace-pre-wrap text-[15px] leading-7 text-foreground/90">
+                                <p className="pt-3 whitespace-pre-wrap text-[15px] leading-7 text-foreground/90 lg:mb-14 mb-10">
                                     {postContent}
                                 </p>
                             )}
 
-                            <div className="flex items-center justify-between pt-3">
+                            <div className="mb-6 flex items-center justify-between pt-3 lg:mb-8">
                                 <div className="flex items-center gap-1">
                                     <LikeButton
                                         key={`${feedItem.post.postUuid}-${feedItem.likedByMe}-${feedItem.likeCount}-modal`}
@@ -400,7 +400,7 @@ export default function PostDetailModal({
                                 </button>
                             </div>
 
-                            <div className="space-y-6 pt-4">
+                            <div className="space-y-6">
                                 <h3 className="text-sm font-semibold">{KR.comments}</h3>
 
                                 <div className="space-y-3">
