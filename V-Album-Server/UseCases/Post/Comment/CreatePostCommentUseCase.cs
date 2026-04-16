@@ -19,7 +19,7 @@ public class CreatePostCommentUseCase(UserRepository userRepository, MemberServi
         if (!await memberService.IsMemberAsync(me.UserUuid, postEntity.GroupUuid, ct))
             throw new CommentAccessDeniedException(postUuid, me.UserUuid);
 
-        postEntity.AddComment(me.UserUuid, content);
+        await postRepository.CreateCommentAsync(postUuid, me.UserUuid, content, ct);
         await uow.SaveChangesAsync(ct);
 
         List<DomainComment> commentList = await postRepository.GetCommentsAsync(postUuid, ct);

@@ -146,7 +146,7 @@ public class PostController(
         if (validationError is not null)
             return validationError;
         
-        List<DomainComment> commentList = await createPostCommentUseCase.Execute(googleSub, request!.PostUuid, request.Content, ct);
+        List<DomainComment> commentList = await createPostCommentUseCase.Execute(googleSub, request!.PostUuid, request.Content.Trim(), ct);
         return Ok(commentList);
     }
 
@@ -175,7 +175,7 @@ public class PostController(
         if (request.PostUuid == Guid.Empty)
             return BadRequest(new { error = "postUuid is required." });
         
-        if (string.IsNullOrWhiteSpace(request.Content))
+        if (string.IsNullOrWhiteSpace(request.Content.Trim()))
             return BadRequest(new { error = "Content is required." });
         
         return null;

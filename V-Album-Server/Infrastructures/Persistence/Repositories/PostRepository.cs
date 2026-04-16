@@ -105,10 +105,10 @@ public class PostRepository(AppDbContext dbContext)
         return comment?.ToDomain();
     }
 
-    /// <see cref="PostEntity.AddComment"/>
     public async Task<DomainComment> CreateCommentAsync(Guid postUuid, Guid userUuid, string content, CancellationToken ct)
     {
         CommentEntity comment = new CommentEntity {
+            CommentUuid = Guid.NewGuid(),
             PostUuid = postUuid,
             UserUuid = userUuid,
             Content = content,
