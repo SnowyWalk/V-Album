@@ -42,7 +42,9 @@ type PostDetailModalProps = {
     onEdit: () => void;
     onDelete: () => void;
     comments: LocalPostComment[];
-    onAddComment: (body: string) => void;
+    commentsLoading?: boolean;
+    commentsSubmitting?: boolean;
+    onAddComment: (body: string) => Promise<void>;
     focusCommentComposer?: boolean;
 };
 
@@ -80,6 +82,8 @@ export default function PostDetailModal({
     onEdit,
     onDelete,
     comments,
+    commentsLoading = false,
+    commentsSubmitting = false,
     onAddComment,
     focusCommentComposer = false,
 }: PostDetailModalProps) {
@@ -153,15 +157,21 @@ export default function PostDetailModal({
         return () => window.clearTimeout(timer);
     }, [focusCommentComposer, open]);
 
-    const handleSubmitComment = () => {
+    const handleSubmitComment = async () => {
         const nextBody = commentDraft.trim();
         if (!nextBody) {
             return;
         }
 
-        onAddComment(nextBody);
-        setCommentDraft("");
-        toast.success(KR.commentPosted);
+        try {
+            await onAddComment(nextBody);
+            setCommentDraft("");
+            toast.success(KR.commentPosted, {
+                position: "top-center",
+            });
+        } catch {
+            return;
+        }
     };
 
     const handlePrevPhoto = () => {
@@ -404,7 +414,11 @@ export default function PostDetailModal({
                                 <h3 className="text-sm font-semibold">{KR.comments}</h3>
 
                                 <div className="space-y-3">
-                                    {comments.length > 0 ? (
+                                    {commentsLoading ? (
+                                        <div className="rounded-2xl border border-dashed border-border px-4 py-16 text-center text-sm text-muted-foreground">
+                                            댓글을 불러오는 중입니다.
+                                        </div>
+                                    ) : comments.length > 0 ? (
                                         comments.map((comment) => (
                                             <div
                                                 key={comment.commentUuid}
@@ -453,7 +467,7 @@ export default function PostDetailModal({
                                 size="icon"
                                 className="h-11 w-11 shrink-0 self-center rounded-2xl"
                                 onClick={handleSubmitComment}
-                                disabled={!commentDraft.trim()}
+                                disabled={!commentDraft.trim() || commentsSubmitting}
                             >
                                 <SendHorizontal className="h-4.5 w-4.5"/>
                                 <span className="sr-only">{KR.submitComment}</span>

@@ -18,6 +18,7 @@ import {ImageViewer, PhotoItem} from "@/components/image-viewer";
 import {Skeleton} from "@/components/ui/skeleton";
 import UserAvatar from "@/components/user-avatar";
 import {FeedItemDto} from "@/dto/feed-item-dto";
+import {PostCommentsDto} from "@/dto/post-comment-dto";
 import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
 
 const KR = {
@@ -134,6 +135,8 @@ export default function PostCard({
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [detailModalFocusComment, setDetailModalFocusComment] = useState(false);
     const [comments, setComments] = useState<LocalPostComment[]>([]);
+    const [commentsLoading, setCommentsLoading] = useState(false);
+    const [commentsSubmitting, setCommentsSubmitting] = useState(false);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
     const [imageViewerIndex, setImageViewerIndex] = useState(0);
 
@@ -148,6 +151,34 @@ export default function PostCard({
 
     const postContent = updatedContent ?? post.content ?? "";
     const commentCount = comments.length;
+
+    const mapCommentDto = useCallback((comment: PostCommentsDto[number]): LocalPostComment => ({
+        commentUuid: comment.commentUuid,
+        body: comment.content,
+        createdAt: comment.createdAt,
+    }), []);
+
+    const fetchComments = useCallback(async () => {
+        setCommentsLoading(true);
+
+        try {
+            const response = await fetch(`/api/post/comment?postUuid=${encodeURIComponent(post.postUuid)}`, {
+                method: "GET",
+                cache: "no-store",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch comments");
+            }
+
+            const payload = await response.json() as PostCommentsDto;
+            setComments(payload.map(mapCommentDto));
+        } catch {
+            toast.error("댓글을 불러오지 못했습니다.");
+        } finally {
+            setCommentsLoading(false);
+        }
+    }, [mapCommentDto, post.postUuid]);
 
     const stopEvent = (event: SyntheticEvent) => {
         event.stopPropagation();
@@ -181,7 +212,8 @@ export default function PostCard({
     const openDetailModal = useCallback((focusCommentComposer = false) => {
         setDetailModalFocusComment(focusCommentComposer);
         setDetailModalOpen(true);
-    }, []);
+        void fetchComments();
+    }, [fetchComments]);
 
     const openImageViewer = useCallback((photoIndex = 0) => {
         setImageViewerIndex(photoIndex);
@@ -192,16 +224,34 @@ export default function PostCard({
         openImageViewer(photoIndex);
     }, [openImageViewer]);
 
-    const handleAddComment = useCallback((body: string) => {
-        setComments((prev) => [
-            ...prev,
-            {
-                commentUuid: crypto.randomUUID(),
-                body,
-                createdAt: new Date().toISOString(),
-            },
-        ]);
-    }, []);
+    const handleAddComment = useCallback(async (body: string) => {
+        setCommentsSubmitting(true);
+
+        try {
+            const response = await fetch("/api/post/comment", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    postUuid: post.postUuid,
+                    content: body,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to create comment");
+            }
+
+            const payload = await response.json() as PostCommentsDto;
+            setComments(payload.map(mapCommentDto));
+        } catch {
+            toast.error("댓글 등록에 실패했습니다.");
+            throw new Error("Failed to create comment");
+        } finally {
+            setCommentsSubmitting(false);
+        }
+    }, [mapCommentDto, post.postUuid]);
 
     const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -370,6 +420,8 @@ export default function PostCard({
                     onEdit={handleOpenEditorFromDetail}
                     onDelete={handleDelete}
                     comments={comments}
+                    commentsLoading={commentsLoading}
+                    commentsSubmitting={commentsSubmitting}
                     onAddComment={handleAddComment}
                     focusCommentComposer={detailModalFocusComment}
                 />
