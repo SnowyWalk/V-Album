@@ -35,7 +35,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["CreateResponse"];
+                        "application/json": components["schemas"]["CreateResponse"];
+                        "text/json": components["schemas"]["CreateResponse"];
+                    };
                 };
             };
         };
@@ -78,7 +82,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["PostResponse"];
+                        "application/json": components["schemas"]["PostResponse"];
+                        "text/json": components["schemas"]["PostResponse"];
+                    };
                 };
             };
         };
@@ -116,7 +124,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["FeedResponse"];
+                        "application/json": components["schemas"]["FeedResponse"];
+                        "text/json": components["schemas"]["FeedResponse"];
+                    };
                 };
             };
         };
@@ -156,7 +168,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["FeedResponse"];
+                        "application/json": components["schemas"]["FeedResponse"];
+                        "text/json": components["schemas"]["FeedResponse"];
+                    };
                 };
             };
         };
@@ -273,7 +289,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["GoogleLoginResponse"];
+                        "application/json": components["schemas"]["GoogleLoginResponse"];
+                        "text/json": components["schemas"]["GoogleLoginResponse"];
+                    };
                 };
             };
         };
@@ -313,7 +333,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["LikeResponse"];
+                        "application/json": components["schemas"]["LikeResponse"];
+                        "text/json": components["schemas"]["LikeResponse"];
+                    };
                 };
             };
         };
@@ -340,7 +364,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["LikeResponse"];
+                        "application/json": components["schemas"]["LikeResponse"];
+                        "text/json": components["schemas"]["LikeResponse"];
+                    };
                 };
             };
         };
@@ -404,7 +432,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["Comment"][];
+                        "application/json": components["schemas"]["Comment"][];
+                        "text/json": components["schemas"]["Comment"][];
+                    };
                 };
             };
         };
@@ -431,7 +463,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["Comment"][];
+                        "application/json": components["schemas"]["Comment"][];
+                        "text/json": components["schemas"]["Comment"][];
+                    };
                 };
             };
         };
@@ -463,7 +499,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["UserDto"];
+                        "application/json": components["schemas"]["UserDto"];
+                        "text/json": components["schemas"]["UserDto"];
+                    };
                 };
             };
         };
@@ -498,7 +538,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["GetGroupsResponse"];
+                        "application/json": components["schemas"]["GetGroupsResponse"];
+                        "text/json": components["schemas"]["GetGroupsResponse"];
+                    };
                 };
             };
         };
@@ -533,7 +577,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["UserDto"];
+                        "application/json": components["schemas"]["UserDto"];
+                        "text/json": components["schemas"]["UserDto"];
+                    };
                 };
             };
         };
@@ -565,6 +613,9 @@ export interface components {
         CreateRequest: {
             groupName: string;
         };
+        CreateResponse: {
+            createdGroup: components["schemas"]["Group"];
+        };
         DeleteCommentRequest: {
             /** Format: uuid */
             postUuid: string;
@@ -580,8 +631,83 @@ export interface components {
         DeletePostRequest: {
             postUuid: string;
         };
+        FeedCursor: {
+            /** Format: date-time */
+            dateTime: string;
+            /** Format: uuid */
+            postUuid: string;
+        } | null;
+        FeedItem: {
+            post: components["schemas"]["Post"];
+            photos: components["schemas"]["Photo"][] | null;
+            likedByMe: boolean;
+            /** Format: int32 */
+            likeCount: number;
+        };
+        FeedResponse: {
+            feedPosts: components["schemas"]["FeedItem"][];
+            hasMore: boolean;
+            nextCursor: components["schemas"]["FeedCursor"];
+        };
+        GetGroupsResponse: {
+            groups: components["schemas"]["Group"][];
+        };
         GoogleLoginRequest: {
             googleIdToken: string | null;
+        };
+        GoogleLoginResponse: {
+            userUuid: string;
+            isNewUser: boolean;
+        };
+        Group: {
+            /** Format: uuid */
+            groupUuid: string;
+            name?: string | null;
+            pic?: string | null;
+        };
+        LikeResponse: {
+            isSuccess: boolean;
+            isLikedByMe: boolean;
+            /** Format: int32 */
+            likeCount: number;
+            /** Format: uuid */
+            mutationUuid: string;
+        };
+        Photo: {
+            /** Format: uuid */
+            photoUuid?: string;
+            /** Format: uuid */
+            postUuid?: string;
+            /** Format: int32 */
+            sortOrder: number;
+            /** Format: uuid */
+            worldUuid: string | null;
+            /** Format: int32 */
+            width: number;
+            /** Format: int32 */
+            height: number;
+            /** Format: int64 */
+            size: number;
+            /** Format: byte */
+            hash?: string | null;
+            format: string | null;
+        };
+        Post: {
+            /** Format: uuid */
+            postUuid: string;
+            /** Format: uuid */
+            groupUuid: string;
+            /** Format: uuid */
+            userUuid: string;
+            content: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PostResponse: {
+            /** Format: uuid */
+            groupUuid: string;
+            /** Format: uuid */
+            postUuid: string;
         };
         PutCommentRequest: {
             /** Format: uuid */
@@ -594,6 +720,12 @@ export interface components {
             /** Format: uuid */
             mutationUuid: string;
         } | null;
+        UserDto: {
+            /** Format: uuid */
+            userUuid: string;
+            nickname: string;
+            pic: string | null;
+        };
     };
     responses: never;
     parameters: never;

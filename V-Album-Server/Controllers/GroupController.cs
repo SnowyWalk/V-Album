@@ -27,16 +27,18 @@ public class GroupController(
     public sealed record DeletePostRequest(string PostUuid);
 
     [HttpPost("create")]
+    [ProducesResponseType<CreateResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateGroup([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromBody] CreateRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
             return Unauthorized(new { error = "Missing X-Google-Sub header" });
 
-        var result = await groupService.CreateGroupAsync(googleSub, request.GroupName, ct);
+        CreateResponse result = await groupService.CreateGroupAsync(googleSub, request.GroupName, ct);
         return Ok(result);
     }
 
     [HttpPost("post")]
+    [ProducesResponseType<PostResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromForm] PostRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
@@ -53,6 +55,7 @@ public class GroupController(
     }
 
     [HttpGet("feed")]
+    [ProducesResponseType<FeedResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFeed([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromQuery] FeedRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
@@ -70,6 +73,7 @@ public class GroupController(
     }
 
     [HttpGet("feed/all")]
+    [ProducesResponseType<FeedResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllFeed([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromQuery] FeedRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
