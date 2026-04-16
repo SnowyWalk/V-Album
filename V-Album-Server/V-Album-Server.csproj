@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="Infrastructures\Persistence\Scaffold\" />
+    <Folder Include="Policies\" />
   </ItemGroup>
 
 </Project>

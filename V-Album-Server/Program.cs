@@ -33,6 +33,7 @@ builder.Services.AddScoped<ILoginHandler, GoogleLoginHandler>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<MemberService>();
 builder.Services.AddScoped<PostPhotoService>();
+builder.Services.AddScoped<PostService>();
 
 // UseCase
 builder.Services.AddScoped<CreatePostUseCase>();
@@ -41,6 +42,9 @@ builder.Services.AddScoped<GetAllFeedUseCase>();
 builder.Services.AddScoped<DeletePostUseCase>();
 builder.Services.AddScoped<UpdatePostUseCase>();
 builder.Services.AddScoped<UpdatePostLikeUseCase>();
+builder.Services.AddScoped<CreatePostCommentUseCase>();
+builder.Services.AddScoped<GetPostCommentUseCase>();
+builder.Services.AddScoped<DeletePostCommentUseCase>();
 
 // Repository
 builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
@@ -49,6 +53,8 @@ builder.Services.AddScoped<MemberRepository>();
 builder.Services.AddScoped<GroupRepository>();
 builder.Services.AddScoped<PostRepository>();
 builder.Services.AddScoped<PhotoRepository>();
+
+// Policies
 
 // Configuration
 builder.Services.Configure<AppDefaultsOptions>(builder.Configuration.GetSection("AppDefaults"));

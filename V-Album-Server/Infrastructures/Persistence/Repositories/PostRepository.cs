@@ -5,6 +5,8 @@ namespace V_Album_Server.Infrastructures.Persistence.Repositories;
 
 public class PostRepository(AppDbContext dbContext)
 {
+    #region Post
+
     public async Task<DomainPost> CreatePostAsync(Guid groupUuid, Guid userUuid, string content, CancellationToken ct)
     {
         Guid postUuid = Guid.NewGuid();
@@ -36,6 +38,10 @@ public class PostRepository(AppDbContext dbContext)
     {
         return await dbContext.Posts.AsNoTracking().AnyAsync(p => p.PostUuid == postUuid && p.DeletedAt == null, ct);
     }
+
+    #endregion
+
+    #region Like
 
     public async Task<bool> PutLikeAsync(Guid userUuid, Guid postUuid, CancellationToken ct)
     {
@@ -76,4 +82,48 @@ public class PostRepository(AppDbContext dbContext)
     {
         return await dbContext.Likes.AsNoTracking().AnyAsync(e => e.UserUuid == userUuid && e.PostUuid == postUuid && e.DeletedAt == null, ct);
     }
+
+    #endregion
+
+    #region Comment
+
+    public async Task<List<DomainComment>> GetCommentsAsync(Guid postUuid, CancellationToken ct)
+    {
+        return await dbContext.Comments
+            .AsNoTracking()
+            .Where(e => e.PostUuid == postUuid && e.DeletedAt == null)
+            .OrderBy(e => e.CreatedAt)
+            .Select(e => e.ToDomain())
+            .ToListAsync(ct);
+    }
+
+    public async Task<DomainComment?> GetCommentAsync(Guid commentUuid, CancellationToken ct)
+    {
+        CommentEntity? comment = await dbContext.Comments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.CommentUuid == commentUuid && e.DeletedAt == null, ct);
+        return comment?.ToDomain();
+    }
+
+    /// <see cref="PostEntity.AddComment"/>
+    public async Task<DomainComment> CreateCommentAsync(Guid postUuid, Guid userUuid, string content, CancellationToken ct)
+    {
+        CommentEntity comment = new CommentEntity {
+            PostUuid = postUuid,
+            UserUuid = userUuid,
+            Content = content,
+        };
+        await dbContext.Comments.AddAsync(comment, ct);
+        return comment.ToDomain();
+    }
+
+    public async Task<DomainComment> DeleteCommentAsync(Guid commentUuid, CancellationToken ct)
+    {
+        CommentEntity comment = await dbContext.Comments.FirstAsync(e => e.CommentUuid == commentUuid && e.DeletedAt == null, ct);
+        comment.DeletedAt = DateTime.UtcNow;
+        return comment.ToDomain();
+    }
+
+    #endregion
+
 }

@@ -5,7 +5,11 @@ namespace V_Album_Server.Controllers;
 
 [ApiController]
 [Route("api/post")]
-public class PostController(UpdatePostLikeUseCase updatePostLikeUseCase, ILogger<PostController> logger) : ControllerBase
+public class PostController(
+    UpdatePostLikeUseCase updatePostLikeUseCase, 
+    CreatePostCommentUseCase createPostCommentUseCase, 
+    GetPostCommentUseCase getPostCommentUseCase,
+    ILogger<PostController> logger) : ControllerBase
 {
     public sealed record PutLikeRequest(Guid PostUuid, Guid MutationUuid);
     public sealed record DeleteLikeRequest(Guid PostUuid, Guid MutationUuid);
@@ -110,6 +114,87 @@ public class PostController(UpdatePostLikeUseCase updatePostLikeUseCase, ILogger
         if (request.MutationUuid == Guid.Empty)
             return BadRequest(new { error = "mutationUuid is required." });
 
+        return null;
+    }
+
+    public sealed record GetCommentsRequest(Guid PostUuid);
+    public sealed record PutCommentRequest(Guid PostUuid, string Content);
+    public sealed record DeleteCommentRequest(Guid PostUuid, Guid CommentUuid);
+    public sealed record CommentResponse();
+
+    [HttpGet("comment")]
+    public async Task<IActionResult> GetComments([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromQuery] GetCommentsRequest? request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(googleSub))
+            return Unauthorized(new { error = "Missing X-Google-Sub header" });
+        
+        IActionResult? validationError = ValidateCommentRequest(request);
+        if (validationError is not null)
+            return validationError;
+        
+        List<DomainComment> commentList = await getPostCommentUseCase.Execute(googleSub, request!.PostUuid, ct);
+        return Ok(commentList);
+    }
+
+    [HttpPut("comment")]
+    public async Task<IActionResult> PutComment([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] PutCommentRequest? request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(googleSub))
+            return Unauthorized(new { error = "Missing X-Google-Sub header" });
+
+        IActionResult? validationError = ValidateCommentRequest(request);
+        if (validationError is not null)
+            return validationError;
+        
+        List<DomainComment> commentList = await createPostCommentUseCase.Execute(googleSub, request!.PostUuid, request.Content, ct);
+        return Ok(commentList);
+    }
+
+    private IActionResult? ValidateCommentRequest(GetCommentsRequest? request)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+        
+        if (request is null)
+            return BadRequest(new { error = "Request body is required." });
+
+        if (request.PostUuid == Guid.Empty)
+            return BadRequest(new { error = "postUuid is required." });
+
+        return null;
+    }
+    
+    private IActionResult? ValidateCommentRequest(PutCommentRequest? request)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+        
+        if (request is null)
+            return BadRequest(new { error = "Request body is required." });
+
+        if (request.PostUuid == Guid.Empty)
+            return BadRequest(new { error = "postUuid is required." });
+        
+        if (string.IsNullOrWhiteSpace(request.Content))
+            return BadRequest(new { error = "Content is required." });
+        
+        return null;
+    }
+    
+    private IActionResult? ValidateCommentRequest(DeleteCommentRequest? request)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+        
+        if (request is null)
+            return BadRequest(new { error = "Request body is required." });
+
+        if (request.PostUuid == Guid.Empty)
+            return BadRequest(new { error = "postUuid is required." });
+        
+        if (request.CommentUuid == Guid.Empty)
+            return BadRequest(new { error = "commentUuid is required." });
+        
         return null;
     }
 }
