@@ -10,6 +10,7 @@ namespace V_Album_Server.Controllers;
 public class UserController(UserService userService) : ControllerBase
 {
     [HttpGet("me")]
+    [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMe([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
@@ -28,6 +29,7 @@ public class UserController(UserService userService) : ControllerBase
     public sealed record GetGroupsResponse(List<Group> Groups);
     
     [HttpGet("groups")]
+    [ProducesResponseType<GetGroupsResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetGroups([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
@@ -44,6 +46,7 @@ public class UserController(UserService userService) : ControllerBase
     }
     
     [HttpGet("avatar/{userUuid}")]
+    [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserAvatar(Guid userUuid, CancellationToken ct)
     {
         try

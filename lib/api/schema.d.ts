@@ -68,7 +68,7 @@ export interface paths {
                     "application/x-www-form-urlencoded": {
                         Content?: string;
                         GroupUuid?: string;
-                        Photos?: string[];
+                        Photos?: components["schemas"]["IFormFile"][];
                     };
                 };
             };
@@ -583,6 +583,8 @@ export interface components {
         GoogleLoginRequest: {
             googleIdToken: string | null;
         };
+        /** Format: binary */
+        IFormFile: string;
         PutCommentRequest: {
             /** Format: uuid */
             postUuid: string;

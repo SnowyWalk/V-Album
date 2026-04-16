@@ -17,6 +17,7 @@ public class PostController(
     private sealed record LikeResponse(bool IsSuccess, bool IsLikedByMe, int LikeCount, Guid MutationUuid);
 
     [HttpPut("like")]
+    [ProducesResponseType<LikeResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> PutLike([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] PutLikeRequest? request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(googleSub))
@@ -31,6 +32,7 @@ public class PostController(
     }
 
     [HttpDelete("like")]
+    [ProducesResponseType<LikeResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteLike([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] DeleteLikeRequest? request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(googleSub))
@@ -121,9 +123,9 @@ public class PostController(
     public sealed record GetCommentsRequest(Guid PostUuid);
     public sealed record PutCommentRequest(Guid PostUuid, string Content);
     public sealed record DeleteCommentRequest(Guid PostUuid, Guid CommentUuid);
-    public sealed record CommentResponse();
 
     [HttpGet("comment")]
+    [ProducesResponseType<List<DomainComment>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetComments([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromQuery] GetCommentsRequest? request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(googleSub))
@@ -138,6 +140,7 @@ public class PostController(
     }
 
     [HttpPut("comment")]
+    [ProducesResponseType<List<DomainComment>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> PutComment([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] PutCommentRequest? request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(googleSub))
@@ -152,6 +155,7 @@ public class PostController(
     }
 
     [HttpDelete("comment")]
+    [ProducesResponseType<List<DomainComment>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteComment([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] DeleteCommentRequest? request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(googleSub))
