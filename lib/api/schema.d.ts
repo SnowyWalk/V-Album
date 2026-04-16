@@ -72,7 +72,7 @@ export interface paths {
                     "application/x-www-form-urlencoded": {
                         Content?: string;
                         GroupUuid?: string;
-                        Photos?: string[];
+                        Photos?: components["schemas"]["IFormFile"][];
                     };
                 };
             };
@@ -665,6 +665,8 @@ export interface components {
             name?: string | null;
             pic?: string | null;
         };
+        /** Format: binary */
+        IFormFile: string;
         LikeResponse: {
             isSuccess: boolean;
             isLikedByMe: boolean;
