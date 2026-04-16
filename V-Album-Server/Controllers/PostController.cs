@@ -9,11 +9,12 @@ public class PostController(
     UpdatePostLikeUseCase updatePostLikeUseCase, 
     CreatePostCommentUseCase createPostCommentUseCase, 
     GetPostCommentUseCase getPostCommentUseCase,
+    DeletePostCommentUseCase deletePostCommentUseCase,
     ILogger<PostController> logger) : ControllerBase
 {
     public sealed record PutLikeRequest(Guid PostUuid, Guid MutationUuid);
     public sealed record DeleteLikeRequest(Guid PostUuid, Guid MutationUuid);
-    public sealed record LikeResponse(bool IsSuccess, bool IsLikedByMe, int LikeCount, Guid MutationUuid);
+    private sealed record LikeResponse(bool IsSuccess, bool IsLikedByMe, int LikeCount, Guid MutationUuid);
 
     [HttpPut("like")]
     public async Task<IActionResult> PutLike([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] PutLikeRequest? request, CancellationToken ct)
@@ -147,6 +148,20 @@ public class PostController(
             return validationError;
         
         List<DomainComment> commentList = await createPostCommentUseCase.Execute(googleSub, request!.PostUuid, request.Content.Trim(), ct);
+        return Ok(commentList);
+    }
+
+    [HttpDelete("comment")]
+    public async Task<IActionResult> DeleteComment([FromHeader(Name = "X-Google-Sub")] string? googleSub, [FromBody] DeleteCommentRequest? request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(googleSub))
+            return Unauthorized(new { error = "Missing X-Google-Sub header" });
+        
+        IActionResult? validationError = ValidateCommentRequest(request);
+        if (validationError is not null)
+            return validationError;
+        
+        List<DomainComment> commentList = await deletePostCommentUseCase.Execute(googleSub, request!.CommentUuid, ct);
         return Ok(commentList);
     }
 
