@@ -154,6 +154,7 @@ export default function PostCard({
 
     const mapCommentDto = useCallback((comment: PostCommentsDto[number]): LocalPostComment => ({
         commentUuid: comment.commentUuid,
+        userUuid: comment.userUuid,
         body: comment.content,
         createdAt: comment.createdAt,
     }), []);

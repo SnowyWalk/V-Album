@@ -20,6 +20,7 @@ import TimeAgo from "@/components/time-ago";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {ScrollArea} from "@/components/ui/scroll-area";
+import {Skeleton} from "@/components/ui/skeleton";
 import {Textarea} from "@/components/ui/textarea";
 import {FeedItemDto} from "@/dto/feed-item-dto";
 import {useUser} from "@/hooks/use-user";
@@ -27,6 +28,7 @@ import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
 
 export type LocalPostComment = {
     commentUuid: string;
+    userUuid: string;
     body: string;
     createdAt: string;
 };
@@ -70,6 +72,36 @@ const formatAbsoluteDateTime = (value: string) =>
         dateStyle: "medium",
         timeStyle: "short",
     }).format(new Date(value));
+
+function CommentAuthor({userUuid}: {userUuid: string}) {
+    const {data: user, isLoading} = useUser(userUuid);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center gap-2.5">
+                <Avatar size="sm" className="border border-border/70">
+                    <Skeleton className="h-full w-full"/>
+                </Avatar>
+                <Skeleton className="h-4 w-20"/>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2.5">
+            <Avatar size="sm" className="border border-border/70">
+                <AvatarImage
+                    src={user?.pic ? `/profile-pics/${user.pic}.png` : undefined}
+                    alt={user?.nickname ?? "User"}
+                />
+                <AvatarFallback>{(user?.nickname ?? "U").slice(0, 1)}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium text-foreground/90">
+                {user?.nickname ?? "알 수 없는 사용자"}
+            </span>
+        </div>
+    );
+}
 
 export default function PostDetailModal({
     open,
@@ -415,9 +447,23 @@ export default function PostDetailModal({
 
                                 <div className="space-y-3">
                                     {commentsLoading ? (
-                                        <div className="rounded-2xl border border-dashed border-border px-4 py-16 text-center text-sm text-muted-foreground">
-                                            댓글을 불러오는 중입니다.
-                                        </div>
+                                        Array.from({length: 3}).map((_, index) => (
+                                            <div
+                                                key={`comment-skeleton-${index}`}
+                                                className="rounded-2xl border border-border/80 bg-background/85 px-4 py-3"
+                                            >
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <Skeleton className="h-3 w-16"/>
+                                                        <Skeleton className="h-3 w-28"/>
+                                                    </div>
+                                                    <div className="mt-3 space-y-2">
+                                                        <Skeleton className="h-4 w-11/12"/>
+                                                        <Skeleton className="h-4 w-4/5"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
                                     ) : comments.length > 0 ? (
                                         comments.map((comment) => (
                                             <div
@@ -426,13 +472,11 @@ export default function PostDetailModal({
                                             >
                                                 <div className="min-w-0">
                                                     <div className="flex flex-wrap items-center gap-2">
+                                                        <CommentAuthor userUuid={comment.userUuid}/>
                                                         <TimeAgo
                                                             date={comment.createdAt}
                                                             className="text-xs text-muted-foreground"
                                                         />
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {formatAbsoluteDateTime(comment.createdAt)}
-                                                        </span>
                                                     </div>
                                                     <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-foreground/85">
                                                         {comment.body}
