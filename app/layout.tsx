@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import {Toaster} from "sonner";
+import {Toaster} from "@/components/ui/sonner";
 
 const pretendard = localFont({
   src: "../fonts/PretendardVariable.woff2",
@@ -25,7 +25,7 @@ export default function RootLayout({
       <body
         className={`${pretendard.variable} font-sans antialiased`}>
             {children}
-            <Toaster />
+            <Toaster position="top-center" />
       </body>
     </html>
   );
