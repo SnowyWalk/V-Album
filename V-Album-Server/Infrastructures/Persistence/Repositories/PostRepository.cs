@@ -7,7 +7,7 @@ public class PostRepository(AppDbContext dbContext)
 {
     #region Post
 
-    public async Task<DomainPost> CreatePostAsync(Guid groupUuid, Guid userUuid, string content, CancellationToken ct)
+    public async Task<DomainPost> CreatePostAsync(Guid groupUuid, Guid userUuid, string? content, CancellationToken ct)
     {
         Guid postUuid = Guid.NewGuid();
         PostEntity post = new PostEntity {

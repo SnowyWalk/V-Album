@@ -13,7 +13,7 @@ public class CreatePostUseCase(
     IUnitOfWork uow,
     PostPhotoService postPhotoService)
 {
-    public async Task<GroupController.PostResponse> Execute(string googleSub, Guid groupUuid, string content, List<IFormFile>? photos, CancellationToken ct)
+    public async Task<GroupController.PostResponse> Execute(string googleSub, Guid groupUuid, string? content, List<IFormFile>? photos, CancellationToken ct)
     {
         DomainUser? me = await userRepository.GetUserByGoogleSub(googleSub, ct);
         if (me is null)

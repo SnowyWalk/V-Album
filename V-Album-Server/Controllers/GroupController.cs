@@ -17,14 +17,15 @@ public class GroupController(
 {
     public sealed record CreateRequest(string GroupName);
     public sealed record CreateResponse(DomainGroup CreatedGroup);
-    public sealed record PostRequest(string Content, string GroupUuid, List<IFormFile>? Photos);
+    public sealed record PostRequest(string? Content, Guid GroupUuid, List<IFormFile>? Photos);
     public sealed record PostResponse(Guid GroupUuid, Guid PostUuid);
-    public sealed record FeedRequest(string GroupUuid, DateTime? CursorDateTime, string? CursorPostUuid, int Limit);
+    public sealed record FeedRequest(Guid GroupUuid, DateTime? CursorDateTime, Guid? CursorPostUuid, int Limit);
     public sealed record FeedItem(DomainPost Post, DomainPhoto[]? Photos, bool LikedByMe, int LikeCount);
     public sealed record LikeStatus(Guid PostUuid, bool IsLiked, int LikeCount);
     public sealed record FeedCursor(DateTime DateTime, Guid PostUuid);
     public sealed record FeedResponse(FeedItem[] FeedPosts, bool HasMore, FeedCursor? NextCursor);
-    public sealed record DeletePostRequest(string PostUuid);
+    public sealed record DeletePostRequest(Guid PostUuid);
+    public sealed record UpdatePostRequest(Guid PostUuid, string? Content, string? PhotoOrder, List<string>? NewPhotoClientIds, List<IFormFile>? NewPhotos);
 
     [HttpPost("create")]
     [ProducesResponseType<CreateResponse>(StatusCodes.Status200OK)]
@@ -38,6 +39,7 @@ public class GroupController(
     }
 
     [HttpPost("post")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType<PostResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromForm] PostRequest request, CancellationToken ct)
     {
@@ -46,7 +48,7 @@ public class GroupController(
 
         PostResponse result = await createPostUseCase.Execute(
             googleSub,
-            new Guid(request.GroupUuid),
+            request.GroupUuid,
             request.Content,
             request.Photos,
             ct);
@@ -63,10 +65,10 @@ public class GroupController(
 
         FeedResponse result = await getFeedUseCase.Execute(
             googleSub,
-            new Guid(request.GroupUuid),
+            request.GroupUuid,
             request.Limit,
             request.CursorDateTime,
-            request.CursorPostUuid is not null ? new Guid(request.CursorPostUuid) : null,
+            request.CursorPostUuid is not null ? request.CursorPostUuid : null,
             ct);
 
         return Ok(result);
@@ -83,7 +85,7 @@ public class GroupController(
             googleSub,
             request.Limit,
             request.CursorDateTime,
-            request.CursorPostUuid is not null ? new Guid(request.CursorPostUuid) : null,
+            request.CursorPostUuid,
             ct);
 
         return Ok(result);
@@ -95,42 +97,26 @@ public class GroupController(
         if (string.IsNullOrEmpty(googleSub))
             return Unauthorized(new { error = "Missing X-Google-Sub header" });
 
-        await deletePostUseCase.Execute(googleSub, new Guid(request.PostUuid), ct);
+        await deletePostUseCase.Execute(googleSub, request.PostUuid, ct);
 
         return Ok();
     }
 
     [HttpPost("update-post")]
-    public async Task<IActionResult> UpdatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, CancellationToken ct)
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdatePost([FromHeader(Name = "X-Google-Sub")] string googleSub, [FromForm] UpdatePostRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(googleSub))
             return Unauthorized(new { error = "Missing X-Google-Sub header" });
 
-        if (!Request.HasFormContentType)
-            return StatusCode(StatusCodes.Status415UnsupportedMediaType, new { error = "multipart/form-data request is required." });
-
-        IFormCollection form = await Request.ReadFormAsync(ct);
-        string? postUuid = form["postUuid"].FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(postUuid))
-            return BadRequest(new { error = "postUuid is required." });
-        if (!Guid.TryParse(postUuid, out Guid postGuid))
-            return BadRequest(new { error = "postUuid is invalid." });
-
-        List<string>? newPhotoClientIds = form.TryGetValue("newPhotoClientIds", out var clientIds)
-            ? clientIds
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .Select(value => value!)
-                .ToList()
-            : null;
-        List<IFormFile> newPhotos = form.Files.GetFiles("newPhotos").ToList();
-
         await updatePostUseCase.Execute(
             googleSub,
-            postGuid,
-            form["content"].FirstOrDefault(),
-            form["photoOrder"].FirstOrDefault(),
-            newPhotoClientIds is { Count: > 0 } ? newPhotoClientIds : null,
-            newPhotos.Count > 0 ? newPhotos : null,
+            request.PostUuid,
+            request.Content,
+            request.PhotoOrder,
+            request.NewPhotoClientIds is { Count: > 0 } ? request.NewPhotoClientIds : null,
+            request.NewPhotos is { Count: > 0 } ? request.NewPhotos : null,
             ct);
 
         return Ok();
