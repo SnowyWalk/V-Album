@@ -30,6 +30,9 @@ type PhotoPreviewViewerProps = {
     sizes?: string;
     priorityIndex?: number;
     emptyContent?: ReactNode;
+    showThumbnails?: boolean;
+    thumbnailStripClassName?: string;
+    thumbnailClassName?: string;
     onEmptyClick?: () => void;
     onDragOver?: React.DragEventHandler<HTMLDivElement>;
     onDrop?: React.DragEventHandler<HTMLDivElement>;
@@ -57,6 +60,9 @@ export function PhotoPreviewViewer({
     sizes = "min(760px, 100vw)",
     priorityIndex = selectedIndex,
     emptyContent = defaultEmptyContent,
+    showThumbnails = false,
+    thumbnailStripClassName,
+    thumbnailClassName,
     onEmptyClick,
     onDragOver,
     onDrop,
@@ -222,6 +228,37 @@ export function PhotoPreviewViewer({
                     </Button>
                 )}
             </div>
+
+            {showThumbnails && items.length > 1 && (
+                <div className={cn("col-span-3 min-w-0 overflow-x-auto overflow-y-hidden px-1 pb-1 pt-2", thumbnailStripClassName)}>
+                    <div className="flex min-w-full items-center justify-center gap-2">
+                        {items.map((item, index) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => onSelectedIndexChange(index)}
+                                className={cn(
+                                    "relative h-16 w-28 shrink-0 overflow-hidden rounded-sm border border-border/70 bg-secondary/45 ring-offset-background transition focus:outline-none",
+                                    boundedIndex === index
+                                        ? "z-10 scale-105 opacity-100 ring-2 ring-primary ring-offset-2"
+                                        : "opacity-60 hover:opacity-100",
+                                    thumbnailClassName
+                                )}
+                            >
+                                <Image
+                                    src={item.src}
+                                    alt=""
+                                    fill
+                                    className="pointer-events-none object-contain"
+                                    sizes="112px"
+                                    unoptimized
+                                    draggable={false}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

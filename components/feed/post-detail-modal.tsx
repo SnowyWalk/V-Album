@@ -264,6 +264,9 @@ export default function PostDetailModal({
                         onSelectedIndexChange={setCurrentPhotoIndex}
                         priorityIndex={initialPhotoIndex}
                         sizes="50vw"
+                        showThumbnails
+                        className="mt-16 max-w-[860px]"
+                        thumbnailStripClassName="mt-[35px] pb-6"
                         emptyContent={
                             <>
                                 <ImageOff className="h-12 w-12 text-muted-foreground"/>
