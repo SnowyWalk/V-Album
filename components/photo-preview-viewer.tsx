@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import type {KeyboardEvent, ReactNode} from "react";
-import {useEffect, useState} from "react";
+import type {KeyboardEvent, MouseEvent, ReactNode} from "react";
+import {useEffect, useRef, useState} from "react";
 import {ArrowLeft, ArrowRight, Upload} from "lucide-react";
 
 import {Button} from "@/components/ui/button";
@@ -68,6 +68,14 @@ export function PhotoPreviewViewer({
     onDrop,
 }: PhotoPreviewViewerProps) {
     const [api, setApi] = useState<CarouselApi>();
+    const thumbnailStripRef = useRef<HTMLDivElement | null>(null);
+    const thumbnailDragRef = useRef({
+        isDragging: false,
+        startX: 0,
+        scrollLeft: 0,
+        hasMoved: false,
+    });
+    const [isThumbnailDragging, setIsThumbnailDragging] = useState(false);
     const hasPhotos = items.length > 0;
     const boundedIndex = hasPhotos ? Math.min(Math.max(selectedIndex, 0), items.length - 1) : -1;
 
@@ -125,6 +133,50 @@ export function PhotoPreviewViewer({
             event.preventDefault();
             moveFocus(1);
         }
+    };
+
+    const handleThumbnailMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+        const target = thumbnailStripRef.current;
+        if (!target) {
+            return;
+        }
+
+        thumbnailDragRef.current = {
+            isDragging: true,
+            startX: event.clientX,
+            scrollLeft: target.scrollLeft,
+            hasMoved: false,
+        };
+        setIsThumbnailDragging(true);
+    };
+
+    const handleThumbnailMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+        const target = thumbnailStripRef.current;
+        const drag = thumbnailDragRef.current;
+        if (!target || !drag.isDragging) {
+            return;
+        }
+
+        const delta = event.clientX - drag.startX;
+        if (Math.abs(delta) > 4) {
+            drag.hasMoved = true;
+        }
+
+        target.scrollLeft = drag.scrollLeft - delta;
+    };
+
+    const stopThumbnailDrag = () => {
+        thumbnailDragRef.current.isDragging = false;
+        setIsThumbnailDragging(false);
+    };
+
+    const handleThumbnailClick = (index: number) => {
+        if (thumbnailDragRef.current.hasMoved) {
+            thumbnailDragRef.current.hasMoved = false;
+            return;
+        }
+
+        onSelectedIndexChange(index);
     };
 
     return (
@@ -230,13 +282,25 @@ export function PhotoPreviewViewer({
             </div>
 
             {showThumbnails && items.length > 1 && (
-                <div className={cn("col-span-3 min-w-0 overflow-x-auto overflow-y-hidden px-1 pb-1 pt-2", thumbnailStripClassName)}>
+                <div
+                    ref={thumbnailStripRef}
+                    onMouseDown={handleThumbnailMouseDown}
+                    onMouseMove={handleThumbnailMouseMove}
+                    onMouseUp={stopThumbnailDrag}
+                    onMouseLeave={stopThumbnailDrag}
+                    className={cn(
+                        "col-span-3 min-w-0 overflow-x-auto overflow-y-hidden px-1 pb-1 pt-2 select-none",
+                        isThumbnailDragging ? "cursor-grabbing" : "cursor-grab",
+                        thumbnailStripClassName
+                    )}
+                >
                     <div className="flex min-w-full items-center justify-center gap-2">
                         {items.map((item, index) => (
                             <button
                                 key={item.id}
                                 type="button"
-                                onClick={() => onSelectedIndexChange(index)}
+                                onClick={() => handleThumbnailClick(index)}
+                                draggable={false}
                                 className={cn(
                                     "relative h-16 w-28 shrink-0 overflow-hidden rounded-sm border border-border/70 bg-secondary/45 ring-offset-background transition focus:outline-none",
                                     boundedIndex === index
