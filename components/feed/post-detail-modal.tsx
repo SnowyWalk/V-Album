@@ -60,7 +60,7 @@ const KR = {
     composerHint: "댓글을 남겨보세요.",
     composerPlaceholder: "이 게시물에 댓글 달기...",
     submitComment: "댓글 게시",
-    comments: "댓글",
+    comments: (count: number) => `댓글 ${count}개`,
     commentPosted: "댓글을 남겼습니다.",
     firstComment: "첫 댓글을 남겨보세요.",
     photoAria: (index: number) => `${index}번째 사진 보기`,
@@ -443,7 +443,7 @@ export default function PostDetailModal({
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-sm font-semibold">{KR.comments}</h3>
+                                <h3 className="text-sm font-semibold">{KR.comments(comments?.length)}</h3>
 
                                 <div className="space-y-3">
                                     {commentsLoading ? (
