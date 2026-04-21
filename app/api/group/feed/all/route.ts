@@ -1,40 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import {NextRequest, NextResponse} from "next/server";
+import {createApiClient} from "@/lib/api/client";
 
 export async function GET(req: NextRequest) {
-    const token = await getToken({ req });
-    const googleSub = token?.googleSub as string;
-
-    if (!googleSub) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const limit = searchParams.get("limit") || "10";
+    const {searchParams} = req.nextUrl;
+    const limitRaw = searchParams.get("limit") || "10";
     const cursorDateTime = searchParams.get("cursorDateTime");
     const cursorPostUuid = searchParams.get("cursorPostUuid");
 
-    let backendUrl = `${process.env.BACKEND_BASE_URL}/api/group/feed/all?limit=${limit}`;
-    if (cursorDateTime) backendUrl += `&cursorDateTime=${cursorDateTime}`;
-    if (cursorPostUuid) backendUrl += `&cursorPostUuid=${cursorPostUuid}`;
-
-    try {
-        const response = await fetch(backendUrl, {
-            headers: {
-                "X-Google-Sub": googleSub,
-                "Accept": "application/json",
-            },
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            return NextResponse.json(errorData, { status: response.status });
-        }
-
-        const data = await response.json();
-        return NextResponse.json(data);
-    } catch (error) {
-        console.error("Failed to fetch all feed:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const limit = limitRaw == null ? 10 : Number(limitRaw);
+    if (!Number.isInteger(limit) || limit <= 0) { // 변경된 부분
+        return NextResponse.json(
+            {error: "limit must be a positive integer"},
+            {status: 400}
+        );
     }
+
+    const api = await createApiClient(req);
+    if (!api) {
+        return NextResponse.json(
+            {error: "google sub missing in NextAuth JWT"},
+            {status: 401}
+        );
+    }
+
+    const {data, error} = await api.GET("/api/group/feed/all", {
+        params: {
+            query: {
+                Limit: Number(limit),
+                CursorDateTime: cursorDateTime ?? undefined,
+                CursorPostUuid: cursorPostUuid ?? undefined,
+            }
+        }
+    })
+
+    if (error) {
+        return NextResponse.json({error}, {status: 400});
+    }
+
+    return NextResponse.json(data);
 }

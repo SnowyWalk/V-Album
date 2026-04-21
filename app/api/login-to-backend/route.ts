@@ -2,6 +2,7 @@ import {NextResponse, NextRequest} from "next/server"
 import {getServerSession} from "next-auth"
 import {authOptions} from "@/auth"
 import {getToken} from "next-auth/jwt"
+import {createApiClient} from "@/lib/api/client";
 
 export async function POST(req: NextRequest) {
     // 1) NextAuth 세션 확인 (서버에서 직접)
@@ -34,21 +35,21 @@ export async function POST(req: NextRequest) {
         googleIdToken, // <-- auth.ts에서 주입한 값 사용
     }
 
-    // 3) ASP.NET 서버에 로그인 교환 요청
-    const backendUrl = process.env.BACKEND_BASE_URL
-    const res = await fetch(`${backendUrl}/api/auth/login/google`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-    })
-
-    if (!res.ok) {
-        const text = await res.text().catch(() => "")
-        console.log("Backend login failed:", text)
+    const api = await createApiClient(req);
+    if (!api) {
         return NextResponse.json(
-            {error: "backend login failed", detail: text},
+            {error: "google sub missing in NextAuth JWT"},
+            {status: 401}
+        );
+    }
+
+    const {error} = await api.POST("/api/auth/login/google", {
+        body: payload
+    })
+    
+    if (error) {
+        return NextResponse.json(
+            {error: "backend login failed", detail: error},
             {status: 502} // Gateway 에러가 의미적으로 맞음
         )
     }

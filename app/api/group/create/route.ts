@@ -1,33 +1,32 @@
-import { getToken } from "next-auth/jwt";
-import { NextRequest, NextResponse } from "next/server";
+import {NextRequest, NextResponse} from "next/server";
+import {createApiClient} from "@/lib/api/client";
 
 export async function POST(req: NextRequest) {
-    const jwt = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-    const googleSub = typeof jwt?.googleSub === "string" ? jwt.googleSub : null
-    if (!googleSub) {
-        return NextResponse.json(
-            { error: "google sub missing in NextAuth JWT" },
-            { status: 401 }
-        )
-    }
-
-    const { groupName } = await req.json()
+    const {groupName} = await req.json()
     if (!groupName) {
         return NextResponse.json(
-            { error: "groupName is required" },
-            { status: 400 }
+            {error: "groupName is required"},
+            {status: 400}
         )
     }
 
-    const backendUrl = process.env.BACKEND_BASE_URL
-    const res = await fetch(`${backendUrl}/api/group/create`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Google-Sub": googleSub,
-        },
-        body: JSON.stringify({ groupName })
+    const api = await createApiClient(req);
+    if (!api) {
+        return NextResponse.json(
+            {error: "google sub missing in NextAuth JWT"},
+            {status: 401}
+        );
+    }
+
+    const {data, error} = await api.POST("/api/group/create", {
+        body: {
+            groupName
+        }
     })
 
-    return NextResponse.json(await res.json(), { status: res.status })
+    if (error) {
+        return NextResponse.json({error}, {status: 400});
+    }
+
+    return NextResponse.json(data);
 }

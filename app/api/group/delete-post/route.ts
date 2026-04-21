@@ -1,16 +1,7 @@
-import {getToken} from "next-auth/jwt";
 import {NextRequest, NextResponse} from "next/server";
+import {createApiClient} from "@/lib/api/client";
 
 export async function POST(req: NextRequest) {
-    const jwt = await getToken({req, secret: process.env.NEXTAUTH_SECRET})
-    const googleSub = typeof jwt?.googleSub === "string" ? jwt.googleSub : null
-    if (!googleSub) {
-        return NextResponse.json(
-            {error: "google sub missing in NextAuth JWT"},
-            {status: 401}
-        )
-    }
-
     const {postUuid} = await req.json()
     if (!postUuid) {
         return NextResponse.json(
@@ -19,27 +10,27 @@ export async function POST(req: NextRequest) {
         )
     }
 
-    const backendUrl = process.env.BACKEND_BASE_URL
-    console.log("backendUrl:", `${backendUrl}/api/group/delete-post`, postUuid)
-    const res = await fetch(`${backendUrl}/api/group/delete-post`, {
-        method: "POST",
-        headers: {
-            "X-Google-Sub": googleSub,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({postUuid})
-    })
-
-    if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
+    const api = await createApiClient(req);
+    if (!api) {
         return NextResponse.json(
-            {error: errorData.error || "Backend server error"},
-            {status: res.status}
-        )
+            {error: "google sub missing in NextAuth JWT"},
+            {status: 401}
+        );
     }
 
-    const text = await res.text();
-    const body = text ? JSON.parse(text) : null;
+    const {data, error} = await api.POST("/api/group/delete-post", {
+        body: {
+            postUuid
+        }
+    })
 
-    return NextResponse.json(body, {status: res.status})
+    if (error) {
+        return NextResponse.json({error}, {status: 400});
+    }
+
+    if (data == null) {
+        return new NextResponse(null, {status: 200});
+    }
+
+    return NextResponse.json(data);
 }

@@ -1,33 +1,61 @@
-import { getToken } from "next-auth/jwt";
-import { NextRequest, NextResponse } from "next/server";
+import {NextRequest, NextResponse} from "next/server";
+import {createApiClient} from "@/lib/api/client";
 
 export async function POST(req: NextRequest) {
-    const jwt = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-    const googleSub = typeof jwt?.googleSub === "string" ? jwt.googleSub : null
-    if (!googleSub) {
+    const api = await createApiClient(req);
+    if (!api) {
         return NextResponse.json(
-            { error: "google sub missing in NextAuth JWT" },
-            { status: 401 }
+            {error: "google sub missing in NextAuth JWT"},
+            {status: 401}
+        );
+    }
+
+    const incoming = await req.formData()
+    const content = incoming.get("content")
+
+    if (typeof content !== "string" || !content.trim()) {
+        return NextResponse.json(
+            {error: "content is required"},
+            {status: 400}
         )
     }
 
-    const formData = await req.formData()
-    const backendUrl = process.env.BACKEND_BASE_URL
-    const res = await fetch(`${backendUrl}/api/group/post`, {
-        method: "POST",
-        headers: {
-            "X-Google-Sub": googleSub,
+    const groupUuid = incoming.get("groupUuid")
+    if (typeof groupUuid !== "string" || !groupUuid.trim()) {
+        return NextResponse.json(
+            {error: "groupUuid is required"},
+            {status: 400}
+        )
+    }
+
+    const photos = incoming
+        .getAll("photos")
+        .filter((value): value is File => value instanceof File);
+
+    const {data, error} = await api.POST("/api/group/post", {
+        body: {
+            Content: content,
+            GroupUuid: groupUuid,
+            Photos: photos
         },
-        body: formData
+        bodySerializer(body) {
+            const fd = new FormData();
+
+            if (body.Content != null) fd.append("Content", body.Content);
+            if (body.GroupUuid != null) fd.append("GroupUuid", body.GroupUuid);
+
+            for (const file of body.Photos ?? []) {
+                fd.append("Photos", file);
+            }
+
+            return fd;
+        }
     })
-    
-    if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        return NextResponse.json(
-            { error: errorData.error || "Backend server error" },
-            { status: res.status }
-        )
+
+
+    if (error) {
+        return NextResponse.json({error}, {status: 400});
     }
 
-    return NextResponse.json(await res.json(), { status: res.status })
+    return NextResponse.json(null, {status: 200});
 }
