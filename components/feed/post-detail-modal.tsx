@@ -1,12 +1,9 @@
 "use client";
 
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
-import Image from "next/image";
 import {
     Bookmark,
-    ChevronLeft,
-    ChevronRight,
     ImageOff,
     MessageCircle,
     SendHorizontal,
@@ -15,6 +12,7 @@ import {
 import {toast} from "sonner";
 
 import LikeButton from "@/components/feed/like-button";
+import {PhotoPreviewViewer} from "@/components/photo-preview-viewer";
 import PostControlMenu from "@/components/feed/post-control-menu";
 import TimeAgo from "@/components/time-ago";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
@@ -124,11 +122,21 @@ export default function PostDetailModal({
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(initialPhotoIndex);
     const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
-    const photos = [...(feedItem.photos ?? [])].sort(
-        (a, b) => a.sortOrder - b.sortOrder || a.photoUuid.localeCompare(b.photoUuid)
+    const photos = useMemo(
+        () => [...(feedItem.photos ?? [])].sort(
+            (a, b) => a.sortOrder - b.sortOrder || a.photoUuid.localeCompare(b.photoUuid)
+        ),
+        [feedItem.photos]
     );
     const photoCount = photos.length;
-    const currentPhoto = photos[currentPhotoIndex] ?? null;
+    const photoItems = useMemo(
+        () => photos.map((photo, index) => ({
+            id: photo.photoUuid,
+            src: GetPhotoUrl(feedItem.post, photo),
+            alt: KR.photoAria(index + 1),
+        })),
+        [feedItem.post, photos]
+    );
 
     useEffect(() => {
         if (!open) {
@@ -149,9 +157,9 @@ export default function PostDetailModal({
             }
 
             if (event.key === "ArrowLeft") {
-                setCurrentPhotoIndex((prev) => (prev - 1 + photoCount) % photoCount);
+                setCurrentPhotoIndex((prev) => Math.max(prev - 1, 0));
             } else if (event.key === "ArrowRight") {
-                setCurrentPhotoIndex((prev) => (prev + 1) % photoCount);
+                setCurrentPhotoIndex((prev) => Math.min(prev + 1, photoCount - 1));
             }
         };
 
@@ -168,13 +176,17 @@ export default function PostDetailModal({
             return;
         }
 
-        if (photoCount === 0) {
-            setCurrentPhotoIndex(0);
-            return;
-        }
+        const timer = window.setTimeout(() => {
+            if (photoCount === 0) {
+                setCurrentPhotoIndex(0);
+                return;
+            }
 
-        const nextIndex = Math.min(Math.max(initialPhotoIndex, 0), photoCount - 1);
-        setCurrentPhotoIndex(nextIndex);
+            const nextIndex = Math.min(Math.max(initialPhotoIndex, 0), photoCount - 1);
+            setCurrentPhotoIndex(nextIndex);
+        }, 0);
+
+        return () => window.clearTimeout(timer);
     }, [initialPhotoIndex, open, photoCount]);
 
     useEffect(() => {
@@ -204,22 +216,6 @@ export default function PostDetailModal({
         } catch {
             return;
         }
-    };
-
-    const handlePrevPhoto = () => {
-        if (photoCount <= 1) {
-            return;
-        }
-
-        setCurrentPhotoIndex((prev) => (prev - 1 + photoCount) % photoCount);
-    };
-
-    const handleNextPhoto = () => {
-        if (photoCount <= 1) {
-            return;
-        }
-
-        setCurrentPhotoIndex((prev) => (prev + 1) % photoCount);
     };
 
     if (!open || typeof document === "undefined") {
@@ -261,95 +257,20 @@ export default function PostDetailModal({
                     border: "1px solid rgba(255, 255, 255, 0.12)",
                 }}
             >
-                <section
-                    style={{
-                        position: "relative",
-                        minWidth: 0,
-                        minHeight: 0,
-                        background: "#050505",
-                        overflow: "hidden",
-                    }}
-                >
-                    {currentPhoto ? (
-                        <>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    width: "100%",
-                                    height: "100%",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    padding: "24px",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        position: "relative",
-                                        width: "100%",
-                                        height: "100%",
-                                    }}
-                                >
-                                    <Image
-                                        src={GetPhotoUrl(feedItem.post, currentPhoto)}
-                                        alt=""
-                                        fill
-                                        priority={currentPhotoIndex === initialPhotoIndex}
-                                        sizes="50vw"
-                                        unoptimized
-                                        draggable={false}
-                                        style={{
-                                            objectFit: "contain",
-                                            userSelect: "none",
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            {photoCount > 1 && (
-                                <>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="icon"
-                                        className="absolute left-4 top-1/2 z-10 h-11 w-11 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur"
-                                        onClick={handlePrevPhoto}
-                                    >
-                                        <ChevronLeft className="h-5 w-5"/>
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="icon"
-                                        className="absolute right-4 top-1/2 z-10 h-11 w-11 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur"
-                                        onClick={handleNextPhoto}
-                                    >
-                                        <ChevronRight className="h-5 w-5"/>
-                                    </Button>
-                                    <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-background/70 px-3 py-1.5 backdrop-blur">
-                                        {photos.map((photo, index) => (
-                                            <button
-                                                key={photo.photoUuid}
-                                                type="button"
-                                                aria-label={KR.photoAria(index + 1)}
-                                                onClick={() => setCurrentPhotoIndex(index)}
-                                                className={cn(
-                                                    "h-2.5 w-2.5 rounded-full transition-all",
-                                                    index === currentPhotoIndex
-                                                        ? "scale-110 bg-white"
-                                                        : "bg-white/35 hover:bg-white/60"
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </>
-                    ) : (
-                        <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-white/70">
-                            <ImageOff className="h-12 w-12"/>
-                            <p className="text-sm">{KR.noPhotos}</p>
-                        </div>
-                    )}
+                <section className="flex min-h-0 min-w-0 items-center justify-center overflow-hidden bg-card p-4 sm:p-6">
+                    <PhotoPreviewViewer
+                        items={photoItems}
+                        selectedIndex={currentPhotoIndex}
+                        onSelectedIndexChange={setCurrentPhotoIndex}
+                        priorityIndex={initialPhotoIndex}
+                        sizes="50vw"
+                        emptyContent={
+                            <>
+                                <ImageOff className="h-12 w-12 text-muted-foreground"/>
+                                <p className="text-sm text-muted-foreground">{KR.noPhotos}</p>
+                            </>
+                        }
+                    />
                 </section>
 
                 <section

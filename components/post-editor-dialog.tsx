@@ -8,23 +8,17 @@ import {
     Image as ImageIcon,
     Loader2,
     Plus,
-    Upload,
     X,
 } from "lucide-react";
 import Image from "next/image";
-import type {ChangeEvent, DragEvent, KeyboardEvent} from "react";
-import {useCallback, useEffect, useRef, useState} from "react";
+import type {ChangeEvent, DragEvent} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
+import {PhotoPreviewViewer} from "@/components/photo-preview-viewer";
 import {PhotoDto} from "@/dto/photo-dto";
 import {GetPhotoUrl, cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    type CarouselApi,
-} from "@/components/ui/carousel";
 import {
     Dialog,
     DialogContent,
@@ -111,7 +105,6 @@ export default function PostEditorDialog({
     const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(initialDraftPhotos[0]?.id ?? null);
     const [draggingPhotoId, setDraggingPhotoId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [previewApi, setPreviewApi] = useState<CarouselApi>();
 
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -128,63 +121,14 @@ export default function PostEditorDialog({
 
     const selectedPhoto = photos.find((photo) => photo.id === selectedPhotoId) ?? photos[0] ?? null;
     const selectedIndex = selectedPhoto ? photos.findIndex((photo) => photo.id === selectedPhoto.id) : -1;
-
-    const moveSelectedPhotoFocus = useCallback((direction: -1 | 1) => {
-        if (selectedIndex < 0) {
-            return;
-        }
-
-        const nextIndex = selectedIndex + direction;
-        if (nextIndex < 0 || nextIndex >= photos.length) {
-            return;
-        }
-
-        setSelectedPhotoId(photos[nextIndex].id);
-    }, [photos, selectedIndex]);
-
-    const handlePreviewAreaKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-        if (event.key === "ArrowLeft") {
-            event.preventDefault();
-            previewApi?.scrollPrev();
-        }
-
-        if (event.key === "ArrowRight") {
-            event.preventDefault();
-            previewApi?.scrollNext();
-        }
-    };
-
-    useEffect(() => {
-        if (!previewApi) {
-            return;
-        }
-
-        const syncSelectedPhoto = () => {
-            const nextIndex = previewApi.selectedScrollSnap();
-            const nextPhoto = photosRef.current[nextIndex];
-            if (nextPhoto && nextPhoto.id !== selectedPhotoIdRef.current) {
-                setSelectedPhotoId(nextPhoto.id);
-            }
-        };
-
-        previewApi.on("select", syncSelectedPhoto);
-        previewApi.on("reInit", syncSelectedPhoto);
-
-        return () => {
-            previewApi.off("select", syncSelectedPhoto);
-            previewApi.off("reInit", syncSelectedPhoto);
-        };
-    }, [previewApi]);
-
-    useEffect(() => {
-        if (!previewApi || selectedIndex < 0) {
-            return;
-        }
-
-        if (previewApi.selectedScrollSnap() !== selectedIndex) {
-            previewApi.scrollTo(selectedIndex);
-        }
-    }, [previewApi, selectedIndex]);
+    const previewItems = useMemo(
+        () => photos.map((photo, index) => ({
+            id: photo.id,
+            src: photo.previewUrl,
+            alt: `selected-photo-${index + 1}`,
+        })),
+        [photos]
+    );
 
     const handleThumbnailDragStart = (event: DragEvent<HTMLDivElement>, photoId: string) => {
         setDraggingPhotoId(photoId);
@@ -352,107 +296,16 @@ export default function PostEditorDialog({
                 </div>
 
                 <div className="grid min-h-0 min-w-0 flex-1 gap-0 overflow-hidden bg-background xl:grid-cols-[minmax(0,1fr)_420px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
-                    <section
-                        className="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-hidden border-b border-border/70 bg-card p-4 sm:p-5 xl:border-r xl:border-b-0 xl:p-6"
-                        onKeyDownCapture={handlePreviewAreaKeyDown}
-                    >
-                        <div className="mx-auto grid w-full max-w-[760px] grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-3 sm:grid-cols-[56px_minmax(0,1fr)_56px]">
-                            <div className="flex justify-center">
-                                {selectedPhoto && photos.length > 1 && (
-                                    <Button
-                                        type="button"
-                                        size="icon"
-                                        variant="secondary"
-                                        className="h-11 w-11 rounded-full border border-border/70 bg-card/90 shadow-sm transition-colors hover:bg-secondary"
-                                        onClick={() => moveSelectedPhotoFocus(-1)}
-                                        disabled={selectedIndex <= 0}
-                                    >
-                                        <ArrowLeft className="h-5 w-5"/>
-                                    </Button>
-                                )}
-                            </div>
-
-                            <div
-                                onDragOver={(event) => event.preventDefault()}
-                                onDrop={handleDrop}
-                                tabIndex={0}
-                                className={cn(
-                                    "relative flex aspect-video w-full flex-none items-center justify-center overflow-hidden rounded-2xl border select-none shadow-sm",
-                                    selectedPhoto
-                                        ? "border-border/70 bg-card"
-                                        : "border-dashed border-border/70 bg-gradient-to-br from-card via-secondary/35 to-muted/45"
-                                )}
-                            >
-                                {selectedPhoto ? (
-                                    <>
-                                        <Carousel
-                                            setApi={setPreviewApi}
-                                            className="h-full w-full"
-                                            opts={{
-                                                loop: false,
-                                                align: "start",
-                                            }}
-                                        >
-                                            <CarouselContent className="-ml-0 h-full">
-                                                {photos.map((photo, index) => (
-                                                    <CarouselItem key={photo.id} className="pl-0">
-                                                        <div className="relative h-full w-full">
-                                                            <Image
-                                                                src={photo.previewUrl}
-                                                                alt={`selected-photo-${index + 1}`}
-                                                                fill
-                                                                className="object-contain p-4"
-                                                                unoptimized
-                                                                draggable={false}
-                                                                priority={index === selectedIndex}
-                                                            />
-                                                        </div>
-                                                    </CarouselItem>
-                                                ))}
-                                            </CarouselContent>
-                                        </Carousel>
-                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent p-4">
-                                            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/90 px-3 py-1 text-xs font-medium tracking-[0.2em] text-foreground shadow-sm backdrop-blur-sm">
-                                                <span className="tabular-nums">{selectedIndex + 1}</span>
-                                                <span className="text-muted-foreground">/</span>
-                                                <span className="tabular-nums text-muted-foreground">{photos.length}</span>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="flex h-full w-full flex-col items-center justify-center gap-4 px-8 py-12 text-center"
-                                    >
-                                        <div className="rounded-full border border-border/70 bg-secondary p-4 shadow-sm">
-                                            <Upload className="h-8 w-8 text-muted-foreground"/>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-base font-medium">여기에 사진을 놓거나 파일을 선택하세요</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                여기에서 보이는 순서가 게시글 사진 순서가 됩니다.
-                                            </p>
-                                        </div>
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="flex justify-center">
-                                {selectedPhoto && photos.length > 1 && (
-                                    <Button
-                                        type="button"
-                                        size="icon"
-                                        variant="secondary"
-                                        className="h-11 w-11 rounded-full border border-border/70 bg-card/90 shadow-sm transition-colors hover:bg-secondary"
-                                        onClick={() => moveSelectedPhotoFocus(1)}
-                                        disabled={selectedIndex >= photos.length - 1}
-                                    >
-                                        <ArrowRight className="h-5 w-5"/>
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
+                    <section className="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-hidden border-b border-border/70 bg-card p-4 sm:p-5 xl:border-r xl:border-b-0 xl:p-6">
+                        <PhotoPreviewViewer
+                            items={previewItems}
+                            selectedIndex={Math.max(selectedIndex, 0)}
+                            onSelectedIndexChange={(index) => setSelectedPhotoId(photos[index]?.id ?? null)}
+                            priorityIndex={selectedIndex}
+                            onDragOver={(event) => event.preventDefault()}
+                            onDrop={handleDrop}
+                            onEmptyClick={() => fileInputRef.current?.click()}
+                        />
 
                         <input
                             ref={fileInputRef}
