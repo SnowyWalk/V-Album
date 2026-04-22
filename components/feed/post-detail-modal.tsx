@@ -157,9 +157,9 @@ export default function PostDetailModal({
             }
 
             if (event.key === "ArrowLeft") {
-                setCurrentPhotoIndex((prev) => Math.max(prev - 1, 0));
+                setCurrentPhotoIndex((prev) => (prev - 1 + photoCount) % photoCount);
             } else if (event.key === "ArrowRight") {
-                setCurrentPhotoIndex((prev) => Math.min(prev + 1, photoCount - 1));
+                setCurrentPhotoIndex((prev) => (prev + 1) % photoCount);
             }
         };
 

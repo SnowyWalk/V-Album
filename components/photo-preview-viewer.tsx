@@ -115,11 +115,7 @@ export function PhotoPreviewViewer({
             return;
         }
 
-        const nextIndex = boundedIndex + direction;
-        if (nextIndex < 0 || nextIndex >= items.length) {
-            return;
-        }
-
+        const nextIndex = (boundedIndex + direction + items.length) % items.length;
         onSelectedIndexChange(nextIndex);
     };
 
@@ -195,7 +191,6 @@ export function PhotoPreviewViewer({
                         variant="secondary"
                         className="h-11 w-11 rounded-full border border-border/70 bg-card/90 shadow-sm transition-colors hover:bg-secondary"
                         onClick={() => moveFocus(-1)}
-                        disabled={boundedIndex <= 0}
                     >
                         <ArrowLeft className="h-5 w-5"/>
                     </Button>
@@ -220,7 +215,7 @@ export function PhotoPreviewViewer({
                             setApi={setApi}
                             className="h-full w-full"
                             opts={{
-                                loop: false,
+                                loop: items.length > 1,
                                 align: "start",
                             }}
                         >
@@ -274,7 +269,6 @@ export function PhotoPreviewViewer({
                         variant="secondary"
                         className="h-11 w-11 rounded-full border border-border/70 bg-card/90 shadow-sm transition-colors hover:bg-secondary"
                         onClick={() => moveFocus(1)}
-                        disabled={boundedIndex >= items.length - 1}
                     >
                         <ArrowRight className="h-5 w-5"/>
                     </Button>
