@@ -289,12 +289,12 @@ export function PhotoPreviewViewer({
                     onMouseUp={stopThumbnailDrag}
                     onMouseLeave={stopThumbnailDrag}
                     className={cn(
-                        "col-span-3 min-w-0 overflow-x-auto overflow-y-hidden px-1 pb-1 pt-2 select-none",
+                        "col-span-3 min-w-0 overflow-x-auto overflow-y-hidden px-3 pb-1 pt-2 select-none",
                         isThumbnailDragging ? "cursor-grabbing" : "cursor-grab",
                         thumbnailStripClassName
                     )}
                 >
-                    <div className="flex min-w-full items-center justify-center gap-2">
+                    <div className="flex w-max min-w-full items-center justify-center gap-2">
                         {items.map((item, index) => (
                             <button
                                 key={item.id}
