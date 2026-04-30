@@ -19,35 +19,13 @@ import {Skeleton} from "@/components/ui/skeleton";
 import UserAvatar from "@/components/user-avatar";
 import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
 import {Comment, FeedItem} from "@/lib/api/schema-alias";
+import {browserApiClient} from "@/lib/api/browser-api-client";
 
 const KR = {
     deleteFailed: "게시글 삭제에 실패했습니다.",
     deleteSuccess: "게시글을 삭제했습니다.",
     deleteError: "삭제 중 오류가 발생했습니다.",
     deleteConfirm: "이 게시물을 삭제할까요?",
-};
-
-const requestDeletePost = async (postUuid: string): Promise<boolean> => {
-    try {
-        const result = await fetch("/api/group/delete-post", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({postUuid}),
-        });
-
-        if (!result.ok) {
-            toast.error(KR.deleteFailed);
-            return false;
-        }
-
-        toast.success(KR.deleteSuccess);
-        return true;
-    } catch {
-        toast.error(KR.deleteError);
-        return false;
-    }
 };
 
 export function PostCardSkeleton({
@@ -138,6 +116,32 @@ export default function PostCard({
     const [commentsSubmitting, setCommentsSubmitting] = useState(false);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
     const [imageViewerIndex, setImageViewerIndex] = useState(0);
+    
+    const requestDeletePostMutation = browserApiClient.useMutation("post", "/api/group/delete-post", {
+        onSuccess: async () => {
+            toast.success(KR.deleteSuccess);
+
+            setDetailModalOpen(false);
+            setImageViewerOpen(false);
+            setIsDeleted(true);
+            await queryClient.invalidateQueries({queryKey: ["feed"]});
+        },
+        onError: () => {
+            toast.error(KR.deleteError);
+        },
+    })
+    
+    const requestPutCommentMutation = browserApiClient.useMutation("put", "/api/post/comment", {
+        onMutate: () => setCommentsSubmitting(true),
+        onSuccess: (data) => {
+            setComments(data.map(mapCommentDto));
+        },
+        onError: () => {
+            toast.error("댓글 등록에 실패했습니다.");
+            throw new Error("Failed to create comment");
+        },
+        onSettled: () => setCommentsSubmitting(false)
+    })
 
     const photoItems = useMemo<PhotoItem[]>(
         () => [...(feedItem.photos ?? [])]
@@ -189,14 +193,8 @@ export default function PostCard({
             return;
         }
 
-        const success = await requestDeletePost(post.postUuid);
-        if (success) {
-            setDetailModalOpen(false);
-            setImageViewerOpen(false);
-            setIsDeleted(true);
-            await queryClient.invalidateQueries({queryKey: ["feed"]});
-        }
-    }, [post.postUuid, queryClient]);
+        requestDeletePostMutation.mutate({body: {postUuid: post.postUuid}})
+    }, [post.postUuid, requestDeletePostMutation]);
 
     const handleOpenEditor = useCallback(() => {
         setEditDialogKey((prev) => prev + 1);
@@ -225,33 +223,13 @@ export default function PostCard({
     }, [openImageViewer]);
 
     const handleAddComment = useCallback(async (body: string) => {
-        setCommentsSubmitting(true);
-
-        try {
-            const response = await fetch("/api/post/comment", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    postUuid: post.postUuid,
-                    content: body,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to create comment");
+        requestPutCommentMutation.mutate({
+            body: {
+                postUuid: post.postUuid,
+                content: body,
             }
-
-            const payload = await response.json() as Comment[];
-            setComments(payload.map(mapCommentDto));
-        } catch {
-            toast.error("댓글 등록에 실패했습니다.");
-            throw new Error("Failed to create comment");
-        } finally {
-            setCommentsSubmitting(false);
-        }
-    }, [mapCommentDto, post.postUuid]);
+        })
+    }, [requestPutCommentMutation, post.postUuid]);
 
     const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
         if (event.key === "Enter" || event.key === " ") {
