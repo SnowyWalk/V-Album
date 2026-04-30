@@ -3,13 +3,13 @@
 import {memo} from "react";
 
 import PhotoTile from "@/components/feed/photo-tile";
-import {FeedItemDto} from "@/dto/feed-item-dto";
+import {FeedItem} from "@/lib/api/schema-alias";
 
 function PostPhotoGrid({
     feedItem,
     onClickPhotoAction,
 }: {
-    feedItem: FeedItemDto;
+    feedItem: FeedItem;
     onClickPhotoAction?: (idx: number) => void;
 }) {
     if (!feedItem.photos || feedItem.photos.length === 0) return null;

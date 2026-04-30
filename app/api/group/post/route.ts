@@ -1,8 +1,8 @@
 import {NextRequest, NextResponse} from "next/server";
-import {createApiClient} from "@/lib/api/client";
+import {createServerApiClient} from "@/lib/api/server-api-client";
 
 export async function POST(req: NextRequest) {
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const incoming = await req.formData()
-    const content = incoming.get("content")
+    const content = incoming.get("Content")
 
     if (typeof content !== "string" || !content.trim()) {
         return NextResponse.json(
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         )
     }
 
-    const groupUuid = incoming.get("groupUuid")
+    const groupUuid = incoming.get("GroupUuid")
     if (typeof groupUuid !== "string" || !groupUuid.trim()) {
         return NextResponse.json(
             {error: "groupUuid is required"},
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const photos = incoming
-        .getAll("photos")
+        .getAll("Photos")
         .filter((value): value is File => value instanceof File);
 
     const {data, error} = await api.POST("/api/group/post", {
@@ -57,5 +57,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({error}, {status: 400});
     }
 
-    return NextResponse.json(null, {status: 200});
+    return NextResponse.json(data, {status: 200});
 }

@@ -1,9 +1,8 @@
-import {getToken} from "next-auth/jwt";
 import {NextRequest, NextResponse} from "next/server";
-import {createApiClient} from "@/lib/api/client";
+import {createServerApiClient} from "@/lib/api/server-api-client";
 
 export async function GET(req: NextRequest) {
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},

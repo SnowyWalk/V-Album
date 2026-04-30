@@ -9,11 +9,11 @@ public class Member
     public MemberRole Role { get; }
     public string? Alias { get; } = null!;
     
-    public Member(Guid memberUserUuid, Guid memberGroupUuid, string memberRole, string? memberAlias)
+    public Member(Guid userUuid, Guid groupUuid, string role, string? alias)
     {
-        UserUuid = memberUserUuid;
-        GroupUuid = memberGroupUuid;
-        Role = Enum.Parse<MemberRole>(memberRole);
-        Alias = memberAlias;
+        UserUuid = userUuid;
+        GroupUuid = groupUuid;
+        Role = Enum.Parse<MemberRole>(role);
+        Alias = alias;
     }
 }

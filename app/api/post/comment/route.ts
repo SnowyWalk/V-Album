@@ -1,9 +1,9 @@
 import {NextRequest, NextResponse} from "next/server";
-import {createApiClient} from "@/lib/api/client";
-import {components} from "@/lib/api/schema";
+import {createServerApiClient} from "@/lib/api/server-api-client";
+import {DeleteCommentRequest, PutCommentRequest} from "@/lib/api/schema-alias";
 
 export async function GET(req: NextRequest) {
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     const {searchParams} = req.nextUrl;
-    const postUuid = searchParams.get("postUuid")
+    const postUuid = searchParams.get("PostUuid")
 
     if (!postUuid) {
         return NextResponse.json(
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},
@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest) {
         );
     }
 
-    const requestBody = await req.json().catch(() => null) as components["schemas"]["PutCommentRequest"] | null;
+    const requestBody = await req.json().catch(() => null) as PutCommentRequest | null;
     if (!requestBody?.postUuid || !requestBody?.content?.trim()) {
         return NextResponse.json(
             {error: "postUuid and content are required"},
@@ -55,6 +55,34 @@ export async function PUT(req: NextRequest) {
         body: {
             postUuid: requestBody.postUuid,
             content: requestBody.content.trim(),
+        }
+    })
+
+    const payload = data ?? error ?? null;
+    return NextResponse.json(payload, {status: error ? 400 : 200});
+}
+
+export async function DELETE(req: NextRequest) {
+    const api = await createServerApiClient(req);
+    if (!api) {
+        return NextResponse.json(
+            {error: "google sub missing in NextAuth JWT"},
+            {status: 401}
+        );
+    }
+
+    const requestBody = await req.json().catch(() => null) as DeleteCommentRequest | null;
+    if (!requestBody?.postUuid || !requestBody?.commentUuid) {
+        return NextResponse.json(
+            {error: "postUuid and commentUuid are required"},
+            {status: 400}
+        );
+    }
+
+    const {data, error} = await api.DELETE("/api/post/comment", {
+        body: {
+            postUuid: requestBody.postUuid,
+            commentUuid: requestBody.commentUuid,
         }
     })
 

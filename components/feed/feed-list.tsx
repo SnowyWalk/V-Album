@@ -4,46 +4,20 @@ import {useEffect, useRef} from "react";
 import {InfiniteData, QueryFunctionContext, useInfiniteQuery} from "@tanstack/react-query";
 
 import PostCard, {PostCardSkeleton} from "@/components/feed/post-card";
-import {FeedItemDto} from "@/dto/feed-item-dto";
 import {useMyGroups} from "@/hooks/use-my-groups";
+import {browserFetchClient} from "@/lib/api/browser-api-client";
+import {FeedResponse} from "@/lib/api/schema-alias";
 
 type PageParam = {
     dateTime: string;
     postUuid: string;
 } | null;
 
-type FeedResponse = {
-    feedPosts: FeedItemDto[];
-    hasMore: boolean;
-    nextCursor: PageParam | null;
-};
-
 type FeedType = "group" | "all";
 
 type FeedQueryKey = ["feed", FeedType, string | undefined];
 
 const FEED_PAGE_LIMIT = 5;
-
-async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKey, PageParam>) {
-    const [, type, groupUuid] = queryKey;
-
-    let url = type === "all"
-        ? `/api/group/feed/all?limit=${FEED_PAGE_LIMIT}`
-        : `/api/group/feed?groupUuid=${groupUuid}&limit=${FEED_PAGE_LIMIT}`;
-
-    if (pageParam) {
-        url += `&cursorDateTime=${pageParam.dateTime}`;
-        url += `&cursorPostUuid=${pageParam.postUuid}`;
-    }
-
-    const res = await fetch(url);
-
-    if (!res.ok) {
-        throw new Error(`${type} feed fetch failed`);
-    }
-
-    return res.json();
-}
 
 interface FeedListProps {
     type: FeedType;
@@ -63,20 +37,18 @@ export default function FeedList({type, groupUuid}: FeedListProps) {
     } = useInfiniteQuery<FeedResponse, Error, InfiniteData<FeedResponse>, FeedQueryKey, PageParam>({
         queryKey: ["feed", type, groupUuid],
         queryFn: fetchFeed,
-        getNextPageParam: (lastPage) => {
-            if (!lastPage.hasMore) return null;
-            return lastPage.nextCursor;
-        },
-        initialPageParam: null,
+        getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor : undefined,
+        initialPageParam: null
     });
 
     const posts = data?.pages.flatMap((page) => page.feedPosts) ?? [];
     const shouldShowSkeletons = isLoading || isFetchingNextPage;
+    const hasNextPageRef = useRef(hasNextPage);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasNextPage) {
+                if (entries[0].isIntersecting && hasNextPageRef.current) {
                     fetchNextPage();
                 }
             },
@@ -88,7 +60,7 @@ export default function FeedList({type, groupUuid}: FeedListProps) {
         }
 
         return () => observer.disconnect();
-    }, [fetchNextPage, hasNextPage]);
+    }, [fetchNextPage]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -138,4 +110,43 @@ export default function FeedList({type, groupUuid}: FeedListProps) {
             )}
         </div>
     );
+}
+
+async function fetchFeed({pageParam, queryKey}: QueryFunctionContext<FeedQueryKey, PageParam>): Promise<FeedResponse> {
+    const [, type, groupUuid] = queryKey;
+
+    if (type === "all") {
+        const {data, error} = await browserFetchClient.GET("/api/group/feed/all", {
+            params: {
+                query: {
+                    Limit: FEED_PAGE_LIMIT,
+                    CursorDateTime: pageParam?.dateTime ?? undefined,
+                    CursorPostUuid: pageParam?.postUuid ?? undefined,
+                }
+            }
+        })
+
+        if (error) {
+            throw new Error(`${type} feed fetch failed: ${error}`);
+        }
+        return data as FeedResponse;
+    }
+    else
+    {
+        const {data, error} = await browserFetchClient.GET("/api/group/feed", {
+            params: {
+                query: {
+                    GroupUuid: groupUuid,
+                    Limit: FEED_PAGE_LIMIT,
+                    CursorDateTime: pageParam?.dateTime ?? undefined,
+                    CursorPostUuid: pageParam?.postUuid ?? undefined,
+                }
+            }
+        })
+
+        if (error) {
+            throw new Error(`${type} feed fetch failed: ${error}`);
+        }
+        return data as FeedResponse;
+    }
 }

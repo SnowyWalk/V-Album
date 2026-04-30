@@ -1,18 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
 import { useCallback, useEffect } from "react"
+import {UserDto} from "@/dto/user-dto";
 
 const meQueryKey = ["me"] as const
-
-export type MeDto = {
-  userUuid: string
-  nickname: string
-  pic: string
-}
 
 export function useMe() {
   const { status } = useSession()
   const queryClient = useQueryClient()
+  
 
   const resetMe = useCallback(() => {
     queryClient.setQueryData(meQueryKey, null)
@@ -47,7 +43,7 @@ export function useMe() {
   }
 }
 
-async function fetchMe(): Promise<MeDto | null> {
+async function fetchMe(): Promise<UserDto | null> {
   const res = await fetch("/api/user/me", {
     method: "GET",
     credentials: "include",
@@ -60,5 +56,5 @@ async function fetchMe(): Promise<MeDto | null> {
     throw new Error("Failed to fetch /api/user/me")
   }
 
-  return (await res.json()) as MeDto
+  return (await res.json()) as UserDto
 }

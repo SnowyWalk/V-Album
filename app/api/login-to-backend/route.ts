@@ -2,7 +2,7 @@ import {NextResponse, NextRequest} from "next/server"
 import {getServerSession} from "next-auth"
 import {authOptions} from "@/auth"
 import {getToken} from "next-auth/jwt"
-import {createApiClient} from "@/lib/api/client";
+import {createServerApiClient} from "@/lib/api/server-api-client";
 
 export async function POST(req: NextRequest) {
     // 1) NextAuth 세션 확인 (서버에서 직접)
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         googleIdToken, // <-- auth.ts에서 주입한 값 사용
     }
 
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const {error} = await api.POST("/api/auth/login/google", {
+    const {data, error} = await api.POST("/api/auth/login/google", {
         body: payload
     })
     
@@ -55,5 +55,5 @@ export async function POST(req: NextRequest) {
     }
 
     // 4) 성공
-    return NextResponse.json({success: true})
+    return NextResponse.json(data)
 }

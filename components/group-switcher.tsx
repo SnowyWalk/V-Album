@@ -22,34 +22,13 @@ import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {GroupDto, useMyGroups} from "@/hooks/use-my-groups";
 import {Skeleton} from "@/components/ui/skeleton";
 import {toast} from "sonner";
-import {useMutation} from "@tanstack/react-query";
 import {useMemo} from "react";
+import {browserApiClient} from "@/lib/api/browser-api-client";
 
 const dashboardGroupBanner: GroupDto = {
     groupUuid: "",
     name: "통합 피드",
     pic: "sample"
-}
-
-const RequestCreateGroup = async (): Promise<GroupDto> => {
-    const groupName = "NewGroup"
-
-    const result = await fetch("/api/group/create", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            groupName: groupName,
-        }),
-    })
-    const ret = await result.json()
-
-    type Response = {
-        createdGroup: GroupDto
-    }
-
-    return (ret as Response).createdGroup
 }
 
 export function GroupSwitcher() {
@@ -60,12 +39,10 @@ export function GroupSwitcher() {
 
     const {data: myGroups, isLoading, invalidateMyGroups} = useMyGroups()
 
-    const createGroupMutation = useMutation<GroupDto>({
-        mutationFn: RequestCreateGroup,
-        onMutate: () => {
-            toast("그룹 생성 중")
-        },
-        onSuccess: async (result: GroupDto) => {
+    const createGroupMutation = browserApiClient.useMutation("post", "/api/group/create", {
+        onMutate: () => toast("그룹 생성 중"),
+        onSuccess: async (res) => {
+            const result = res.createdGroup;
             toast(`${result.name} 그룹 생성됨`)
             await invalidateMyGroups()
             router.push(`/group/${result.groupUuid}/feed`)
@@ -143,7 +120,7 @@ export function GroupSwitcher() {
                             ))
                         }
                         <DropdownMenuSeparator/>
-                        <DropdownMenuItem className="gap-2 p-2" onClick={() => createGroupMutation.mutate()}>
+                        <DropdownMenuItem className="gap-2 p-2" onClick={() => createGroupMutation.mutate({body: {groupName: "NewGroup"}})}>
                             <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                                 <Plus className="size-4"/>
                             </div>

@@ -20,9 +20,9 @@ import {Button} from "@/components/ui/button";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Textarea} from "@/components/ui/textarea";
-import {FeedItemDto} from "@/dto/feed-item-dto";
 import {useUser} from "@/hooks/use-user";
 import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
+import {FeedItem} from "@/lib/api/schema-alias";
 
 export type LocalPostComment = {
     commentUuid: string;
@@ -34,7 +34,7 @@ export type LocalPostComment = {
 type PostDetailModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    feedItem: FeedItemDto;
+    feedItem: FeedItem;
     initialPhotoIndex?: number;
     postContent: string;
     bookmarked: boolean;
@@ -331,7 +331,7 @@ export default function PostDetailModal({
                             <div className="mb-6 flex items-center justify-between pt-3 lg:mb-8">
                                 <div className="flex items-center gap-1">
                                     <LikeButton
-                                        key={`${feedItem.post.postUuid}-${feedItem.likedByMe}-${feedItem.likeCount}-modal`}
+                                        key={feedItem.post.postUuid}
                                         postUuid={feedItem.post.postUuid}
                                         initialLiked={feedItem.likedByMe}
                                         initialLikeCount={feedItem.likeCount}

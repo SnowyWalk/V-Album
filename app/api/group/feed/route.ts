@@ -1,13 +1,12 @@
-import {getToken} from "next-auth/jwt";
 import {NextRequest, NextResponse} from "next/server";
-import {createApiClient} from "@/lib/api/client";
+import {createServerApiClient} from "@/lib/api/server-api-client";
 
 export async function GET(req: NextRequest) {
     const {searchParams} = req.nextUrl;
-    const groupUuid = searchParams.get("groupUuid")
-    const limitRaw = searchParams.get("limit") || "10";
-    const cursorDateTime = searchParams.get("cursorDateTime");
-    const cursorPostUuid = searchParams.get("cursorPostUuid");
+    const groupUuid = searchParams.get("GroupUuid")
+    const limitRaw = searchParams.get("Limit") || "10";
+    const cursorDateTime = searchParams.get("CursorDateTime");
+    const cursorPostUuid = searchParams.get("CursorPostUuid");
     
     if (groupUuid == null) {
         return NextResponse.json(
@@ -24,7 +23,7 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},

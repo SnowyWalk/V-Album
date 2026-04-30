@@ -670,8 +670,8 @@ export interface components {
         Group: {
             /** Format: uuid */
             groupUuid: string;
-            name?: string | null;
-            pic?: string | null;
+            name: string;
+            pic: string | null;
         };
         /** Format: binary */
         IFormFile: Blob;
@@ -685,9 +685,9 @@ export interface components {
         };
         Photo: {
             /** Format: uuid */
-            photoUuid?: string;
+            photoUuid: string;
             /** Format: uuid */
-            postUuid?: string;
+            postUuid: string;
             /** Format: int32 */
             sortOrder: number;
             /** Format: uuid */
@@ -699,7 +699,7 @@ export interface components {
             /** Format: int64 */
             size: number;
             /** Format: byte */
-            hash?: string | null;
+            hash: string;
             format: string | null;
         };
         Post: {
