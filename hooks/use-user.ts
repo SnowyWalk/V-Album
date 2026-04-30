@@ -2,7 +2,7 @@ import {useQuery} from "@tanstack/react-query";
 import {UserDto} from "@/dto/user-dto";
 
 async function fetchUser(uuid: string): Promise<UserDto> {
-    const res = await fetch(`/api/users/avatar/${uuid}`);
+    const res = await fetch(`/api/user/avatar/${uuid}`);
     if (!res.ok) throw new Error("Failed to fetch user");
     return res.json();
 }

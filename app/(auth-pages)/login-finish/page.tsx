@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import {browserApiClient} from "@/lib/api/browser-api-client";
 
 export default function LoginFinishPage() {
     const router = useRouter()

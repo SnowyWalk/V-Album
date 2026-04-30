@@ -1,9 +1,9 @@
 import {NextRequest, NextResponse} from "next/server";
-import {createApiClient} from "@/lib/api/client";
-import {components} from "@/lib/api/schema";
+import {createServerApiClient} from "@/lib/api/server-api-client";
+import {PutLikeRequest} from "@/lib/api/schema-alias";
 
 async function proxyLikeRequest(req: NextRequest, method: "PUT" | "DELETE") {
-    const api = await createApiClient(req);
+    const api = await createServerApiClient(req);
     if (!api) {
         return NextResponse.json(
             {error: "google sub missing in NextAuth JWT"},
@@ -11,7 +11,7 @@ async function proxyLikeRequest(req: NextRequest, method: "PUT" | "DELETE") {
         );
     }
 
-    const requestBody = await req.json().catch(() => null) as components["schemas"]["PutLikeRequest"] | null;
+    const requestBody = await req.json().catch(() => null) as PutLikeRequest | null;
     if (!requestBody?.postUuid || !requestBody?.mutationUuid) {
         return NextResponse.json(
             {error: "postUuid and mutationUuid are required"},

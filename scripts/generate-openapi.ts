@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import ts from "typescript";
 import openapiTS, { astToString } from "openapi-typescript";
+import { generateSchemaAlias } from "./generate-schema-alias";
 
 const BLOB = ts.factory.createTypeReferenceNode(
     ts.factory.createIdentifier("Blob")
@@ -20,6 +21,7 @@ async function main() {
 
     const contents = astToString(ast);
     fs.writeFileSync("./lib/api/schema.d.ts", contents);
+    generateSchemaAlias();
 }
 
 main().catch((err) => {

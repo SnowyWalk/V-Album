@@ -4,12 +4,11 @@ import type {MouseEvent} from "react";
 
 import {cn, GetPhotoUrl} from "@/lib/utils";
 import LazyImage from "@/components/lazy-image";
-import {PhotoDto} from "@/dto/photo-dto";
-import {PostDto} from "@/dto/post-dto";
+import {Photo, Post} from "@/lib/api/schema-alias";
 
 export default function PhotoTile({post, photos, idx, onClickPhotoAction, className}: {
-    post: PostDto;
-    photos: PhotoDto[] | null;
+    post: Post;
+    photos: Photo[] | null;
     idx: number;
     onClickPhotoAction?: (idx: number) => void;
     className?: string

@@ -12,16 +12,16 @@ public class Photo
     public byte[] Hash { get; }
     public string? Format { get; }
     
-    public Photo(Guid photoPhotoUuid, Guid photoPostUuid, int sortOrder, Guid? worldUuid, int width, int height, long size, byte[] photoHash, string? format)
+    public Photo(Guid photoUuid, Guid postUuid, int sortOrder, Guid? worldUuid, int width, int height, long size, byte[] hash, string? format)
     {
-        PhotoUuid = photoPhotoUuid;
-        PostUuid = photoPostUuid;
+        PhotoUuid = photoUuid;
+        PostUuid = postUuid;
         SortOrder = sortOrder;
         WorldUuid = worldUuid;
         Width = width;
         Height = height;
         Size = size;
-        Hash = photoHash;
+        Hash = hash;
         Format = format;
     }
 }

@@ -17,9 +17,8 @@ import TimeAgo from "@/components/time-ago";
 import {ImageViewer, PhotoItem} from "@/components/image-viewer";
 import {Skeleton} from "@/components/ui/skeleton";
 import UserAvatar from "@/components/user-avatar";
-import {FeedItemDto} from "@/dto/feed-item-dto";
-import {PostCommentsDto} from "@/dto/post-comment-dto";
 import {cn, formatCount, GetPhotoUrl} from "@/lib/utils";
+import {Comment, FeedItem} from "@/lib/api/schema-alias";
 
 const KR = {
     deleteFailed: "게시글 삭제에 실패했습니다.",
@@ -110,7 +109,7 @@ export function PostCardSkeleton({
 }
 
 type PostCardProps = {
-    feedItem: FeedItemDto;
+    feedItem: FeedItem;
     groupName?: string;
     groupUuid?: string;
     groupPic?: string | null;
@@ -152,7 +151,7 @@ export default function PostCard({
     const postContent = updatedContent ?? post.content ?? "";
     const commentCount = comments.length;
 
-    const mapCommentDto = useCallback((comment: PostCommentsDto[number]): LocalPostComment => ({
+    const mapCommentDto = useCallback((comment: Comment): LocalPostComment => ({
         commentUuid: comment.commentUuid,
         userUuid: comment.userUuid,
         body: comment.content,
@@ -163,7 +162,7 @@ export default function PostCard({
         setCommentsLoading(true);
 
         try {
-            const response = await fetch(`/api/post/comment?postUuid=${encodeURIComponent(post.postUuid)}`, {
+            const response = await fetch(`/api/post/comment?PostUuid=${encodeURIComponent(post.postUuid)}`, {
                 method: "GET",
                 cache: "no-store",
             });
@@ -172,7 +171,7 @@ export default function PostCard({
                 throw new Error("Failed to fetch comments");
             }
 
-            const payload = await response.json() as PostCommentsDto;
+            const payload = await response.json() as Comment[];
             setComments(payload.map(mapCommentDto));
         } catch {
             toast.error("댓글을 불러오지 못했습니다.");
@@ -244,7 +243,7 @@ export default function PostCard({
                 throw new Error("Failed to create comment");
             }
 
-            const payload = await response.json() as PostCommentsDto;
+            const payload = await response.json() as Comment[];
             setComments(payload.map(mapCommentDto));
         } catch {
             toast.error("댓글 등록에 실패했습니다.");
@@ -340,7 +339,7 @@ export default function PostCard({
                 <div className="flex items-center justify-between px-3 py-2">
                     <div className="flex items-center" onClick={stopEvent}>
                         <LikeButton
-                            key={`${post.postUuid}-${feedItem.likedByMe}-${feedItem.likeCount}-card`}
+                            key={post.postUuid}
                             postUuid={post.postUuid}
                             initialLiked={feedItem.likedByMe}
                             initialLikeCount={feedItem.likeCount}

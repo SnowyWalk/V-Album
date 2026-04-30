@@ -11,12 +11,11 @@ import {
     X,
 } from "lucide-react";
 import Image from "next/image";
-import type {ChangeEvent, DragEvent} from "react";
+import {ChangeEvent, DragEvent} from "react";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
 import {PhotoPreviewViewer} from "@/components/photo-preview-viewer";
-import {PhotoDto} from "@/dto/photo-dto";
 import {GetPhotoUrl, cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {
@@ -28,12 +27,14 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import {Textarea} from "@/components/ui/textarea";
+import {browserApiClient} from "@/lib/api/browser-api-client";
+import {Photo} from "@/lib/api/schema-alias";
 
 type ExistingPhotoDraft = {
     id: string;
     kind: "existing";
     previewUrl: string;
-    photo: PhotoDto;
+    photo: Photo;
 };
 
 type NewPhotoDraft = {
@@ -48,15 +49,15 @@ type PhotoDraft = ExistingPhotoDraft | NewPhotoDraft;
 interface PostEditorDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    mode: "create" | "edit";
+    mode: PostMode;
     groupUuid: string;
     postUuid?: string;
     initialContent?: string | null;
-    initialPhotos?: PhotoDto[] | null;
-    onSubmitted?: (result: {content: string; photoCount: number}) => void | Promise<void>;
+    initialPhotos?: Photo[] | null;
+    onSubmitted?: (result: { content: string; photoCount: number }) => void | Promise<void>;
 }
 
-function createInitialPhotos(groupUuid: string, postUuid: string | undefined, photos: PhotoDto[] | null | undefined): PhotoDraft[] {
+function createInitialPhotos(groupUuid: string, postUuid: string | undefined, photos: Photo[] | null | undefined): PhotoDraft[] {
     if (!postUuid || !photos?.length) {
         return [];
     }
@@ -88,16 +89,23 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
     return next;
 }
 
+export const PostMode = {
+    CREATE: "create" as const,
+    EDIT: "edit" as const,
+}
+
+export type PostMode = typeof PostMode[keyof typeof PostMode];
+
 export default function PostEditorDialog({
-    open,
-    onOpenChange,
-    mode,
-    groupUuid,
-    postUuid,
-    initialContent = "",
-    initialPhotos = [],
-    onSubmitted,
-}: PostEditorDialogProps) {
+                                             open,
+                                             onOpenChange,
+                                             mode,
+                                             groupUuid,
+                                             postUuid,
+                                             initialContent = "",
+                                             initialPhotos = [],
+                                             onSubmitted,
+                                         }: PostEditorDialogProps) {
     const initialDraftPhotos = createInitialPhotos(groupUuid, postUuid, initialPhotos);
 
     const [content, setContent] = useState(initialContent ?? "");
@@ -106,13 +114,40 @@ export default function PostEditorDialog({
     const [draggingPhotoId, setDraggingPhotoId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const createPostMutation = browserApiClient.useMutation("post", "/api/group/post", {
+        onError: (error) => {
+            setIsSubmitting(false);
+            throw new Error(error || "저장에 실패했습니다.")
+        },
+        onSuccess: async () => {
+            toast.success("게시글을 작성했습니다.")
+            await queryClient.invalidateQueries({queryKey: ["feed"]});
+            await onSubmitted?.({content, photoCount: photos.length});
+            onOpenChange(false);
+            setIsSubmitting(false);
+        },
+    })
+    const updatePostMutation = browserApiClient.useMutation("post", "/api/group/update-post", {
+        onError: (error) => {
+            setIsSubmitting(false);
+            throw new Error(error || "저장에 실패했습니다.")
+        },
+        onSuccess: async () => {
+            toast.success("게시글을 수정했습니다.")
+            await queryClient.invalidateQueries({queryKey: ["feed"]});
+            await onSubmitted?.({content, photoCount: photos.length});
+            onOpenChange(false);
+            setIsSubmitting(false);
+        },
+    })
+    
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const photosRef = useRef<PhotoDraft[]>(photos);
-    const selectedPhotoIdRef = useRef<string | null>(selectedPhotoId);
-    photosRef.current = photos;
-    selectedPhotoIdRef.current = selectedPhotoId;
-
+    useEffect(() => {
+        photosRef.current = photos;
+    }, [photos]);
+    
     useEffect(() => {
         return () => {
             photosRef.current.forEach(revokeDraftUrl);
@@ -217,254 +252,237 @@ export default function PostEditorDialog({
             return;
         }
 
+        if (mode == PostMode.EDIT && !postUuid) {
+            throw new Error("수정할 게시글 정보가 올바르지 않습니다.");
+        }
+
         setIsSubmitting(true);
 
-        try {
-            const formData = new FormData();
-            formData.append("content", content);
-
-            let endpoint = "/api/group/post";
-
-            if (mode === "create") {
-                formData.append("groupUuid", groupUuid);
-                photos.forEach((photo) => {
-                    if (photo.kind === "new") {
-                        formData.append("photos", photo.file);
+        switch (mode) {
+            case PostMode.CREATE:
+                createPostMutation.mutate({
+                    body: {
+                        Content: content,
+                        GroupUuid: groupUuid,
+                        Photos: photos.filter(e => e.kind === "new").map(e => e.file)
                     }
-                });
-            } else {
-                if (!postUuid) {
-                    throw new Error("수정할 게시글 정보가 올바르지 않습니다.");
-                }
+                })
+                break;
 
-                endpoint = "/api/group/update-post";
-                formData.append("postUuid", postUuid);
-                formData.append(
-                    "photoOrder",
-                    JSON.stringify(
-                        photos.map((photo) =>
-                            photo.kind === "existing"
-                                ? `existing:${photo.photo.photoUuid}`
-                                : `new:${photo.id}`
-                        )
-                    )
-                );
-
-                photos.forEach((photo) => {
-                    if (photo.kind === "new") {
-                        formData.append("newPhotoClientIds", photo.id);
-                        formData.append("newPhotos", photo.file);
+            case PostMode.EDIT:
+                updatePostMutation.mutate({
+                    body: {
+                        Content: content,
+                        PostUuid: postUuid,
+                        PhotoOrder: JSON.stringify(photos.map(e => e.kind === "existing" ? `existing:${e.photo.photoUuid}` : `new:${e.id}`)),
+                        NewPhotos: photos.filter(e => e.kind === "new").map(e => e.file),
+                        NewPhotoClientIds: photos.filter(e => e.kind === "new").map(e => e.id)
                     }
-                });
-            }
-
-            const response = await fetch(endpoint, {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || "저장에 실패했습니다.");
-            }
-
-            toast.success(mode === "create" ? "게시글을 작성했습니다." : "게시글을 수정했습니다.");
-            await queryClient.invalidateQueries({queryKey: ["feed"]});
-            await onSubmitted?.({content, photoCount: photos.length});
-            onOpenChange(false);
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : "저장에 실패했습니다.");
-        } finally {
-            setIsSubmitting(false);
+                })
+                break;
         }
     };
 
-    const title = mode === "create" ? "게시글 작성" : "게시글 수정";
-    const description = mode === "create"
+    const title = mode == PostMode.CREATE ? "게시글 작성" : "게시글 수정";
+    const description = mode == PostMode.CREATE
         ? "사진을 추가하고 순서를 정한 뒤 글을 함께 작성할 수 있습니다."
         : "사진을 추가하거나 삭제하고 순서를 바꾼 뒤 글까지 한 번에 수정할 수 있습니다.";
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="h-[min(92vh,980px)] w-[calc(100vw-1rem)] max-w-none gap-0 overflow-hidden rounded-[calc(var(--radius)+10px)] border border-border/80 bg-card p-0 shadow-2xl shadow-primary/15 ring-1 ring-border/80 dark:shadow-primary/30 dark:ring-primary/18 sm:w-[min(96vw,1320px)] sm:max-w-[min(96vw,1320px)]">
-                <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[inherit] bg-card">
-                <div className="border-b border-border/70 bg-secondary/72 px-5 py-3 sm:px-6 sm:py-4">
-                    <DialogHeader>
-                        <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
-                        <DialogDescription>{description}</DialogDescription>
-                    </DialogHeader>
-                </div>
+            <DialogContent
+                className="h-[min(92vh,980px)] w-[calc(100vw-1rem)] max-w-none gap-0 overflow-hidden rounded-[calc(var(--radius)+10px)] border border-border/80 bg-card p-0 shadow-2xl shadow-primary/15 ring-1 ring-border/80 dark:shadow-primary/30 dark:ring-primary/18 sm:w-[min(96vw,1320px)] sm:max-w-[min(96vw,1320px)]">
+                <div
+                    className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[inherit] bg-card">
+                    <div className="border-b border-border/70 bg-secondary/72 px-5 py-3 sm:px-6 sm:py-4">
+                        <DialogHeader>
+                            <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
+                            <DialogDescription>{description}</DialogDescription>
+                        </DialogHeader>
+                    </div>
 
-                <div className="grid min-h-0 min-w-0 flex-1 gap-0 overflow-hidden bg-background xl:grid-cols-[minmax(0,1fr)_420px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
-                    <section className="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-hidden border-b border-border/70 bg-card p-4 sm:p-5 xl:border-r xl:border-b-0 xl:p-6">
-                        <PhotoPreviewViewer
-                            items={previewItems}
-                            selectedIndex={Math.max(selectedIndex, 0)}
-                            onSelectedIndexChange={(index) => setSelectedPhotoId(photos[index]?.id ?? null)}
-                            priorityIndex={selectedIndex}
-                            onDragOver={(event) => event.preventDefault()}
-                            onDrop={handleDrop}
-                            onEmptyClick={() => fileInputRef.current?.click()}
-                        />
+                    <div
+                        className="grid min-h-0 min-w-0 flex-1 gap-0 overflow-hidden bg-background xl:grid-cols-[minmax(0,1fr)_420px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
+                        <section
+                            className="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-hidden border-b border-border/70 bg-card p-4 sm:p-5 xl:border-r xl:border-b-0 xl:p-6">
+                            <PhotoPreviewViewer
+                                items={previewItems}
+                                selectedIndex={Math.max(selectedIndex, 0)}
+                                onSelectedIndexChange={(index) => setSelectedPhotoId(photos[index]?.id ?? null)}
+                                priorityIndex={selectedIndex}
+                                onDragOver={(event) => event.preventDefault()}
+                                onDrop={handleDrop}
+                                onEmptyClick={() => fileInputRef.current?.click()}
+                            />
 
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                        />
-
-                        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card/70 p-3 shadow-sm sm:p-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                                <div className="space-y-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <div className="text-sm font-semibold tracking-tight">사진 순서</div>
-                                        <div className="inline-flex items-center rounded-full border border-transparent bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground shadow-sm">
-                                            <span className="tabular-nums">{photos.length}</span>
-                                            <span className="ml-1 text-muted-foreground">장</span>
-                                        </div>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">드래그하거나 화살표 버튼으로 사진 순서를 조정하세요.</div>
-                                </div>
-                                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                    <Plus className="mr-2 h-4 w-4"/>
-                                    사진 추가
-                                </Button>
-                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
+                            />
 
                             <div
-                                tabIndex={0}
-                                className="mt-4 min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden"
-                            >
-                                <div className="flex min-h-full w-max min-w-full items-stretch gap-3 pb-3 pr-1">
-                                    {photos.map((photo, index) => (
-                                        <div
-                                            key={photo.id}
-                                            draggable
-                                            onDragStart={(event) => handleThumbnailDragStart(event, photo.id)}
-                                            onDragEnd={() => setDraggingPhotoId(null)}
-                                            onDragOver={(event) => event.preventDefault()}
-                                            onDrop={() => {
-                                                if (draggingPhotoId) {
-                                                    movePhotoTo(draggingPhotoId, photo.id);
-                                                }
-                                            }}
-                                            className={cn(
-                                                "group relative flex w-[176px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition lg:w-[184px]",
-                                                selectedPhoto?.id === photo.id && "border-primary/60 ring-2 ring-primary/15 shadow-md",
-                                                draggingPhotoId === photo.id && "opacity-50"
-                                            )}
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => setSelectedPhotoId(photo.id)}
-                                            className="relative block aspect-video w-full bg-secondary/45"
-                                        >
-                                                <Image
-                                                    src={photo.previewUrl}
-                                                    alt={`photo-${index + 1}`}
-                                                    fill
-                                                    className="object-contain p-2"
-                                                    unoptimized
-                                                    draggable={false}
-                                                />
-                                            </button>
-                                            <div className="border-t border-border/60 p-2.5">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <GripVertical className="h-3.5 w-3.5"/>
-                                                        <span>{index + 1}</span>
-                                                    </div>
-                                                    <div className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary-foreground">
-                                                        {photo.kind === "existing" ? "기존" : "신규"}
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2 flex items-center gap-1">
-                                                    <Button
-                                                        type="button"
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        className="h-8 w-8"
-                                                        disabled={index === 0}
-                                                        onClick={() => movePhotoByOffset(photo.id, -1)}
-                                                    >
-                                                        <ArrowLeft className="h-4 w-4"/>
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        className="h-8 w-8"
-                                                        disabled={index === photos.length - 1}
-                                                        onClick={() => movePhotoByOffset(photo.id, 1)}
-                                                    >
-                                                        <ArrowRight className="h-4 w-4"/>
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        className="ml-auto h-8 w-8 text-muted-foreground hover:text-destructive"
-                                                        onClick={() => removePhoto(photo.id)}
-                                                    >
-                                                        <X className="h-4 w-4"/>
-                                                    </Button>
-                                                </div>
+                                className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card/70 p-3 shadow-sm sm:p-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div className="space-y-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <div className="text-sm font-semibold tracking-tight">사진 순서</div>
+                                            <div
+                                                className="inline-flex items-center rounded-full border border-transparent bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground shadow-sm">
+                                                <span className="tabular-nums">{photos.length}</span>
+                                                <span className="ml-1 text-muted-foreground">장</span>
                                             </div>
                                         </div>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="flex h-[156px] w-[176px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-secondary/35 text-muted-foreground transition hover:bg-secondary/55 hover:text-foreground lg:h-[162px] lg:w-[184px]"
-                                    >
-                                        <ImageIcon className="h-7 w-7"/>
-                                        <span className="text-sm font-medium">사진 추가</span>
-                                    </button>
+                                        <div className="text-xs text-muted-foreground">드래그하거나 화살표 버튼으로 사진 순서를 조정하세요.
+                                        </div>
+                                    </div>
+                                    <Button type="button" variant="outline"
+                                            onClick={() => fileInputRef.current?.click()}>
+                                        <Plus className="mr-2 h-4 w-4"/>
+                                        사진 추가
+                                    </Button>
+                                </div>
+
+                                <div
+                                    tabIndex={0}
+                                    className="mt-4 min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden"
+                                >
+                                    <div className="flex min-h-full w-max min-w-full items-stretch gap-3 pb-3 pr-1">
+                                        {photos.map((photo, index) => (
+                                            <div
+                                                key={photo.id}
+                                                draggable
+                                                onDragStart={(event) => handleThumbnailDragStart(event, photo.id)}
+                                                onDragEnd={() => setDraggingPhotoId(null)}
+                                                onDragOver={(event) => event.preventDefault()}
+                                                onDrop={() => {
+                                                    if (draggingPhotoId) {
+                                                        movePhotoTo(draggingPhotoId, photo.id);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "group relative flex w-[176px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition lg:w-[184px]",
+                                                    selectedPhoto?.id === photo.id && "border-primary/60 ring-2 ring-primary/15 shadow-md",
+                                                    draggingPhotoId === photo.id && "opacity-50"
+                                                )}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedPhotoId(photo.id)}
+                                                    className="relative block aspect-video w-full bg-secondary/45"
+                                                >
+                                                    <Image
+                                                        src={photo.previewUrl}
+                                                        alt={`photo-${index + 1}`}
+                                                        fill
+                                                        className="object-contain p-2"
+                                                        unoptimized
+                                                        draggable={false}
+                                                    />
+                                                </button>
+                                                <div className="border-t border-border/60 p-2.5">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div
+                                                            className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                            <GripVertical className="h-3.5 w-3.5"/>
+                                                            <span>{index + 1}</span>
+                                                        </div>
+                                                        <div
+                                                            className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary-foreground">
+                                                            {photo.kind === "existing" ? "기존" : "신규"}
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-2 flex items-center gap-1">
+                                                        <Button
+                                                            type="button"
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8"
+                                                            disabled={index === 0}
+                                                            onClick={() => movePhotoByOffset(photo.id, -1)}
+                                                        >
+                                                            <ArrowLeft className="h-4 w-4"/>
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8"
+                                                            disabled={index === photos.length - 1}
+                                                            onClick={() => movePhotoByOffset(photo.id, 1)}
+                                                        >
+                                                            <ArrowRight className="h-4 w-4"/>
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="ml-auto h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            onClick={() => removePhoto(photo.id)}
+                                                        >
+                                                            <X className="h-4 w-4"/>
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="flex h-[156px] w-[176px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-secondary/35 text-muted-foreground transition hover:bg-secondary/55 hover:text-foreground lg:h-[162px] lg:w-[184px]"
+                                        >
+                                            <ImageIcon className="h-7 w-7"/>
+                                            <span className="text-sm font-medium">사진 추가</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
 
-                    <section className="min-h-0 min-w-0 overflow-y-auto bg-secondary/14 px-4 pb-4 pt-0 sm:px-5 sm:pb-5 sm:pt-0 xl:px-5 xl:pb-5 xl:pt-0">
-                        <div className="flex flex-col gap-4 xl:mx-auto xl:w-full xl:max-w-[408px] 2xl:max-w-[424px]">
-                            <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-                                <div className="mb-3 text-sm font-medium">글 내용</div>
-                                <Textarea
-                                    value={content}
-                                    onChange={(event) => setContent(event.target.value)}
-                                    placeholder="사진과 함께 남길 이야기를 적어보세요..."
-                                    className="min-h-[220px] resize-none border-0 bg-transparent px-3 py-3 shadow-none focus-visible:ring-0"
-                                />
+                        <section
+                            className="min-h-0 min-w-0 overflow-y-auto bg-secondary/14 px-4 pb-4 pt-0 sm:px-5 sm:pb-5 sm:pt-0 xl:px-5 xl:pb-5 xl:pt-0">
+                            <div
+                                className="flex flex-col gap-4 xl:mx-auto xl:w-full xl:max-w-[408px] 2xl:max-w-[424px]">
+                                <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+                                    <div className="mb-3 text-sm font-medium">글 내용</div>
+                                    <Textarea
+                                        value={content}
+                                        onChange={(event) => setContent(event.target.value)}
+                                        placeholder="사진과 함께 남길 이야기를 적어보세요..."
+                                        className="min-h-[220px] resize-none border-0 bg-transparent px-3 py-3 shadow-none focus-visible:ring-0"
+                                    />
+                                </div>
+
+                                <div
+                                    className="rounded-2xl border border-border/70 bg-secondary/65 p-4 text-sm text-muted-foreground shadow-sm">
+                                    <div className="font-medium text-foreground">편집 안내</div>
+                                    <div className="mt-2">사진을 선택해 크게 보고, 드래그로 순서를 바꾸고, 필요 없는 사진은 바로 제거할 수 있습니다.</div>
+                                </div>
                             </div>
+                        </section>
+                    </div>
 
-                            <div className="rounded-2xl border border-border/70 bg-secondary/65 p-4 text-sm text-muted-foreground shadow-sm">
-                                <div className="font-medium text-foreground">편집 안내</div>
-                                <div className="mt-2">사진을 선택해 크게 보고, 드래그로 순서를 바꾸고, 필요 없는 사진은 바로 제거할 수 있습니다.</div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-
-                <DialogFooter className="border-t border-border/70 bg-card px-5 py-3 sm:px-6">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-                        취소
-                    </Button>
-                    <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                저장 중
-                            </>
-                        ) : mode === "create" ? (
-                            "게시하기"
-                        ) : (
-                            "수정 완료"
-                        )}
-                    </Button>
-                </DialogFooter>
+                    <DialogFooter className="border-t border-border/70 bg-card px-5 py-3 sm:px-6">
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}
+                                disabled={isSubmitting}>
+                            취소
+                        </Button>
+                        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                    저장 중
+                                </>
+                            ) : mode == PostMode.CREATE ? (
+                                "게시하기"
+                            ) : (
+                                "수정 완료"
+                            )}
+                        </Button>
+                    </DialogFooter>
                 </div>
             </DialogContent>
         </Dialog>
