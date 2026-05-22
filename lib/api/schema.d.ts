@@ -507,9 +507,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UserDto"];
-                        "application/json": components["schemas"]["UserDto"];
-                        "text/json": components["schemas"]["UserDto"];
+                        "text/plain": components["schemas"]["User"];
+                        "application/json": components["schemas"]["User"];
+                        "text/json": components["schemas"]["User"];
                     };
                 };
             };
@@ -546,9 +546,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["GetGroupsResponse"];
-                        "application/json": components["schemas"]["GetGroupsResponse"];
-                        "text/json": components["schemas"]["GetGroupsResponse"];
+                        "text/plain": components["schemas"]["Group"][];
+                        "application/json": components["schemas"]["Group"][];
+                        "text/json": components["schemas"]["Group"][];
                     };
                 };
             };
@@ -585,9 +585,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UserDto"];
-                        "application/json": components["schemas"]["UserDto"];
-                        "text/json": components["schemas"]["UserDto"];
+                        "text/plain": components["schemas"]["User"];
+                        "application/json": components["schemas"]["User"];
+                        "text/json": components["schemas"]["User"];
                     };
                 };
             };
@@ -656,9 +656,6 @@ export interface components {
             feedPosts: components["schemas"]["FeedItem"][];
             hasMore: boolean;
             nextCursor: components["schemas"]["FeedCursor"];
-        };
-        GetGroupsResponse: {
-            groups: components["schemas"]["Group"][];
         };
         GoogleLoginRequest: {
             googleIdToken: string | null;
@@ -730,7 +727,7 @@ export interface components {
             /** Format: uuid */
             mutationUuid: string;
         } | null;
-        UserDto: {
+        User: {
             /** Format: uuid */
             userUuid: string;
             nickname: string;

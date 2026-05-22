@@ -19,13 +19,14 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {GroupDto, useMyGroups} from "@/hooks/use-my-groups";
+import {useMyGroups} from "@/hooks/use-my-groups";
 import {Skeleton} from "@/components/ui/skeleton";
 import {toast} from "sonner";
 import {useMemo} from "react";
 import {browserApiClient} from "@/lib/api/browser-api-client";
+import {Group} from "@/lib/api/schema-alias";
 
-const dashboardGroupBanner: GroupDto = {
+const dashboardGroupBanner: Group = {
     groupUuid: "",
     name: "통합 피드",
     pic: "sample"
@@ -51,7 +52,7 @@ export function GroupSwitcher() {
 
     const displayGroups = useMemo(() => {
         if (!myGroups) return [dashboardGroupBanner];
-        return [dashboardGroupBanner, ...myGroups.groups];
+        return [dashboardGroupBanner, ...myGroups];
     }, [myGroups]);
 
     const activeGroup = displayGroups.find(g => g.groupUuid === activeGroupUuid) ?? displayGroups[0] ?? null
@@ -133,7 +134,7 @@ export function GroupSwitcher() {
     )
 }
 
-const ActiveGroup = ({activeGroup, isLoading}: { activeGroup: GroupDto | null, isLoading: boolean }) => {
+const ActiveGroup = ({activeGroup, isLoading}: { activeGroup: Group | null, isLoading: boolean }) => {
     if (activeGroup == null || isLoading)
         return (
             <>

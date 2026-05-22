@@ -81,7 +81,7 @@ export function NavUser() {
     const {status: sessionStatus, update: sessionUpdate} = useSession();
     const {data: me, isLoading: isMeLoading, resetMe} = useMe()
     const router = useRouter();
-
+    
     const ThemeChangeMenuItem = () => {
         return (
             <DropdownMenuItem

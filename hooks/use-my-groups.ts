@@ -1,18 +1,10 @@
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {useCallback} from "react";
 import {useSession} from "next-auth/react";
+import {browserApiClient} from "@/lib/api/browser-api-client";
+import {Group} from "@/lib/api/schema-alias";
 
 const queryKey = ["my-groups"]
-
-export type GroupDto = {
-    groupUuid: string
-    name: string
-    pic: string | null
-}
-
-export type MyGroupsDto = {
-    groups: GroupDto[]
-}
 
 export function useMyGroups() {
     const { status } = useSession()
@@ -36,18 +28,11 @@ export function useMyGroups() {
     return { ...query, resetMyGroups, invalidateMyGroups };
 }
 
-async function fetchMyGroups(): Promise<MyGroupsDto | null> {
-    const res = await fetch("/api/user/groups", {
-        method: "GET",
-        credentials: "include",
-    })
+async function fetchMyGroups(): Promise<Group[]> {   
+    const { data, error } = browserApiClient.useQuery("get", "/api/user/groups")
     
-    // 로그인 안 된 상태
-    if (res.status === 401) 
-        return null
-
-    if (!res.ok)
-        throw new Error("Failed to fetch /api/user/groups")
+    if (error)
+        return [];
     
-    return (await res.json()) as MyGroupsDto
+    return data!;
 }

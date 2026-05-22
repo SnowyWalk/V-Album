@@ -66,7 +66,7 @@ export default function FeedList({type, groupUuid}: FeedListProps) {
         <div className="flex flex-col gap-6">
             {posts.map(({post, photos, likedByMe, likeCount}) => {
                 const group = type === "all"
-                    ? myGroups?.groups.find((item) => item.groupUuid === post.groupUuid)
+                    ? myGroups?.find((item) => item.groupUuid === post.groupUuid)
                     : null;
 
                 return (
@@ -83,7 +83,7 @@ export default function FeedList({type, groupUuid}: FeedListProps) {
 
             {shouldShowSkeletons && Array.from({length: FEED_PAGE_LIMIT}, (_, index) => (
                 <PostCardSkeleton
-                    key={`feed-skeleton-${type}-${posts.length}-${index}`}
+                    key={`feed-skeleton-${index}`}
                     index={index}
                     showGroupHeader={type === "all"}
                 />

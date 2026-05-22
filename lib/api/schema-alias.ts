@@ -14,7 +14,6 @@ export type PutLikeRequest = schema["PutLikeRequest"];
 // Response
 export type CreateResponse = schema["CreateResponse"];
 export type FeedResponse = schema["FeedResponse"];
-export type GetGroupsResponse = schema["GetGroupsResponse"];
 export type GoogleLoginResponse = schema["GoogleLoginResponse"];
 export type LikeResponse = schema["LikeResponse"];
 export type PostResponse = schema["PostResponse"];
@@ -27,5 +26,5 @@ export type Group = schema["Group"];
 export type IFormFile = schema["IFormFile"];
 export type Photo = schema["Photo"];
 export type Post = schema["Post"];
-export type UserDto = schema["UserDto"];
+export type User = schema["User"];
 

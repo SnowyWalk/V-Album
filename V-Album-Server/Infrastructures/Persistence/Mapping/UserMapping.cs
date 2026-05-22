@@ -3,6 +3,6 @@ public static class UserMapping
 {
     public static DomainUser ToDomain(this UserEntity user)
     {
-        return new DomainUser(user.UserUuid, user.Nickname, user.GoogleSub, user.Pic);
+        return new DomainUser(user.UserUuid, user.Nickname, user.Pic);
     }
 }

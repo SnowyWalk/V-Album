@@ -1,8 +1,8 @@
 "use client";
 
-import type {KeyboardEvent, SyntheticEvent} from "react";
+import {JSX, KeyboardEvent, SyntheticEvent} from "react";
 import {useCallback, useMemo, useState} from "react";
-import {useQueryClient} from "@tanstack/react-query";
+import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {Bookmark, MessageCircle, Share2, Users} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,12 +29,12 @@ const KR = {
 };
 
 export function PostCardSkeleton({
-    showGroupHeader = false,
-    index = 0,
-}: {
+                                     showGroupHeader = false,
+                                     index = 0,
+                                 }: {
     showGroupHeader?: boolean;
     index?: number;
-}) {
+}): JSX.Element {
     const contentWidths = [
         ["w-11/12", "w-4/5", "w-2/3"],
         ["w-5/6", "w-3/4", "w-1/2"],
@@ -86,6 +86,13 @@ export function PostCardSkeleton({
     );
 }
 
+const mapCommentDto = (comment: Comment): LocalPostComment => ({
+    commentUuid: comment.commentUuid,
+    userUuid: comment.userUuid,
+    body: comment.content,
+    createdAt: comment.createdAt,
+});
+
 type PostCardProps = {
     feedItem: FeedItem;
     groupName?: string;
@@ -95,12 +102,12 @@ type PostCardProps = {
 };
 
 export default function PostCard({
-    feedItem,
-    groupName,
-    groupUuid,
-    groupPic,
-    isAllFeed = false,
-}: PostCardProps) {
+                                     feedItem,
+                                     groupName,
+                                     groupUuid,
+                                     groupPic,
+                                     isAllFeed = false,
+                                 }: PostCardProps) {
     const post = feedItem.post;
     const queryClient = useQueryClient();
 
@@ -111,12 +118,34 @@ export default function PostCard({
     const [updatedContent, setUpdatedContent] = useState<string | null>(null);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [detailModalFocusComment, setDetailModalFocusComment] = useState(false);
-    const [comments, setComments] = useState<LocalPostComment[]>([]);
-    const [commentsLoading, setCommentsLoading] = useState(false);
     const [commentsSubmitting, setCommentsSubmitting] = useState(false);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
     const [imageViewerIndex, setImageViewerIndex] = useState(0);
-    
+
+    const commentsQueryOptions = browserApiClient.queryOptions("get", "/api/post/comment", {
+        params: {
+            query: {
+                PostUuid: post.postUuid
+            }
+        }
+    })
+    const {
+        data: commentsResponse,
+        isLoading: isCommentsLoading,
+        refetch: commentsRefetch,
+    } = useQuery({
+        ...commentsQueryOptions,
+        select: (payload: Comment[]): LocalPostComment[] => payload.map(mapCommentDto),
+        enabled: false, // 직접 fire
+    })
+
+    const fetchComments = useCallback(async () => {
+        const result = await commentsRefetch();
+        if (result.isError) {
+            toast.error("댓글을 불러오지 못했습니다.");
+        }
+    }, [commentsRefetch]);
+
     const requestDeletePostMutation = browserApiClient.useMutation("post", "/api/group/delete-post", {
         onSuccess: async () => {
             toast.success(KR.deleteSuccess);
@@ -130,11 +159,11 @@ export default function PostCard({
             toast.error(KR.deleteError);
         },
     })
-    
+
     const requestPutCommentMutation = browserApiClient.useMutation("put", "/api/post/comment", {
         onMutate: () => setCommentsSubmitting(true),
         onSuccess: (data) => {
-            setComments(data.map(mapCommentDto));
+            queryClient.setQueryData(commentsQueryOptions.queryKey, data);
         },
         onError: () => {
             toast.error("댓글 등록에 실패했습니다.");
@@ -153,36 +182,6 @@ export default function PostCard({
     );
 
     const postContent = updatedContent ?? post.content ?? "";
-    const commentCount = comments.length;
-
-    const mapCommentDto = useCallback((comment: Comment): LocalPostComment => ({
-        commentUuid: comment.commentUuid,
-        userUuid: comment.userUuid,
-        body: comment.content,
-        createdAt: comment.createdAt,
-    }), []);
-
-    const fetchComments = useCallback(async () => {
-        setCommentsLoading(true);
-
-        try {
-            const response = await fetch(`/api/post/comment?PostUuid=${encodeURIComponent(post.postUuid)}`, {
-                method: "GET",
-                cache: "no-store",
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch comments");
-            }
-
-            const payload = await response.json() as Comment[];
-            setComments(payload.map(mapCommentDto));
-        } catch {
-            toast.error("댓글을 불러오지 못했습니다.");
-        } finally {
-            setCommentsLoading(false);
-        }
-    }, [mapCommentDto, post.postUuid]);
 
     const stopEvent = (event: SyntheticEvent) => {
         event.stopPropagation();
@@ -262,7 +261,8 @@ export default function PostCard({
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             )}
                         >
-                            <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
+                            <div
+                                className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted">
                                 {groupPic ? (
                                     <Image
                                         src={`/group-pics/${groupPic}.png`}
@@ -333,7 +333,7 @@ export default function PostCard({
                             )}
                         >
                             <MessageCircle className="h-4.5 w-4.5"/>
-                            <span className="text-xs font-medium tabular-nums">{formatCount(commentCount)}</span>
+                            <span className="text-xs font-medium tabular-nums">{commentsResponse ? formatCount(commentsResponse.length) : '-'}</span>
                         </button>
 
                         <button
@@ -397,8 +397,8 @@ export default function PostCard({
                     onToggleBookmark={() => setBookmarked((prev) => !prev)}
                     onEdit={handleOpenEditorFromDetail}
                     onDelete={handleDelete}
-                    comments={comments}
-                    commentsLoading={commentsLoading}
+                    comments={commentsResponse ?? []}
+                    commentsLoading={isCommentsLoading}
                     commentsSubmitting={commentsSubmitting}
                     onAddComment={handleAddComment}
                     focusCommentComposer={detailModalFocusComment}
