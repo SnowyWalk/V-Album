@@ -1,7 +1,7 @@
 import {useQuery, useQueryClient} from "@tanstack/react-query"
 import {useSession} from "next-auth/react"
 import {useCallback, useEffect} from "react"
-import {browserApiClient} from "@/lib/api/browser-api-client";
+import {browserFetchClient} from "@/lib/api/browser-api-client";
 import {User} from "@/lib/api/schema-alias";
 
 const meQueryKey = ["me"] as const
@@ -9,8 +9,8 @@ const meQueryKey = ["me"] as const
 export function useMe() {
     const {status} = useSession()
     const queryClient = useQueryClient()
-
-
+    
+    
     const resetMe = useCallback(() => {
         queryClient.setQueryData(meQueryKey, null)
     }, [queryClient])
@@ -45,7 +45,7 @@ export function useMe() {
 }
 
 async function fetchMe(): Promise<User | null> {
-    const {data, error} = browserApiClient.useQuery("get", "/api/user/me");
+    const {data, error} = await browserFetchClient.GET("/api/user/me");
     if (error)
         return null;
     return data!;

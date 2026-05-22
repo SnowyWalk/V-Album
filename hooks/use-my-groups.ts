@@ -1,7 +1,7 @@
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {useCallback} from "react";
 import {useSession} from "next-auth/react";
-import {browserApiClient} from "@/lib/api/browser-api-client";
+import {browserFetchClient} from "@/lib/api/browser-api-client";
 import {Group} from "@/lib/api/schema-alias";
 
 const queryKey = ["my-groups"]
@@ -29,7 +29,7 @@ export function useMyGroups() {
 }
 
 async function fetchMyGroups(): Promise<Group[]> {   
-    const { data, error } = browserApiClient.useQuery("get", "/api/user/groups")
+    const { data, error } = await browserFetchClient.GET("/api/user/groups")
     
     if (error)
         return [];
